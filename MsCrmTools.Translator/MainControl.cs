@@ -202,12 +202,12 @@ namespace MsCrmTools.Translator
 
                         if (pInfo.Overall != 0)
                         {
-                            pbOverall.Value = pInfo.Overall;
+                            pbOverall.Value = pInfo.Overall > pbOverall.Maximum ? pbOverall.Maximum : pInfo.Overall;
                         }
 
                         if (pInfo.Item != 0)
                         {
-                            pbItem.Value = pInfo.Item;
+                            pbItem.Value = pInfo.Item > pbItem.Maximum ? pbItem.Maximum : pInfo.Item;
                         }
 
                         if (pInfo.Message != null)
