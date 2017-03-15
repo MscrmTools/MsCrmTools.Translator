@@ -212,8 +212,6 @@ namespace MsCrmTools.Translator.AppCode
                 {
                     var request = new UpdateEntityRequest {Entity = entityUpdate};
 
-                    throw new Exception("test");
-
                     service.Execute(request);
 
                     OnResult(new TranslationResultEventArgs
