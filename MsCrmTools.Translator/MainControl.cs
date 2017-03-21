@@ -284,5 +284,53 @@ namespace MsCrmTools.Translator
         public string RepositoryName => "MscrmTools.Translator";
         public string UserName => "MscrmTools";
         public string HelpUrl => "https://github.com/MscrmTools/MsCrmTools.Translator/wiki";
+
+        private void llGlobalSelector_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
+        {
+            bool newStatus;
+            if (llGlobalSelector.Text == "Clear all")
+            {
+                newStatus = false;
+                llGlobalSelector.Text = "Select all";
+            }
+            else
+            {
+                newStatus = true;
+                llGlobalSelector.Text = "Clear all";
+            }
+
+            foreach (var ctrl in gbGlobalOptions.Controls)
+            {
+                var cb = ctrl as CheckBox;
+                if (cb != null)
+                {
+                    cb.Checked = newStatus;
+                }
+            }
+        }
+
+        private void llRelatedSelector_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
+        {
+            bool newStatus;
+            if (llRelatedSelector.Text == "Clear all")
+            {
+                newStatus = false;
+                llRelatedSelector.Text = "Select all";
+            }
+            else
+            {
+                newStatus = true;
+                llRelatedSelector.Text = "Clear all";
+            }
+
+            foreach (var ctrl in gbEntitiesOptions.Controls)
+            {
+                var cb = ctrl as CheckBox;
+                if (cb != null)
+                {
+                    cb.Checked = newStatus;
+                }
+            }
+        }
     }
 }
