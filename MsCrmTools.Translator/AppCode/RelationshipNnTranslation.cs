@@ -42,9 +42,20 @@ namespace MsCrmTools.Translator.AppCode
                     rmds.Add(rmd);
                 }
 
-                int columnIndex = 5;
+                if (rmd == null)
+                {
+                    OnResult(new TranslationResultEventArgs
+                    {
+                        Success = false,
+                        SheetName = sheet.Name,
+                        Message = $"Unable to find relationship '{ZeroBasedSheet.Cell(sheet, rowI, 2).Value}' for entity '{ZeroBasedSheet.Cell(sheet, rowI, 0).Value}"
+                    });
+                    continue;
+                }
 
-                if (ZeroBasedSheet.Cell(sheet, rowI, 4).Value.ToString() == "Entity1")
+                int columnIndex = 3;
+
+                if (rmd.Entity1LogicalName == ZeroBasedSheet.Cell(sheet, rowI, 0).Value.ToString())
                 {
                     rmd.Entity1AssociatedMenuConfiguration.Label = new Label();
 
@@ -61,7 +72,7 @@ namespace MsCrmTools.Translator.AppCode
                         columnIndex++;
                     }
                 }
-                else if (ZeroBasedSheet.Cell(sheet, rowI, columnIndex).ToString() == "Entity2")
+                else if (rmd.Entity2LogicalName == ZeroBasedSheet.Cell(sheet, rowI, 0).Value.ToString())
                 {
                     rmd.Entity2AssociatedMenuConfiguration.Label = new Label();
 
@@ -72,10 +83,20 @@ namespace MsCrmTools.Translator.AppCode
                             var lcid = int.Parse(ZeroBasedSheet.Cell(sheet, 0, columnIndex).Value.ToString());
                             var label = ZeroBasedSheet.Cell(sheet, rowI, columnIndex).Value.ToString();
 
-                            rmd.Entity2AssociatedMenuConfiguration.Label.LocalizedLabels.Add(new LocalizedLabel(label, lcid));
+                            rmd.Entity2AssociatedMenuConfiguration.Label.LocalizedLabels.Add(new LocalizedLabel(label,
+                                lcid));
                         }
                         columnIndex++;
                     }
+                }
+                else
+                {
+                    OnResult(new TranslationResultEventArgs
+                    {
+                        Success = false,
+                        SheetName = sheet.Name,
+                        Message = $"Unable to find entity '{ZeroBasedSheet.Cell(sheet, rowI, 0).Value}' in relationship '{ZeroBasedSheet.Cell(sheet, rowI, 2).Value}"
+                    });
                 }
             }
 
@@ -119,7 +140,6 @@ namespace MsCrmTools.Translator.AppCode
         internal void Export(List<EntityMetadata> entities, List<int> languages, ExcelWorksheet sheet)
         {
             var line = 1;
-            var exportedRelationships = new List<Guid>();
 
             AddHeader(sheet, languages);
 
@@ -127,33 +147,25 @@ namespace MsCrmTools.Translator.AppCode
             {
                 foreach (var rel in entity.ManyToManyRelationships.ToList())
                 {
-                    if (exportedRelationships.Contains(rel.MetadataId.Value))
-                    {
-                        continue;
-                    }
-                    exportedRelationships.Add(rel.MetadataId.Value);
-
                     var cell = 0;
+                    
+                    var amc = rel.Entity1LogicalName == entity.LogicalName ? rel.Entity1AssociatedMenuConfiguration : rel.Entity2AssociatedMenuConfiguration;
 
-                    if ((!rel.Entity1AssociatedMenuConfiguration.Behavior.HasValue || rel.Entity1AssociatedMenuConfiguration.Behavior.Value != AssociatedMenuBehavior.UseLabel)
-                        && (!rel.Entity2AssociatedMenuConfiguration.Behavior.HasValue || rel.Entity2AssociatedMenuConfiguration.Behavior.Value != AssociatedMenuBehavior.UseLabel))
+                    if (!(amc.Behavior.HasValue && amc.Behavior.Value == AssociatedMenuBehavior.UseLabel))
                         continue;
 
-                    // entity1Label
-                    ZeroBasedSheet.Cell(sheet, line, cell++).Value = rel.Entity2LogicalName;
+                    ZeroBasedSheet.Cell(sheet, line, cell++).Value = entity.LogicalName;
                     ZeroBasedSheet.Cell(sheet, line, cell++).Value = rel.MetadataId.Value.ToString("B");
                     ZeroBasedSheet.Cell(sheet, line, cell++).Value = rel.IntersectEntityName;
-                    ZeroBasedSheet.Cell(sheet, line, cell++).Value = rel.Entity1LogicalName;
-                    ZeroBasedSheet.Cell(sheet, line, cell++).Value = "Entity1";
-
+                
                     foreach (var lcid in languages)
                     {
                         var entity1Label = string.Empty;
 
-                        if (rel.Entity1AssociatedMenuConfiguration.Label != null)
+                        if (amc.Label != null)
                         {
                             var displayNameLabel =
-                                rel.Entity1AssociatedMenuConfiguration.Label.LocalizedLabels.FirstOrDefault(l => l.LanguageCode == lcid);
+                                amc.Label.LocalizedLabels.FirstOrDefault(l => l.LanguageCode == lcid);
                             if (displayNameLabel != null)
                             {
                                 entity1Label = displayNameLabel.Label;
@@ -162,47 +174,20 @@ namespace MsCrmTools.Translator.AppCode
 
                         ZeroBasedSheet.Cell(sheet, line, cell++).Value = entity1Label;
                     }
-
-                    // Description
-                    line++;
-                    cell = 0;
-                    // entity2Label
-                    ZeroBasedSheet.Cell(sheet, line, cell++).Value = rel.Entity1LogicalName;
-                    ZeroBasedSheet.Cell(sheet, line, cell++).Value = rel.MetadataId.Value.ToString("B");
-                    ZeroBasedSheet.Cell(sheet, line, cell++).Value = rel.IntersectEntityName;
-                    ZeroBasedSheet.Cell(sheet, line, cell++).Value = rel.Entity2LogicalName;
-                    ZeroBasedSheet.Cell(sheet, line, cell++).Value = "Entity2";
-
-                    foreach (var lcid in languages)
-                    {
-                        var entity2Label = string.Empty;
-
-                        if (rel.Entity2AssociatedMenuConfiguration.Label != null)
-                        {
-                            var displayNameLabel =
-                                rel.Entity2AssociatedMenuConfiguration.Label.LocalizedLabels.FirstOrDefault(l => l.LanguageCode == lcid);
-                            if (displayNameLabel != null)
-                            {
-                                entity2Label = displayNameLabel.Label;
-                            }
-                        }
-
-                        ZeroBasedSheet.Cell(sheet, line, cell++).Value = entity2Label;
-                    }
-
+                    
                     line++;
                 }
             }
 
             // Applying style to cells
-            for (int i = 0; i < (5 + languages.Count); i++)
+            for (int i = 0; i < (3 + languages.Count); i++)
             {
                 StyleMutator.TitleCell(ZeroBasedSheet.Cell(sheet, 0, i).Style);
             }
 
             for (int i = 1; i < line; i++)
             {
-                for (int j = 0; j < 5; j++)
+                for (int j = 0; j < 3; j++)
                 {
                     StyleMutator.HighlightedCell(ZeroBasedSheet.Cell(sheet, i, j).Style);
                 }
@@ -216,9 +201,7 @@ namespace MsCrmTools.Translator.AppCode
             ZeroBasedSheet.Cell(sheet, 0, cell++).Value = "Entity";
             ZeroBasedSheet.Cell(sheet, 0, cell++).Value = "Relationship Id";
             ZeroBasedSheet.Cell(sheet, 0, cell++).Value = "Relationship Intersect Entity";
-            ZeroBasedSheet.Cell(sheet, 0, cell++).Value = "Relationship entity";
-            ZeroBasedSheet.Cell(sheet, 0, cell++).Value = "Type";
-
+            
             foreach (var lcid in languages)
             {
                 ZeroBasedSheet.Cell(sheet, 0, cell++).Value = lcid.ToString(CultureInfo.InvariantCulture);
