@@ -314,7 +314,7 @@ namespace MsCrmTools.Translator.AppCode
                     {
                         Success = false,
                         SheetName = sheet.Name,
-                        Message = $"{request.EntityLogicalName}/{request.AttributeLogicalName}: {error.Message}"
+                        Message = $"{request.OptionSetName}: {error.Message}"
                     });
                 }
 

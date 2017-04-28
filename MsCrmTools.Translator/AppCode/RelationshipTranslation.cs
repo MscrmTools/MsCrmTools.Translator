@@ -20,32 +20,62 @@ namespace MsCrmTools.Translator.AppCode
             var cellsCount = sheet.Dimension.Columns;
             for (var rowI = 1; rowI < rowsCount; rowI++)
             {
-                var rmd = rmds.FirstOrDefault(r => r.MetadataId == new Guid(ZeroBasedSheet.Cell(sheet, rowI, 1).Value.ToString()));
+                OnResult(new TranslationResultEventArgs
+                {
+                    Success = false,
+                    SheetName = sheet.Name,
+                    Message = $"1:{rowI}"
+                });
+
+                var rmd = rmds.FirstOrDefault(r => ZeroBasedSheet.Cell(sheet, rowI, 1).Value != null && r.MetadataId == new Guid(ZeroBasedSheet.Cell(sheet, rowI, 1).Value.ToString()));
                 if (rmd == null)
                 {
-                    var currentEntity = emds.FirstOrDefault(e => e.LogicalName == ZeroBasedSheet.Cell(sheet, rowI, 0).Value.ToString());
+                    OnResult(new TranslationResultEventArgs
+                    {
+                        Success = false,
+                        SheetName = sheet.Name,
+                        Message = $"2:{rowI}"
+                    });
+
+                    var currentEntity = emds.FirstOrDefault(e => e.LogicalName == ZeroBasedSheet.Cell(sheet, rowI, 0).Value?.ToString());
                     if (currentEntity == null)
                     {
                         var request = new RetrieveEntityRequest
                         {
                             LogicalName = ZeroBasedSheet.Cell(sheet, rowI, 0).Value.ToString(),
-                            EntityFilters = EntityFilters.Relationships
+                            EntityFilters = EntityFilters.Entity | EntityFilters.Attributes | EntityFilters.Relationships
                         };
 
-                        var response = ((RetrieveEntityResponse)service.Execute(request));
+                        var response = (RetrieveEntityResponse)service.Execute(request);
                         currentEntity = response.EntityMetadata;
 
                         emds.Add(currentEntity);
                     }
 
+                    OnResult(new TranslationResultEventArgs
+                    {
+                        Success = false,
+                        SheetName = sheet.Name,
+                        Message = $"3:{rowI}"
+
+                    });
+
                     rmd =
                         currentEntity.OneToManyRelationships.FirstOrDefault(
-                            r => r.SchemaName == ZeroBasedSheet.Cell(sheet, rowI, 2).Value.ToString());
+                            r => r.SchemaName == ZeroBasedSheet.Cell(sheet, rowI, 2).Value?.ToString());
                     if (rmd == null)
                     {
+                        OnResult(new TranslationResultEventArgs
+                        {
+                            Success = false,
+                            SheetName = sheet.Name,
+                            Message = $"4:{rowI}"
+
+                        });
+
                         rmd =
                             currentEntity.ManyToOneRelationships.FirstOrDefault(
-                                r => r.SchemaName == ZeroBasedSheet.Cell(sheet, rowI, 2).Value.ToString());
+                                r => r.SchemaName == ZeroBasedSheet.Cell(sheet, rowI, 2).Value?.ToString());
                     }
 
                     rmds.Add(rmd);

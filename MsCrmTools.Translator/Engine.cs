@@ -258,42 +258,44 @@ namespace MsCrmTools.Translator
             int overallProgress = 0;
             foreach (var sheet in file.Workbook.Worksheets)
             {
-                switch (sheet.Name)
+                try
                 {
-                    case "Entities":
-                        worker.ReportProgressIfPossible(0, new ProgressInfo
-                        {
-                            Message = "Importing entities translations...",
-                            Item = 1,
-                            Overall = overallProgress == 0 ? 1 : overallProgress*100/count
-                        });
+                    switch (sheet.Name)
+                    {
+                        case "Entities":
+                            worker.ReportProgressIfPossible(0, new ProgressInfo
+                            {
+                                Message = "Importing entities translations...",
+                                Item = 1,
+                                Overall = overallProgress == 0 ? 1 : overallProgress*100/count
+                            });
 
-                        var et = new EntityTranslation();
-                        et.Result += Engine_OnResult;
-                        et.Import(sheet, emds, service, worker);
+                            var et = new EntityTranslation();
+                            et.Result += Engine_OnResult;
+                            et.Import(sheet, emds, service, worker);
 
-                        break;
+                            break;
 
-                    case "Attributes":
-                        worker.ReportProgressIfPossible(0, new ProgressInfo
-                        {
-                            Message = "Importing attributes translations...",
-                            Item = 1,
-                            Overall = overallProgress == 0 ? 1 : overallProgress * 100 / count
-                        });
+                        case "Attributes":
+                            worker.ReportProgressIfPossible(0, new ProgressInfo
+                            {
+                                Message = "Importing attributes translations...",
+                                Item = 1,
+                                Overall = overallProgress == 0 ? 1 : overallProgress*100/count
+                            });
 
-                        var at = new AttributeTranslation();
-                        at.Result += Engine_OnResult;
-                        at.Import(sheet, emds, service, worker);
-                        break;
+                            var at = new AttributeTranslation();
+                            at.Result += Engine_OnResult;
+                            at.Import(sheet, emds, service, worker);
+                            break;
 
-                    case "Relationships":
+                        case "Relationships":
                         {
                             worker.ReportProgressIfPossible(0, new ProgressInfo
                             {
                                 Message = "Importing Relationships with custom label translations...",
                                 Item = 1,
-                                Overall = overallProgress == 0 ? 1 : overallProgress * 100 / count
+                                Overall = overallProgress == 0 ? 1 : overallProgress*100/count
                             });
 
                             var rt = new RelationshipTranslation();
@@ -301,13 +303,13 @@ namespace MsCrmTools.Translator
                             rt.Import(sheet, emds, service, worker);
                             break;
                         }
-                    case "RelationshipsNN":
+                        case "RelationshipsNN":
                         {
                             worker.ReportProgressIfPossible(0, new ProgressInfo
                             {
                                 Message = "Importing NN Relationships with custom label translations...",
                                 Item = 1,
-                                Overall = overallProgress == 0 ? 1 : overallProgress * 100 / count
+                                Overall = overallProgress == 0 ? 1 : overallProgress*100/count
                             });
 
                             var rtNn = new RelationshipNnTranslation();
@@ -315,176 +317,188 @@ namespace MsCrmTools.Translator
                             rtNn.Import(sheet, emds, service, worker);
                             break;
                         }
-                    case "Global OptionSets":
-                        worker.ReportProgressIfPossible(0, new ProgressInfo
-                        {
-                            Message = "Importing global optionsets translations...",
-                            Item = 1,
-                            Overall = overallProgress == 0 ? 1 : overallProgress * 100 / count
-                        });
+                        case "Global OptionSets":
+                            worker.ReportProgressIfPossible(0, new ProgressInfo
+                            {
+                                Message = "Importing global optionsets translations...",
+                                Item = 1,
+                                Overall = overallProgress == 0 ? 1 : overallProgress*100/count
+                            });
 
-                        var got = new GlobalOptionSetTranslation();
-                        got.Result += Engine_OnResult;
-                        got.Import(sheet, service, worker);
-                        break;
+                            var got = new GlobalOptionSetTranslation();
+                            got.Result += Engine_OnResult;
+                            got.Import(sheet, service, worker);
+                            break;
 
-                    case "OptionSets":
-                        worker.ReportProgressIfPossible(0, new ProgressInfo
-                        {
-                            Message = "Importing optionsets translations...",
-                            Item = 1,
-                            Overall = overallProgress == 0 ? 1 : overallProgress * 100 / count
-                        });
+                        case "OptionSets":
+                            worker.ReportProgressIfPossible(0, new ProgressInfo
+                            {
+                                Message = "Importing optionsets translations...",
+                                Item = 1,
+                                Overall = overallProgress == 0 ? 1 : overallProgress*100/count
+                            });
 
-                        var ot = new OptionSetTranslation();
-                        ot.Result += Engine_OnResult;
-                        ot.Import(sheet, service, worker);
-                        break;
+                            var ot = new OptionSetTranslation();
+                            ot.Result += Engine_OnResult;
+                            ot.Import(sheet, service, worker);
+                            break;
 
-                    case "Booleans":
-                        worker.ReportProgressIfPossible(0, new ProgressInfo
-                        {
-                            Message = "Importing booleans translations...",
-                            Item = 1,
-                            Overall = overallProgress == 0 ? 1 : overallProgress * 100 / count
-                        });
+                        case "Booleans":
+                            worker.ReportProgressIfPossible(0, new ProgressInfo
+                            {
+                                Message = "Importing booleans translations...",
+                                Item = 1,
+                                Overall = overallProgress == 0 ? 1 : overallProgress*100/count
+                            });
 
-                        var bt = new BooleanTranslation();
-                        bt.Result += Engine_OnResult;
-                        bt.Import(sheet, service, worker);
-                        break;
+                            var bt = new BooleanTranslation();
+                            bt.Result += Engine_OnResult;
+                            bt.Import(sheet, service, worker);
+                            break;
 
-                    case "Views":
-                        worker.ReportProgressIfPossible(0, new ProgressInfo
-                        {
-                            Message = "Importing views translations...",
-                            Item = 1,
-                            Overall = overallProgress == 0 ? 1 : overallProgress * 100 / count
-                        });
+                        case "Views":
+                            worker.ReportProgressIfPossible(0, new ProgressInfo
+                            {
+                                Message = "Importing views translations...",
+                                Item = 1,
+                                Overall = overallProgress == 0 ? 1 : overallProgress*100/count
+                            });
 
-                        var vt = new ViewTranslation();
-                        vt.Result += Engine_OnResult;
-                        vt.Import(sheet, service, worker);
-                        break;
+                            var vt = new ViewTranslation();
+                            vt.Result += Engine_OnResult;
+                            vt.Import(sheet, service, worker);
+                            break;
 
-                    case "Charts":
-                        worker.ReportProgressIfPossible(0, new ProgressInfo
-                        {
-                            Message = "Importing charts translations...",
-                            Item = 1,
-                            Overall = overallProgress == 0 ? 1 : overallProgress * 100 / count
-                        });
+                        case "Charts":
+                            worker.ReportProgressIfPossible(0, new ProgressInfo
+                            {
+                                Message = "Importing charts translations...",
+                                Item = 1,
+                                Overall = overallProgress == 0 ? 1 : overallProgress*100/count
+                            });
 
-                        var vt2 = new VisualizationTranslation();
-                        vt2.Result += Engine_OnResult;
-                        vt2.Import(sheet, service, worker);
-                        break;
+                            var vt2 = new VisualizationTranslation();
+                            vt2.Result += Engine_OnResult;
+                            vt2.Import(sheet, service, worker);
+                            break;
 
-                    case "Forms":
-                        worker.ReportProgressIfPossible(0, new ProgressInfo
-                        {
-                            Message = "Importing forms translations...",
-                            Item = 1,
-                            Overall = overallProgress == 0 ? 1 : overallProgress * 100 / count
-                        });
+                        case "Forms":
+                            worker.ReportProgressIfPossible(0, new ProgressInfo
+                            {
+                                Message = "Importing forms translations...",
+                                Item = 1,
+                                Overall = overallProgress == 0 ? 1 : overallProgress*100/count
+                            });
 
-                        ft.ImportFormName(sheet, service, worker);
-                        break;
+                            ft.ImportFormName(sheet, service, worker);
+                            break;
 
-                    case "Forms Tabs":
-                        ft.PrepareFormTabs(sheet, service, forms);
-                        hasFormContent = true;
-                        break;
+                        case "Forms Tabs":
+                            ft.PrepareFormTabs(sheet, service, forms);
+                            hasFormContent = true;
+                            break;
 
-                    case "Forms Sections":
-                        ft.PrepareFormSections(sheet, service, forms);
-                        hasFormContent = true;
-                        break;
+                        case "Forms Sections":
+                            ft.PrepareFormSections(sheet, service, forms);
+                            hasFormContent = true;
+                            break;
 
-                    case "Forms Fields":
-                        ft.PrepareFormLabels(sheet, service, forms);
-                        hasFormContent = true;
-                        break;
+                        case "Forms Fields":
+                            ft.PrepareFormLabels(sheet, service, forms);
+                            hasFormContent = true;
+                            break;
 
-                    case "Dashboards":
-                        worker.ReportProgressIfPossible(0, new ProgressInfo
-                        {
-                            Message = "Importing dashboard translations...",
-                            Item = 1,
-                            Overall = overallProgress == 0 ? 1 : overallProgress * 100 / count
-                        });
+                        case "Dashboards":
+                            worker.ReportProgressIfPossible(0, new ProgressInfo
+                            {
+                                Message = "Importing dashboard translations...",
+                                Item = 1,
+                                Overall = overallProgress == 0 ? 1 : overallProgress*100/count
+                            });
 
-                        db.ImportFormName(sheet, service, worker);
-                        break;
+                            db.ImportFormName(sheet, service, worker);
+                            break;
 
-                    case "Dashboards Tabs":
-                        db.PrepareFormTabs(sheet, service, forms);
-                        hasDashboardContent = true;
-                        break;
+                        case "Dashboards Tabs":
+                            db.PrepareFormTabs(sheet, service, forms);
+                            hasDashboardContent = true;
+                            break;
 
-                    case "Dashboards Sections":
-                        db.PrepareFormSections(sheet, service, forms);
-                        hasDashboardContent = true;
-                        break;
+                        case "Dashboards Sections":
+                            db.PrepareFormSections(sheet, service, forms);
+                            hasDashboardContent = true;
+                            break;
 
-                    case "Dashboards Fields":
-                        db.PrepareFormLabels(sheet, service, forms);
-                        hasDashboardContent = true;
-                        break;
+                        case "Dashboards Fields":
+                            db.PrepareFormLabels(sheet, service, forms);
+                            hasDashboardContent = true;
+                            break;
 
-                    case "SiteMap Areas":
-                        st.PrepareAreas(sheet, service);
-                        hasSiteMapContent = true;
-                        break;
+                        case "SiteMap Areas":
+                            st.PrepareAreas(sheet, service);
+                            hasSiteMapContent = true;
+                            break;
 
-                    case "SiteMap Groups":
-                        st.PrepareGroups(sheet, service);
-                        hasSiteMapContent = true;
-                        break;
+                        case "SiteMap Groups":
+                            st.PrepareGroups(sheet, service);
+                            hasSiteMapContent = true;
+                            break;
 
-                    case "SiteMap SubAreas":
-                        st.PrepareSubAreas(sheet, service);
-                        hasSiteMapContent = true;
-                        break;
-                }
+                        case "SiteMap SubAreas":
+                            st.PrepareSubAreas(sheet, service);
+                            hasSiteMapContent = true;
+                            break;
+                    }
 
-                if (hasFormContent)
-                {
-                    worker.ReportProgressIfPossible(0, new ProgressInfo
+                    if (hasFormContent)
                     {
-                        Message = "Importing form content translations...",
-                        Item = 1,
-                        Overall = overallProgress == 0 ? 1 : overallProgress * 100 / count
-                    });
+                        worker.ReportProgressIfPossible(0, new ProgressInfo
+                        {
+                            Message = "Importing form content translations...",
+                            Item = 1,
+                            Overall = overallProgress == 0 ? 1 : overallProgress*100/count
+                        });
 
-                    ft.ImportFormsContent(service, forms, worker);
-                }
+                        ft.ImportFormsContent(service, forms, worker);
+                    }
 
-                if (hasDashboardContent)
-                {
-                    worker.ReportProgressIfPossible(0, new ProgressInfo
+                    if (hasDashboardContent)
                     {
-                        Message = "Importing dashboard content translations...",
-                        Item = 1,
-                        Overall = overallProgress == 0 ? 1 : overallProgress * 100 / count
-                    });
+                        worker.ReportProgressIfPossible(0, new ProgressInfo
+                        {
+                            Message = "Importing dashboard content translations...",
+                            Item = 1,
+                            Overall = overallProgress == 0 ? 1 : overallProgress*100/count
+                        });
 
-                    db.ImportFormsContent(service, forms, worker);
-                }
+                        db.ImportFormsContent(service, forms, worker);
+                    }
 
-                if (hasSiteMapContent)
-                {
-                    worker.ReportProgressIfPossible(0, new ProgressInfo
+                    if (hasSiteMapContent)
                     {
-                        Message = "Importing SiteMap translations...",
-                        Item = 1,
-                        Overall = overallProgress == 0 ? 1 : overallProgress * 100 / count
-                    });
+                        worker.ReportProgressIfPossible(0, new ProgressInfo
+                        {
+                            Message = "Importing SiteMap translations...",
+                            Item = 1,
+                            Overall = overallProgress == 0 ? 1 : overallProgress*100/count
+                        });
 
-                    st.Import(service);
+                        st.Import(service);
+                    }
                 }
-
-                overallProgress++;
+                catch (Exception error)
+                {
+                    Engine_OnResult(this, new TranslationResultEventArgs
+                    {
+                        Success = false,
+                        SheetName = sheet.Name,
+                        Message = error.Message
+                    });
+                }
+                finally
+                {
+                    overallProgress++;
+                }
             }
 
             worker.ReportProgressIfPossible(0, new ProgressInfo
