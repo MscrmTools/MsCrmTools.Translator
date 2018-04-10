@@ -34,7 +34,9 @@ namespace MsCrmTools.Translator
             this.toolStripMenu = new System.Windows.Forms.ToolStrip();
             this.tsbClose = new System.Windows.Forms.ToolStripButton();
             this.toolStripSeparator1 = new System.Windows.Forms.ToolStripSeparator();
-            this.tsbLoadEntities = new System.Windows.Forms.ToolStripButton();
+            this.tsddbLoadEntities = new System.Windows.Forms.ToolStripDropDownButton();
+            this.tsmiAllEntities = new System.Windows.Forms.ToolStripMenuItem();
+            this.tsmiEntitiesFromASolution = new System.Windows.Forms.ToolStripMenuItem();
             this.toolStripSeparator2 = new System.Windows.Forms.ToolStripSeparator();
             this.tsbExportTranslations = new System.Windows.Forms.ToolStripButton();
             this.toolStripSeparator3 = new System.Windows.Forms.ToolStripSeparator();
@@ -42,6 +44,11 @@ namespace MsCrmTools.Translator
             this.tabControl1 = new System.Windows.Forms.TabControl();
             this.tabPage1 = new System.Windows.Forms.TabPage();
             this.groupBox2 = new System.Windows.Forms.GroupBox();
+            this.gbLabelExportOptions = new System.Windows.Forms.GroupBox();
+            this.rdbDescOnly = new System.Windows.Forms.RadioButton();
+            this.rdbNameOnly = new System.Windows.Forms.RadioButton();
+            this.rdbBoth = new System.Windows.Forms.RadioButton();
+            this.lblExportLabel = new System.Windows.Forms.Label();
             this.btnCheckAll = new System.Windows.Forms.Button();
             this.btnClearAll = new System.Windows.Forms.Button();
             this.gbEntitiesOptions = new System.Windows.Forms.GroupBox();
@@ -81,15 +88,11 @@ namespace MsCrmTools.Translator
             this.btnBrowseImportFile = new System.Windows.Forms.Button();
             this.txtFilePath = new System.Windows.Forms.TextBox();
             this.label1 = new System.Windows.Forms.Label();
-            this.gbLabelExportOptions = new System.Windows.Forms.GroupBox();
-            this.lblExportLabel = new System.Windows.Forms.Label();
-            this.rdbBoth = new System.Windows.Forms.RadioButton();
-            this.rdbNameOnly = new System.Windows.Forms.RadioButton();
-            this.rdbDescOnly = new System.Windows.Forms.RadioButton();
             this.toolStripMenu.SuspendLayout();
             this.tabControl1.SuspendLayout();
             this.tabPage1.SuspendLayout();
             this.groupBox2.SuspendLayout();
+            this.gbLabelExportOptions.SuspendLayout();
             this.gbEntitiesOptions.SuspendLayout();
             this.gbGlobalOptions.SuspendLayout();
             this.tabPage2.SuspendLayout();
@@ -98,7 +101,6 @@ namespace MsCrmTools.Translator
             ((System.ComponentModel.ISupportInitialize)(this.pictureBox2)).BeginInit();
             this.panel1.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.pictureBox1)).BeginInit();
-            this.gbLabelExportOptions.SuspendLayout();
             this.SuspendLayout();
             // 
             // toolStripMenu
@@ -106,7 +108,7 @@ namespace MsCrmTools.Translator
             this.toolStripMenu.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.tsbClose,
             this.toolStripSeparator1,
-            this.tsbLoadEntities,
+            this.tsddbLoadEntities,
             this.toolStripSeparator2,
             this.tsbExportTranslations,
             this.toolStripSeparator3,
@@ -133,14 +135,29 @@ namespace MsCrmTools.Translator
             this.toolStripSeparator1.Name = "toolStripSeparator1";
             this.toolStripSeparator1.Size = new System.Drawing.Size(6, 32);
             // 
-            // tsbLoadEntities
+            // tsddbLoadEntities
             // 
-            this.tsbLoadEntities.Image = ((System.Drawing.Image)(resources.GetObject("tsbLoadEntities.Image")));
-            this.tsbLoadEntities.ImageTransparentColor = System.Drawing.Color.Magenta;
-            this.tsbLoadEntities.Name = "tsbLoadEntities";
-            this.tsbLoadEntities.Size = new System.Drawing.Size(140, 29);
-            this.tsbLoadEntities.Text = "Load entities";
-            this.tsbLoadEntities.Click += new System.EventHandler(this.TsbLoadEntitiesClick);
+            this.tsddbLoadEntities.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.tsmiAllEntities,
+            this.tsmiEntitiesFromASolution});
+            this.tsddbLoadEntities.Image = global::MsCrmTools.Translator.Properties.Resources.Dynamics16;
+            this.tsddbLoadEntities.ImageTransparentColor = System.Drawing.Color.Magenta;
+            this.tsddbLoadEntities.Name = "tsddbLoadEntities";
+            this.tsddbLoadEntities.Size = new System.Drawing.Size(154, 29);
+            this.tsddbLoadEntities.Text = "Load Entities";
+            this.tsddbLoadEntities.DropDownItemClicked += new System.Windows.Forms.ToolStripItemClickedEventHandler(this.tsddbLoadEntities_DropDownItemClicked);
+            // 
+            // tsmiAllEntities
+            // 
+            this.tsmiAllEntities.Name = "tsmiAllEntities";
+            this.tsmiAllEntities.Size = new System.Drawing.Size(252, 30);
+            this.tsmiAllEntities.Text = "All entities";
+            // 
+            // tsmiEntitiesFromASolution
+            // 
+            this.tsmiEntitiesFromASolution.Name = "tsmiEntitiesFromASolution";
+            this.tsmiEntitiesFromASolution.Size = new System.Drawing.Size(252, 30);
+            this.tsmiEntitiesFromASolution.Text = "From a solution";
             // 
             // toolStripSeparator2
             // 
@@ -215,6 +232,62 @@ namespace MsCrmTools.Translator
             this.groupBox2.TabIndex = 6;
             this.groupBox2.TabStop = false;
             this.groupBox2.Text = "Entities options";
+            // 
+            // gbLabelExportOptions
+            // 
+            this.gbLabelExportOptions.Controls.Add(this.rdbDescOnly);
+            this.gbLabelExportOptions.Controls.Add(this.rdbNameOnly);
+            this.gbLabelExportOptions.Controls.Add(this.rdbBoth);
+            this.gbLabelExportOptions.Controls.Add(this.lblExportLabel);
+            this.gbLabelExportOptions.Location = new System.Drawing.Point(490, 691);
+            this.gbLabelExportOptions.Name = "gbLabelExportOptions";
+            this.gbLabelExportOptions.Size = new System.Drawing.Size(832, 100);
+            this.gbLabelExportOptions.TabIndex = 96;
+            this.gbLabelExportOptions.TabStop = false;
+            this.gbLabelExportOptions.Text = "Label options";
+            // 
+            // rdbDescOnly
+            // 
+            this.rdbDescOnly.AutoSize = true;
+            this.rdbDescOnly.Location = new System.Drawing.Point(433, 22);
+            this.rdbDescOnly.Name = "rdbDescOnly";
+            this.rdbDescOnly.Size = new System.Drawing.Size(157, 24);
+            this.rdbDescOnly.TabIndex = 3;
+            this.rdbDescOnly.TabStop = true;
+            this.rdbDescOnly.Text = "Only Descriptions";
+            this.rdbDescOnly.UseVisualStyleBackColor = true;
+            // 
+            // rdbNameOnly
+            // 
+            this.rdbNameOnly.AutoSize = true;
+            this.rdbNameOnly.Location = new System.Drawing.Point(308, 22);
+            this.rdbNameOnly.Name = "rdbNameOnly";
+            this.rdbNameOnly.Size = new System.Drawing.Size(119, 24);
+            this.rdbNameOnly.TabIndex = 2;
+            this.rdbNameOnly.TabStop = true;
+            this.rdbNameOnly.Text = "Only Names";
+            this.rdbNameOnly.UseVisualStyleBackColor = true;
+            // 
+            // rdbBoth
+            // 
+            this.rdbBoth.AutoSize = true;
+            this.rdbBoth.Checked = true;
+            this.rdbBoth.Location = new System.Drawing.Point(234, 22);
+            this.rdbBoth.Name = "rdbBoth";
+            this.rdbBoth.Size = new System.Drawing.Size(68, 24);
+            this.rdbBoth.TabIndex = 1;
+            this.rdbBoth.TabStop = true;
+            this.rdbBoth.Text = "Both";
+            this.rdbBoth.UseVisualStyleBackColor = true;
+            // 
+            // lblExportLabel
+            // 
+            this.lblExportLabel.AutoSize = true;
+            this.lblExportLabel.Location = new System.Drawing.Point(6, 24);
+            this.lblExportLabel.Name = "lblExportLabel";
+            this.lblExportLabel.Size = new System.Drawing.Size(224, 20);
+            this.lblExportLabel.TabIndex = 0;
+            this.lblExportLabel.Text = "Export Name and Description :";
             // 
             // btnCheckAll
             // 
@@ -713,62 +786,6 @@ namespace MsCrmTools.Translator
             this.label1.TabIndex = 0;
             this.label1.Text = "Translation file";
             // 
-            // gbLabelExportOptions
-            // 
-            this.gbLabelExportOptions.Controls.Add(this.rdbDescOnly);
-            this.gbLabelExportOptions.Controls.Add(this.rdbNameOnly);
-            this.gbLabelExportOptions.Controls.Add(this.rdbBoth);
-            this.gbLabelExportOptions.Controls.Add(this.lblExportLabel);
-            this.gbLabelExportOptions.Location = new System.Drawing.Point(490, 691);
-            this.gbLabelExportOptions.Name = "gbLabelExportOptions";
-            this.gbLabelExportOptions.Size = new System.Drawing.Size(832, 100);
-            this.gbLabelExportOptions.TabIndex = 96;
-            this.gbLabelExportOptions.TabStop = false;
-            this.gbLabelExportOptions.Text = "Label options";
-            // 
-            // lblExportLabel
-            // 
-            this.lblExportLabel.AutoSize = true;
-            this.lblExportLabel.Location = new System.Drawing.Point(4, 22);
-            this.lblExportLabel.Name = "lblExportLabel";
-            this.lblExportLabel.Size = new System.Drawing.Size(224, 20);
-            this.lblExportLabel.TabIndex = 0;
-            this.lblExportLabel.Text = "Export Name and Description :";
-            // 
-            // rdbBoth
-            // 
-            this.rdbBoth.AutoSize = true;
-            this.rdbBoth.Checked = true;
-            this.rdbBoth.Location = new System.Drawing.Point(234, 20);
-            this.rdbBoth.Name = "rdbBoth";
-            this.rdbBoth.Size = new System.Drawing.Size(68, 24);
-            this.rdbBoth.TabIndex = 1;
-            this.rdbBoth.TabStop = true;
-            this.rdbBoth.Text = "Both";
-            this.rdbBoth.UseVisualStyleBackColor = true;
-            // 
-            // rdbNameOnly
-            // 
-            this.rdbNameOnly.AutoSize = true;
-            this.rdbNameOnly.Location = new System.Drawing.Point(308, 20);
-            this.rdbNameOnly.Name = "rdbNameOnly";
-            this.rdbNameOnly.Size = new System.Drawing.Size(119, 24);
-            this.rdbNameOnly.TabIndex = 2;
-            this.rdbNameOnly.TabStop = true;
-            this.rdbNameOnly.Text = "Only Names";
-            this.rdbNameOnly.UseVisualStyleBackColor = true;
-            // 
-            // rdbDescOnly
-            // 
-            this.rdbDescOnly.AutoSize = true;
-            this.rdbDescOnly.Location = new System.Drawing.Point(433, 20);
-            this.rdbDescOnly.Name = "rdbDescOnly";
-            this.rdbDescOnly.Size = new System.Drawing.Size(157, 24);
-            this.rdbDescOnly.TabIndex = 3;
-            this.rdbDescOnly.TabStop = true;
-            this.rdbDescOnly.Text = "Only Descriptions";
-            this.rdbDescOnly.UseVisualStyleBackColor = true;
-            // 
             // MainControl
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(9F, 20F);
@@ -783,6 +800,8 @@ namespace MsCrmTools.Translator
             this.tabControl1.ResumeLayout(false);
             this.tabPage1.ResumeLayout(false);
             this.groupBox2.ResumeLayout(false);
+            this.gbLabelExportOptions.ResumeLayout(false);
+            this.gbLabelExportOptions.PerformLayout();
             this.gbEntitiesOptions.ResumeLayout(false);
             this.gbEntitiesOptions.PerformLayout();
             this.gbGlobalOptions.ResumeLayout(false);
@@ -795,8 +814,6 @@ namespace MsCrmTools.Translator
             ((System.ComponentModel.ISupportInitialize)(this.pictureBox2)).EndInit();
             this.panel1.ResumeLayout(false);
             ((System.ComponentModel.ISupportInitialize)(this.pictureBox1)).EndInit();
-            this.gbLabelExportOptions.ResumeLayout(false);
-            this.gbLabelExportOptions.PerformLayout();
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -823,7 +840,6 @@ namespace MsCrmTools.Translator
         private System.Windows.Forms.CheckBox chkExportAttributes;
         private System.Windows.Forms.CheckBox chkExportEntity;
         private System.Windows.Forms.ToolStripSeparator toolStripSeparator1;
-        private System.Windows.Forms.ToolStripButton tsbLoadEntities;
         private System.Windows.Forms.Button btnBrowseImportFile;
         private System.Windows.Forms.TextBox txtFilePath;
         private System.Windows.Forms.Label label1;
@@ -859,5 +875,8 @@ namespace MsCrmTools.Translator
         private System.Windows.Forms.RadioButton rdbNameOnly;
         private System.Windows.Forms.RadioButton rdbBoth;
         private System.Windows.Forms.Label lblExportLabel;
+        private System.Windows.Forms.ToolStripDropDownButton tsddbLoadEntities;
+        private System.Windows.Forms.ToolStripMenuItem tsmiAllEntities;
+        private System.Windows.Forms.ToolStripMenuItem tsmiEntitiesFromASolution;
     }
 }

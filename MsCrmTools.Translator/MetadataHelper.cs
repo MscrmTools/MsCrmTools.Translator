@@ -1,16 +1,13 @@
-﻿// PROJECT : MsCrmTools.AttributeBulkUpdater
-// This project was developed by Tanguy Touzard
-// CODEPLEX: http://xrmtoolbox.codeplex.com
-// BLOG: http://mscrmtools.blogspot.com
-
-using Microsoft.Xrm.Sdk;
+﻿using Microsoft.Xrm.Sdk;
 using Microsoft.Xrm.Sdk.Messages;
 using Microsoft.Xrm.Sdk.Metadata;
 using Microsoft.Xrm.Sdk.Query;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 using System.Xml;
+using Microsoft.Xrm.Sdk.Metadata.Query;
 using XrmToolBox;
 
 namespace MsCrmTools.Translator
@@ -24,22 +21,73 @@ namespace MsCrmTools.Translator
         /// Gets the list of entities metadata (only Entity Items)
         /// </summary>
         /// <returns>List of entities metadata</returns>
-        public static List<EntityMetadata> RetrieveEntities(IOrganizationService oService)
+        public static List<EntityMetadata> RetrieveEntities(IOrganizationService oService, Guid solutionId)
         {
             List<EntityMetadata> entities = new List<EntityMetadata>();
 
-            RetrieveAllEntitiesRequest request = new RetrieveAllEntitiesRequest
-                                                     {
-                                                         EntityFilters = EntityFilters.Entity
-                                                     };
-
-            RetrieveAllEntitiesResponse response = (RetrieveAllEntitiesResponse)oService.Execute(request);
-
-            foreach (EntityMetadata emd in response.EntityMetadata)
+            if (solutionId == Guid.Empty)
             {
-                if (emd.DisplayName.UserLocalizedLabel != null && (emd.IsCustomizable.Value || emd.IsManaged.Value == false))
+                RetrieveAllEntitiesRequest request = new RetrieveAllEntitiesRequest
                 {
-                    entities.Add(emd);
+                    EntityFilters = EntityFilters.Entity
+                };
+
+                RetrieveAllEntitiesResponse response = (RetrieveAllEntitiesResponse)oService.Execute(request);
+
+                foreach (EntityMetadata emd in response.EntityMetadata)
+                {
+                    if (emd.DisplayName.UserLocalizedLabel != null &&
+                        (emd.IsCustomizable.Value || emd.IsManaged.Value == false))
+                    {
+                        entities.Add(emd);
+                    }
+                }
+            }
+            else
+            {
+                var components = oService.RetrieveMultiple(new QueryExpression("solutioncomponent")
+                {
+                    ColumnSet = new ColumnSet("objectid"),
+                    NoLock = true,
+                    Criteria = new FilterExpression
+                    {
+                        Conditions =
+                        {
+                            new ConditionExpression("solutionid", ConditionOperator.Equal, solutionId),
+                            new ConditionExpression("componenttype", ConditionOperator.Equal, 1)
+                        }
+                    }
+                }).Entities;
+
+                var list = components.Select(component => component.GetAttributeValue<Guid>("objectid"))
+                    .ToList();
+
+                if (list.Count > 0)
+                {
+                    EntityQueryExpression entityQueryExpression = new EntityQueryExpression
+                    {
+                        Criteria = new MetadataFilterExpression(LogicalOperator.Or),
+                        Properties = new MetadataPropertiesExpression
+                        {
+                            AllProperties = false,
+                            PropertyNames = { "DisplayName", "LogicalName", "ObjectTypeCode" }
+                        }
+                    };
+
+                    list.ForEach(id =>
+                    {
+                        entityQueryExpression.Criteria.Conditions.Add(new MetadataConditionExpression("MetadataId", MetadataConditionOperator.Equals, id));
+                    });
+
+                    RetrieveMetadataChangesRequest retrieveMetadataChangesRequest = new RetrieveMetadataChangesRequest
+                    {
+                        Query = entityQueryExpression,
+                        ClientVersionStamp = null
+                    };
+
+                    var response = (RetrieveMetadataChangesResponse)oService.Execute(retrieveMetadataChangesRequest);
+
+                    entities = response.EntityMetadata.ToList();
                 }
             }
 
@@ -57,11 +105,11 @@ namespace MsCrmTools.Translator
             try
             {
                 RetrieveEntityRequest request = new RetrieveEntityRequest
-                                                    {
-                                                        LogicalName = logicalName,
-                                                        EntityFilters = EntityFilters.Attributes,
-                                                        RetrieveAsIfPublished = true
-                                                    };
+                {
+                    LogicalName = logicalName,
+                    EntityFilters = EntityFilters.Attributes,
+                    RetrieveAsIfPublished = true
+                };
 
                 RetrieveEntityResponse response = (RetrieveEntityResponse)oService.Execute(request);
 

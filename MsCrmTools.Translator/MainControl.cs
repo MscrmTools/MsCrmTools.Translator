@@ -5,6 +5,7 @@ using System.Linq;
 using System.Windows.Forms;
 using Microsoft.Xrm.Sdk.Metadata;
 using MsCrmTools.Translator.AppCode;
+using MsCrmTools.Translator.Forms;
 using XrmToolBox.Extensibility;
 using XrmToolBox.Extensibility.Interfaces;
 using CrmExceptionHelper = XrmToolBox.CrmExceptionHelper;
@@ -225,8 +226,21 @@ namespace MsCrmTools.Translator
             });
         }
 
-        private void LoadEntities()
+        private void LoadEntities(bool allEntities)
         {
+            Guid solutionId = Guid.Empty;
+
+            if (!allEntities)
+            {
+                var sPicker = new SolutionPicker(Service);
+                if (sPicker.ShowDialog(this) != DialogResult.OK)
+                {
+                    return;
+                }
+
+                solutionId = sPicker.SelectedSolution.First().Id;
+            }
+
             lvEntities.Items.Clear();
 
             WorkAsync(new WorkAsyncInfo
@@ -234,7 +248,7 @@ namespace MsCrmTools.Translator
                 Message = "Loading entities...",
                 Work = (bw, e) =>
                 {
-                    List<EntityMetadata> entities = MetadataHelper.RetrieveEntities(Service);
+                    List<EntityMetadata> entities = MetadataHelper.RetrieveEntities(Service, solutionId);
                     e.Result = entities;
                 },
                 PostWorkCallBack = e =>
@@ -270,12 +284,12 @@ namespace MsCrmTools.Translator
             btnBrowseImportFile.Enabled = !isRunning;
             tsbExportTranslations.Enabled = !isRunning;
             tsbImportTranslations.Enabled = !isRunning;
-            tsbLoadEntities.Enabled = !isRunning;
+            tsddbLoadEntities.Enabled = !isRunning;
         }
 
         private void TsbLoadEntitiesClick(object sender, EventArgs e)
         {
-            ExecuteMethod(LoadEntities);
+            ExecuteMethod(LoadEntities, true);
         }
 
         private void llOpenLog_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
@@ -332,6 +346,18 @@ namespace MsCrmTools.Translator
                 {
                     cb.Checked = newStatus;
                 }
+            }
+        }
+
+        private void tsddbLoadEntities_DropDownItemClicked(object sender, ToolStripItemClickedEventArgs e)
+        {
+            if (e.ClickedItem == tsmiAllEntities)
+            {
+                ExecuteMethod(LoadEntities, true);
+            }
+            else if (e.ClickedItem == tsmiEntitiesFromASolution)
+            {
+                ExecuteMethod(LoadEntities, false);
             }
         }
     }

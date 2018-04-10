@@ -59,5 +59,15 @@ namespace MsCrmTools.Translator.Properties {
                 resourceCulture = value;
             }
         }
+        
+        /// <summary>
+        ///   Recherche une ressource localisée de type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap Dynamics16 {
+            get {
+                object obj = ResourceManager.GetObject("Dynamics16", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
     }
 }
