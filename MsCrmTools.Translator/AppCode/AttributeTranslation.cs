@@ -22,9 +22,10 @@ namespace MsCrmTools.Translator.AppCode
         /// <param name="entities"></param>
         /// <param name="languages"></param>
         /// <param name="sheet"></param>
-        public void Export(List<EntityMetadata> entities, List<int> languages, ExcelWorksheet sheet)
+        public void Export(List<EntityMetadata> entities, List<int> languages, ExcelWorksheet sheet, ExportSettings settings)
         {
-            var line = 1;
+            var line = 0;
+            var cell = 0;
 
             AddHeader(sheet, languages);
 
@@ -32,15 +33,13 @@ namespace MsCrmTools.Translator.AppCode
             {
                 foreach (var attribute in entity.Attributes.OrderBy(a => a.LogicalName))
                 {
-                    var cell = 0;
-
                     if (attribute.AttributeType == null
                         || attribute.AttributeType.Value == AttributeTypeCode.BigInt
                         || attribute.AttributeType.Value == AttributeTypeCode.CalendarRules
                         || attribute.AttributeType.Value == AttributeTypeCode.EntityName
                         || attribute.AttributeType.Value == AttributeTypeCode.ManagedProperty
                         || attribute.AttributeType.Value == AttributeTypeCode.Uniqueidentifier
-                        || attribute.AttributeType.Value == AttributeTypeCode.Virtual
+                        || attribute.AttributeType.Value == AttributeTypeCode.Virtual && !(attribute is MultiSelectPicklistAttributeMetadata)
                         || attribute.AttributeOf != null
                         || !attribute.MetadataId.HasValue
                         || !attribute.IsRenameable.Value)
@@ -71,54 +70,60 @@ namespace MsCrmTools.Translator.AppCode
                         }
                     }
 
-                    ZeroBasedSheet.Cell(sheet, line, cell++).Value = attribute.MetadataId.Value.ToString("B");
-                    ZeroBasedSheet.Cell(sheet, line, cell++).Value = entity.LogicalName;
-                    ZeroBasedSheet.Cell(sheet, line, cell++).Value = attribute.LogicalName;
-
-                    // DisplayName
-                    ZeroBasedSheet.Cell(sheet, line, cell++).Value = "DisplayName";
-
-                    foreach (var lcid in languages)
+                    if (settings.ExportNames)
                     {
-                        var displayName = string.Empty;
+                        // DisplayName
+                        line++;
+                        cell = 0;
+                        ZeroBasedSheet.Cell(sheet, line, cell++).Value = attribute.MetadataId.Value.ToString("B");
+                        ZeroBasedSheet.Cell(sheet, line, cell++).Value = entity.LogicalName;
+                        ZeroBasedSheet.Cell(sheet, line, cell++).Value = attribute.LogicalName;
+                        ZeroBasedSheet.Cell(sheet, line, cell++).Value = "DisplayName";
 
-                        if (attribute.DisplayName != null)
+                        foreach (var lcid in languages)
                         {
-                            var displayNameLabel = attribute.DisplayName.LocalizedLabels.FirstOrDefault(l => l.LanguageCode == lcid);
-                            if (displayNameLabel != null)
-                            {
-                                displayName = displayNameLabel.Label;
-                            }
-                        }
+                            var displayName = string.Empty;
 
-                        ZeroBasedSheet.Cell(sheet, line, cell++).Value = displayName;
+                            if (attribute.DisplayName != null)
+                            {
+                                var displayNameLabel =
+                                    attribute.DisplayName.LocalizedLabels.FirstOrDefault(l => l.LanguageCode == lcid);
+                                if (displayNameLabel != null)
+                                {
+                                    displayName = displayNameLabel.Label;
+                                }
+                            }
+
+                            ZeroBasedSheet.Cell(sheet, line, cell++).Value = displayName;
+                        }
                     }
 
-                    // Description
-                    line++;
-                    cell = 0;
-                    ZeroBasedSheet.Cell(sheet, line, cell++).Value = attribute.MetadataId.Value.ToString("B");
-                    ZeroBasedSheet.Cell(sheet, line, cell++).Value = entity.LogicalName;
-                    ZeroBasedSheet.Cell(sheet, line, cell++).Value = attribute.LogicalName;
-                    ZeroBasedSheet.Cell(sheet, line, cell++).Value = "Description";
-
-                    foreach (var lcid in languages)
+                    if (settings.ExportDescriptions)
                     {
-                        var description = string.Empty;
+                        // Description
+                        line++;
+                        cell = 0;
+                        ZeroBasedSheet.Cell(sheet, line, cell++).Value = attribute.MetadataId.Value.ToString("B");
+                        ZeroBasedSheet.Cell(sheet, line, cell++).Value = entity.LogicalName;
+                        ZeroBasedSheet.Cell(sheet, line, cell++).Value = attribute.LogicalName;
+                        ZeroBasedSheet.Cell(sheet, line, cell++).Value = "Description";
 
-                        if (attribute.Description != null)
+                        foreach (var lcid in languages)
                         {
-                            var descriptionLabel = attribute.Description.LocalizedLabels.FirstOrDefault(l => l.LanguageCode == lcid);
-                            if (descriptionLabel != null)
+                            var description = string.Empty;
+
+                            if (attribute.Description != null)
                             {
-                                description = descriptionLabel.Label;
+                                var descriptionLabel = attribute.Description.LocalizedLabels.FirstOrDefault(l => l.LanguageCode == lcid);
+                                if (descriptionLabel != null)
+                                {
+                                    description = descriptionLabel.Label;
+                                }
                             }
+
+                            ZeroBasedSheet.Cell(sheet, line, cell++).Value = description;
                         }
-
-                        ZeroBasedSheet.Cell(sheet, line, cell++).Value = description;
                     }
-
-                    line++;
                 }
             }
 
@@ -128,7 +133,7 @@ namespace MsCrmTools.Translator.AppCode
                 StyleMutator.TitleCell(ZeroBasedSheet.Cell(sheet, 0, i).Style);
             }
 
-            for (int i = 1; i < line; i++)
+            for (int i = 1; i <= line; i++)
             {
                 for (int j = 0; j < 4; j++)
                 {
@@ -244,7 +249,7 @@ namespace MsCrmTools.Translator.AppCode
                 i++;
                 worker.ReportProgressIfPossible(0, new ProgressInfo
                 {
-                    Item = i*100/amds.Count
+                    Item = i * 100 / amds.Count
                 });
             }
         }

@@ -22,9 +22,10 @@ namespace MsCrmTools.Translator.AppCode
         /// <param name="languages"></param>
         /// <param name="file"></param>
         /// <param name="service"></param>
-        public void Export(List<int> languages, ExcelWorkbook file, IOrganizationService service)
+        public void Export(List<int> languages, ExcelWorkbook file, IOrganizationService service, ExportSettings settings)
         {
-            var line = 1;
+            var line = 0;
+            var cell = 0;
 
             var siteMap = GetSiteMap(service);
             var siteMapDoc = new XmlDocument();
@@ -40,13 +41,23 @@ namespace MsCrmTools.Translator.AppCode
             foreach (XmlNode areaNode in areaNodes)
             {
                 var area = new CrmSiteMapArea { Id = areaNode.Attributes["Id"].Value };
-                foreach (XmlNode titleNode in areaNode.SelectNodes("Titles/Title"))
+
+                if (settings.ExportNames)
                 {
-                    area.Titles.Add(int.Parse(titleNode.Attributes["LCID"].Value), titleNode.Attributes["Title"].Value);
+                    foreach (XmlNode titleNode in areaNode.SelectNodes("Titles/Title"))
+                    {
+                        area.Titles.Add(int.Parse(titleNode.Attributes["LCID"].Value),
+                            titleNode.Attributes["Title"].Value);
+                    }
                 }
-                foreach (XmlNode titleNode in areaNode.SelectNodes("Descriptions/Description"))
+
+                if (settings.ExportDescriptions)
                 {
-                    area.Descriptions.Add(int.Parse(titleNode.Attributes["LCID"].Value), titleNode.Attributes["Description"].Value);
+                    foreach (XmlNode titleNode in areaNode.SelectNodes("Descriptions/Description"))
+                    {
+                        area.Descriptions.Add(int.Parse(titleNode.Attributes["LCID"].Value),
+                            titleNode.Attributes["Description"].Value);
+                    }
                 }
 
                 crmSiteMapAreas.Add(area);
@@ -61,13 +72,23 @@ namespace MsCrmTools.Translator.AppCode
                         Id = groupNode.Attributes["Id"].Value,
                         AreaId = areaNode.Attributes["Id"].Value
                     };
-                    foreach (XmlNode titleNode in groupNode.SelectNodes("Titles/Title"))
+
+                    if (settings.ExportNames)
                     {
-                        group.Titles.Add(int.Parse(titleNode.Attributes["LCID"].Value), titleNode.Attributes["Title"].Value);
+                        foreach (XmlNode titleNode in groupNode.SelectNodes("Titles/Title"))
+                        {
+                            group.Titles.Add(int.Parse(titleNode.Attributes["LCID"].Value),
+                                titleNode.Attributes["Title"].Value);
+                        }
                     }
-                    foreach (XmlNode titleNode in groupNode.SelectNodes("Descriptions/Description"))
+
+                    if (settings.ExportDescriptions)
                     {
-                        group.Descriptions.Add(int.Parse(titleNode.Attributes["LCID"].Value), titleNode.Attributes["Description"].Value);
+                        foreach (XmlNode titleNode in groupNode.SelectNodes("Descriptions/Description"))
+                        {
+                            group.Descriptions.Add(int.Parse(titleNode.Attributes["LCID"].Value),
+                                titleNode.Attributes["Description"].Value);
+                        }
                     }
 
                     crmSiteMapGroups.Add(group);
@@ -83,13 +104,23 @@ namespace MsCrmTools.Translator.AppCode
                             GroupId = groupNode.Attributes["Id"].Value,
                             AreaId = areaNode.Attributes["Id"].Value
                         };
-                        foreach (XmlNode titleNode in subAreaNode.SelectNodes("Titles/Title"))
+
+                        if (settings.ExportNames)
                         {
-                            subArea.Titles.Add(int.Parse(titleNode.Attributes["LCID"].Value), titleNode.Attributes["Title"].Value);
+                            foreach (XmlNode titleNode in subAreaNode.SelectNodes("Titles/Title"))
+                            {
+                                subArea.Titles.Add(int.Parse(titleNode.Attributes["LCID"].Value),
+                                    titleNode.Attributes["Title"].Value);
+                            }
                         }
-                        foreach (XmlNode titleNode in subAreaNode.SelectNodes("Descriptions/Description"))
+
+                        if (settings.ExportDescriptions)
                         {
-                            subArea.Descriptions.Add(int.Parse(titleNode.Attributes["LCID"].Value), titleNode.Attributes["Description"].Value);
+                            foreach (XmlNode titleNode in subAreaNode.SelectNodes("Descriptions/Description"))
+                            {
+                                subArea.Descriptions.Add(int.Parse(titleNode.Attributes["LCID"].Value),
+                                    titleNode.Attributes["Description"].Value);
+                            }
                         }
 
                         crmSiteMapSubAreas.Add(subArea);
@@ -109,91 +140,115 @@ namespace MsCrmTools.Translator.AppCode
             AddAreaHeader(areaSheet, languages);
             foreach (var crmArea in crmSiteMapAreas)
             {
-                var cell = 0;
-                ZeroBasedSheet.Cell(areaSheet, line, cell++).Value = crmArea.Id;
-                ZeroBasedSheet.Cell(areaSheet, line, cell++).Value = "Title";
-
-                foreach (var lcid in languages)
+                if (settings.ExportNames)
                 {
-                    ZeroBasedSheet.Cell(areaSheet, line, cell++).Value = crmArea.Titles.FirstOrDefault(n => n.Key == lcid).Value;
+                    line++;
+                    cell = 0;
+                    ZeroBasedSheet.Cell(areaSheet, line, cell++).Value = crmArea.Id;
+                    ZeroBasedSheet.Cell(areaSheet, line, cell++).Value = "Title";
+
+                    foreach (var lcid in languages)
+                    {
+                        ZeroBasedSheet.Cell(areaSheet, line, cell++).Value =
+                            crmArea.Titles.FirstOrDefault(n => n.Key == lcid).Value;
+                    }
                 }
 
-                line++;
-                cell = 0;
-                ZeroBasedSheet.Cell(areaSheet, line, cell++).Value = crmArea.Id;
-                ZeroBasedSheet.Cell(areaSheet, line, cell++).Value = "Description";
-
-                foreach (var lcid in languages)
+                if (settings.ExportDescriptions)
                 {
-                    ZeroBasedSheet.Cell(areaSheet, line, cell++).Value = crmArea.Descriptions.FirstOrDefault(n => n.Key == lcid).Value;
+                    line++;
+                    cell = 0;
+                    ZeroBasedSheet.Cell(areaSheet, line, cell++).Value = crmArea.Id;
+                    ZeroBasedSheet.Cell(areaSheet, line, cell++).Value = "Description";
+
+                    foreach (var lcid in languages)
+                    {
+                        ZeroBasedSheet.Cell(areaSheet, line, cell++).Value =
+                            crmArea.Descriptions.FirstOrDefault(n => n.Key == lcid).Value;
+                    }
                 }
-                line++;
             }
 
             #endregion Area sheet
 
             #region Group sheet
 
-            line = 1;
+            line = 0;
             var groupSheet = file.Worksheets.Add("SiteMap Groups");
             AddGroupHeader(groupSheet, languages);
             foreach (var crmGroup in crmSiteMapGroups)
             {
-                var cell = 0;
-                ZeroBasedSheet.Cell(groupSheet, line, cell++).Value = crmGroup.AreaId;
-                ZeroBasedSheet.Cell(groupSheet, line, cell++).Value = crmGroup.Id;
-                ZeroBasedSheet.Cell(groupSheet, line, cell++).Value = "Title";
-
-                foreach (var lcid in languages)
+                if (settings.ExportNames)
                 {
-                    ZeroBasedSheet.Cell(groupSheet, line, cell++).Value = crmGroup.Titles.FirstOrDefault(n => n.Key == lcid).Value;
+                    line++;
+                    cell = 0;
+                    ZeroBasedSheet.Cell(groupSheet, line, cell++).Value = crmGroup.AreaId;
+                    ZeroBasedSheet.Cell(groupSheet, line, cell++).Value = crmGroup.Id;
+                    ZeroBasedSheet.Cell(groupSheet, line, cell++).Value = "Title";
+
+                    foreach (var lcid in languages)
+                    {
+                        ZeroBasedSheet.Cell(groupSheet, line, cell++).Value =
+                            crmGroup.Titles.FirstOrDefault(n => n.Key == lcid).Value;
+                    }
                 }
 
-                line++;
-                cell = 0;
-                ZeroBasedSheet.Cell(groupSheet, line, cell++).Value = crmGroup.AreaId;
-                ZeroBasedSheet.Cell(groupSheet, line, cell++).Value = crmGroup.Id;
-                ZeroBasedSheet.Cell(groupSheet, line, cell++).Value = "Description";
-
-                foreach (var lcid in languages)
+                if (settings.ExportDescriptions)
                 {
-                    ZeroBasedSheet.Cell(groupSheet, line, cell++).Value = crmGroup.Descriptions.FirstOrDefault(n => n.Key == lcid).Value;
+                    line++;
+                    cell = 0;
+                    ZeroBasedSheet.Cell(groupSheet, line, cell++).Value = crmGroup.AreaId;
+                    ZeroBasedSheet.Cell(groupSheet, line, cell++).Value = crmGroup.Id;
+                    ZeroBasedSheet.Cell(groupSheet, line, cell++).Value = "Description";
+
+                    foreach (var lcid in languages)
+                    {
+                        ZeroBasedSheet.Cell(groupSheet, line, cell++).Value =
+                            crmGroup.Descriptions.FirstOrDefault(n => n.Key == lcid).Value;
+                    }
                 }
-                line++;
             }
 
             #endregion Group sheet
 
             #region SubArea sheet
 
-            line = 1;
+            line = 0;
             var subAreaSheet = file.Worksheets.Add("SiteMap SubAreas");
             AddSubAreaHeader(subAreaSheet, languages);
             foreach (var crmSubArea in crmSiteMapSubAreas)
             {
-                var cell = 0;
-                ZeroBasedSheet.Cell(subAreaSheet, line, cell++).Value = crmSubArea.AreaId;
-                ZeroBasedSheet.Cell(subAreaSheet, line, cell++).Value = crmSubArea.GroupId;
-                ZeroBasedSheet.Cell(subAreaSheet, line, cell++).Value = crmSubArea.Id;
-                ZeroBasedSheet.Cell(subAreaSheet, line, cell++).Value = "Title";
-
-                foreach (var lcid in languages)
+                if (settings.ExportNames)
                 {
-                    ZeroBasedSheet.Cell(subAreaSheet, line, cell++).Value = crmSubArea.Titles.FirstOrDefault(n => n.Key == lcid).Value;
+                    line++;
+                    cell = 0;
+                    ZeroBasedSheet.Cell(subAreaSheet, line, cell++).Value = crmSubArea.AreaId;
+                    ZeroBasedSheet.Cell(subAreaSheet, line, cell++).Value = crmSubArea.GroupId;
+                    ZeroBasedSheet.Cell(subAreaSheet, line, cell++).Value = crmSubArea.Id;
+                    ZeroBasedSheet.Cell(subAreaSheet, line, cell++).Value = "Title";
+
+                    foreach (var lcid in languages)
+                    {
+                        ZeroBasedSheet.Cell(subAreaSheet, line, cell++).Value =
+                            crmSubArea.Titles.FirstOrDefault(n => n.Key == lcid).Value;
+                    }
                 }
 
-                line++;
-                cell = 0;
-                ZeroBasedSheet.Cell(subAreaSheet, line, cell++).Value = crmSubArea.AreaId;
-                ZeroBasedSheet.Cell(subAreaSheet, line, cell++).Value = crmSubArea.GroupId;
-                ZeroBasedSheet.Cell(subAreaSheet, line, cell++).Value = crmSubArea.Id;
-                ZeroBasedSheet.Cell(subAreaSheet, line, cell++).Value = "Description";
-
-                foreach (var lcid in languages)
+                if (settings.ExportDescriptions)
                 {
-                    ZeroBasedSheet.Cell(subAreaSheet, line, cell++).Value = crmSubArea.Descriptions.FirstOrDefault(n => n.Key == lcid).Value;
+                    line++;
+                    cell = 0;
+                    ZeroBasedSheet.Cell(subAreaSheet, line, cell++).Value = crmSubArea.AreaId;
+                    ZeroBasedSheet.Cell(subAreaSheet, line, cell++).Value = crmSubArea.GroupId;
+                    ZeroBasedSheet.Cell(subAreaSheet, line, cell++).Value = crmSubArea.Id;
+                    ZeroBasedSheet.Cell(subAreaSheet, line, cell++).Value = "Description";
+
+                    foreach (var lcid in languages)
+                    {
+                        ZeroBasedSheet.Cell(subAreaSheet, line, cell++).Value =
+                            crmSubArea.Descriptions.FirstOrDefault(n => n.Key == lcid).Value;
+                    }
                 }
-                line++;
             }
 
             #endregion SubArea sheet
@@ -203,7 +258,7 @@ namespace MsCrmTools.Translator.AppCode
             {
                 StyleMutator.TitleCell(ZeroBasedSheet.Cell(areaSheet, 0, i).Style);
             }
-            for (int i = 1; i < line; i++)
+            for (int i = 1; i <= line; i++)
             {
                 for (int j = 0; j < 2; j++)
                 {
@@ -216,7 +271,7 @@ namespace MsCrmTools.Translator.AppCode
                 StyleMutator.TitleCell(ZeroBasedSheet.Cell(groupSheet, 0, i).Style);
             }
 
-            for (int i = 1; i < line; i++)
+            for (int i = 1; i <= line; i++)
             {
                 for (int j = 0; j < 3; j++)
                 {
@@ -229,7 +284,7 @@ namespace MsCrmTools.Translator.AppCode
                 StyleMutator.TitleCell(ZeroBasedSheet.Cell(subAreaSheet, 0, i).Style);
             }
 
-            for (int i = 1; i < line; i++)
+            for (int i = 1; i <= line; i++)
             {
                 for (int j = 0; j < 4; j++)
                 {

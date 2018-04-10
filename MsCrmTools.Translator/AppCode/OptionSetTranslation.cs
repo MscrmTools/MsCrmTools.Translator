@@ -22,9 +22,10 @@ namespace MsCrmTools.Translator.AppCode
         /// <param name="entities"></param>
         /// <param name="languages"></param>
         /// <param name="sheet"></param>
-        public void Export(List<EntityMetadata> entities, List<int> languages, ExcelWorksheet sheet)
+        public void Export(List<EntityMetadata> entities, List<int> languages, ExcelWorksheet sheet, ExportSettings settings)
         {
-            var line = 1;
+            var line = 0;
+            var cell = 0;
 
             AddHeader(sheet, languages);
 
@@ -32,12 +33,11 @@ namespace MsCrmTools.Translator.AppCode
             {
                 foreach (var attribute in entity.Attributes.OrderBy(a => a.LogicalName))
                 {
-                    var cell = 0;
-
                     if (attribute.AttributeType == null
                         || attribute.AttributeType.Value != AttributeTypeCode.Picklist
                         && attribute.AttributeType.Value != AttributeTypeCode.State
                         && attribute.AttributeType.Value != AttributeTypeCode.Status
+                        && !(attribute is MultiSelectPicklistAttributeMetadata)
                         || !attribute.MetadataId.HasValue)
                         continue;
 
@@ -56,6 +56,10 @@ namespace MsCrmTools.Translator.AppCode
                         case AttributeTypeCode.Status:
                             omd = ((StatusAttributeMetadata)attribute).OptionSet;
                             break;
+
+                        case AttributeTypeCode.Virtual:
+                            omd = ((MultiSelectPicklistAttributeMetadata)attribute).OptionSet;
+                            break;
                     }
 
                     if (omd.IsGlobal.Value)
@@ -63,57 +67,65 @@ namespace MsCrmTools.Translator.AppCode
 
                     foreach (var option in omd.Options.OrderBy(o => o.Value))
                     {
-                        ZeroBasedSheet.Cell(sheet, line, cell++).Value = attribute.MetadataId.Value.ToString("B");
-                        ZeroBasedSheet.Cell(sheet, line, cell++).Value = entity.LogicalName;
-                        ZeroBasedSheet.Cell(sheet, line, cell++).Value = attribute.LogicalName;
-                        ZeroBasedSheet.Cell(sheet, line, cell++).Value = attribute.AttributeType.Value.ToString();
-                        ZeroBasedSheet.Cell(sheet, line, cell++).Value = option.Value;
-                        ZeroBasedSheet.Cell(sheet, line, cell++).Value = "Label";
-
-                        foreach (var lcid in languages)
+                        if (settings.ExportNames)
                         {
-                            var label = string.Empty;
+                            line++;
+                            cell = 0;
 
-                            if (option.Label != null)
+                            ZeroBasedSheet.Cell(sheet, line, cell++).Value = attribute.MetadataId.Value.ToString("B");
+                            ZeroBasedSheet.Cell(sheet, line, cell++).Value = entity.LogicalName;
+                            ZeroBasedSheet.Cell(sheet, line, cell++).Value = attribute.LogicalName;
+                            ZeroBasedSheet.Cell(sheet, line, cell++).Value = attribute.AttributeType.Value.ToString();
+                            ZeroBasedSheet.Cell(sheet, line, cell++).Value = option.Value;
+                            ZeroBasedSheet.Cell(sheet, line, cell++).Value = "Label";
+
+                            foreach (var lcid in languages)
                             {
-                                var optionLabel = option.Label.LocalizedLabels.FirstOrDefault(l => l.LanguageCode == lcid);
-                                if (optionLabel != null)
-                                {
-                                    label = optionLabel.Label;
-                                }
-                            }
+                                var label = string.Empty;
 
-                            ZeroBasedSheet.Cell(sheet, line, cell++).Value = label;
+                                if (option.Label != null)
+                                {
+                                    var optionLabel =
+                                        option.Label.LocalizedLabels.FirstOrDefault(l => l.LanguageCode == lcid);
+                                    if (optionLabel != null)
+                                    {
+                                        label = optionLabel.Label;
+                                    }
+                                }
+
+                                ZeroBasedSheet.Cell(sheet, line, cell++).Value = label;
+                            }
                         }
 
-                        line++;
-                        cell = 0;
-
-                        ZeroBasedSheet.Cell(sheet, line, cell++).Value = attribute.MetadataId.Value.ToString("B");
-                        ZeroBasedSheet.Cell(sheet, line, cell++).Value = entity.LogicalName;
-                        ZeroBasedSheet.Cell(sheet, line, cell++).Value = attribute.LogicalName;
-                        ZeroBasedSheet.Cell(sheet, line, cell++).Value = attribute.AttributeType.Value.ToString();
-                        ZeroBasedSheet.Cell(sheet, line, cell++).Value = option.Value;
-                        ZeroBasedSheet.Cell(sheet, line, cell++).Value = "Description";
-
-                        foreach (var lcid in languages)
+                        if (settings.ExportDescriptions)
                         {
-                            var label = string.Empty;
+                            line++;
+                            cell = 0;
 
-                            if (option.Description != null)
+                            ZeroBasedSheet.Cell(sheet, line, cell++).Value = attribute.MetadataId.Value.ToString("B");
+                            ZeroBasedSheet.Cell(sheet, line, cell++).Value = entity.LogicalName;
+                            ZeroBasedSheet.Cell(sheet, line, cell++).Value = attribute.LogicalName;
+                            ZeroBasedSheet.Cell(sheet, line, cell++).Value = attribute.AttributeType.Value.ToString();
+                            ZeroBasedSheet.Cell(sheet, line, cell++).Value = option.Value;
+                            ZeroBasedSheet.Cell(sheet, line, cell++).Value = "Description";
+
+                            foreach (var lcid in languages)
                             {
-                                var optionLabel = option.Description.LocalizedLabels.FirstOrDefault(l => l.LanguageCode == lcid);
-                                if (optionLabel != null)
+                                var label = string.Empty;
+
+                                if (option.Description != null)
                                 {
-                                    label = optionLabel.Label;
+                                    var optionLabel =
+                                        option.Description.LocalizedLabels.FirstOrDefault(l => l.LanguageCode == lcid);
+                                    if (optionLabel != null)
+                                    {
+                                        label = optionLabel.Label;
+                                    }
                                 }
+
+                                ZeroBasedSheet.Cell(sheet, line, cell++).Value = label;
                             }
-
-                            ZeroBasedSheet.Cell(sheet, line, cell++).Value = label;
                         }
-
-                        line++;
-                        cell = 0;
                     }
                 }
             }
@@ -124,11 +136,11 @@ namespace MsCrmTools.Translator.AppCode
                 StyleMutator.TitleCell(ZeroBasedSheet.Cell(sheet, 0, i).Style);
             }
 
-            for (int i = 1; i < line; i++)
+            for (int i = 1; i <= line; i++)
             {
                 for (int j = 0; j < 6; j++)
                 {
-                    StyleMutator.HighlightedCell(ZeroBasedSheet.Cell(sheet, 0, i).Style);
+                    StyleMutator.HighlightedCell(ZeroBasedSheet.Cell(sheet, i, j).Style);
                 }
             }
         }

@@ -17,7 +17,7 @@ namespace MsCrmTools.Translator
 
         private int numberOferrors = 0;
 
-        #endregion
+        #endregion variables
 
         #region Constructor
 
@@ -72,10 +72,10 @@ namespace MsCrmTools.Translator
                 chkExportDashboards.Checked)
             {
                 var entities =
-                    (from ListViewItem item in lvEntities.CheckedItems select ((EntityMetadata) item.Tag).LogicalName)
+                    (from ListViewItem item in lvEntities.CheckedItems select ((EntityMetadata)item.Tag).LogicalName)
                         .ToList();
 
-                var sfd = new SaveFileDialog {Filter = "Excel workbook|*.xlsx", Title = "Select file destination"};
+                var sfd = new SaveFileDialog { Filter = "Excel workbook|*.xlsx", Title = "Select file destination" };
                 if (sfd.ShowDialog(this) == DialogResult.OK)
                 {
                     var settings = new ExportSettings
@@ -95,7 +95,9 @@ namespace MsCrmTools.Translator
                         ExportSiteMap = chkExportSiteMap.Checked,
                         ExportDashboards = chkExportDashboards.Checked,
                         FilePath = sfd.FileName,
-                        Entities = entities
+                        Entities = entities,
+                        ExportNames = rdbBoth.Checked || rdbNameOnly.Checked,
+                        ExportDescriptions = rdbBoth.Checked || rdbDescOnly.Checked
                     };
 
                     SetState(true);
@@ -107,7 +109,7 @@ namespace MsCrmTools.Translator
                         Work = (bw, evt) =>
                         {
                             var engine = new Engine();
-                            engine.Export((ExportSettings) evt.Argument, Service, bw);
+                            engine.Export((ExportSettings)evt.Argument, Service, bw);
                         },
                         PostWorkCallBack = evt =>
                         {
@@ -161,7 +163,7 @@ namespace MsCrmTools.Translator
                     {
                         if (!evt.Success)
                         {
-                            numberOferrors ++;
+                            numberOferrors++;
                             LogError("{0}\t{1}", evt.SheetName, evt.Message);
                         }
                     };
@@ -244,9 +246,9 @@ namespace MsCrmTools.Translator
                     }
                     else
                     {
-                        foreach (EntityMetadata emd in (List<EntityMetadata>) e.Result)
+                        foreach (EntityMetadata emd in (List<EntityMetadata>)e.Result)
                         {
-                            var item = new ListViewItem {Text = emd.DisplayName.UserLocalizedLabel.Label, Tag = emd};
+                            var item = new ListViewItem { Text = emd.DisplayName.UserLocalizedLabel.Label, Tag = emd };
                             item.SubItems.Add(emd.LogicalName);
                             lvEntities.Items.Add(item);
                         }

@@ -22,9 +22,10 @@ namespace MsCrmTools.Translator.AppCode
         /// <param name="entities"></param>
         /// <param name="languages"></param>
         /// <param name="sheet"></param>
-        public void Export(List<EntityMetadata> entities, List<int> languages, ExcelWorksheet sheet, IOrganizationService service)
+        public void Export(List<EntityMetadata> entities, List<int> languages, ExcelWorksheet sheet, IOrganizationService service, ExportSettings settings)
         {
-            var line = 1;
+            var line = 0;
+            var cell = 0;
 
             AddHeader(sheet, languages);
 
@@ -52,69 +53,84 @@ namespace MsCrmTools.Translator.AppCode
                         crmVisualizations.Add(crmVisualization);
                     }
 
-                    // Names
-                    var request = new RetrieveLocLabelsRequest
-                    {
-                        AttributeName = "name",
-                        EntityMoniker = new EntityReference("savedqueryvisualization", visualization.Id)
-                    };
+                    RetrieveLocLabelsRequest request;
+                    RetrieveLocLabelsResponse response;
 
-                    var response = (RetrieveLocLabelsResponse)service.Execute(request);
-                    foreach (var locLabel in response.Label.LocalizedLabels)
+                    if (settings.ExportNames)
                     {
-                        crmVisualization.Names.Add(locLabel.LanguageCode, locLabel.Label);
+                        // Names
+                        request = new RetrieveLocLabelsRequest
+                        {
+                            AttributeName = "name",
+                            EntityMoniker = new EntityReference("savedqueryvisualization", visualization.Id)
+                        };
+
+                        response = (RetrieveLocLabelsResponse)service.Execute(request);
+                        foreach (var locLabel in response.Label.LocalizedLabels)
+                        {
+                            crmVisualization.Names.Add(locLabel.LanguageCode, locLabel.Label);
+                        }
                     }
 
-                    // Descriptions
-                    request = new RetrieveLocLabelsRequest
+                    if (settings.ExportDescriptions)
                     {
-                        AttributeName = "description",
-                        EntityMoniker = new EntityReference("savedqueryvisualization", visualization.Id)
-                    };
+                        // Descriptions
+                        request = new RetrieveLocLabelsRequest
+                        {
+                            AttributeName = "description",
+                            EntityMoniker = new EntityReference("savedqueryvisualization", visualization.Id)
+                        };
 
-                    response = (RetrieveLocLabelsResponse)service.Execute(request);
-                    foreach (var locLabel in response.Label.LocalizedLabels)
-                    {
-                        crmVisualization.Descriptions.Add(locLabel.LanguageCode, locLabel.Label);
+                        response = (RetrieveLocLabelsResponse)service.Execute(request);
+                        foreach (var locLabel in response.Label.LocalizedLabels)
+                        {
+                            crmVisualization.Descriptions.Add(locLabel.LanguageCode, locLabel.Label);
+                        }
                     }
                 }
             }
 
             foreach (var crmVisualization in crmVisualizations.OrderBy(cv => cv.Entity))
             {
-                var cell = 0;
-                ZeroBasedSheet.Cell(sheet, line, cell++).Value = crmVisualization.Id.ToString("B");
-                ZeroBasedSheet.Cell(sheet, line, cell++).Value = crmVisualization.Entity;
-                ZeroBasedSheet.Cell(sheet, line, cell++).Value = "Name";
-
-                foreach (var lcid in languages)
+                if (settings.ExportNames)
                 {
-                    var name = crmVisualization.Names.FirstOrDefault(n => n.Key == lcid);
-                    if (name.Value != null)
-                        ZeroBasedSheet.Cell(sheet, line, cell++).Value = name.Value;
-                    else
+                    line++;
+                    cell = 0;
+                    ZeroBasedSheet.Cell(sheet, line, cell++).Value = crmVisualization.Id.ToString("B");
+                    ZeroBasedSheet.Cell(sheet, line, cell++).Value = crmVisualization.Entity;
+                    ZeroBasedSheet.Cell(sheet, line, cell++).Value = "Name";
+
+                    foreach (var lcid in languages)
                     {
-                        cell++;
+                        var name = crmVisualization.Names.FirstOrDefault(n => n.Key == lcid);
+                        if (name.Value != null)
+                            ZeroBasedSheet.Cell(sheet, line, cell++).Value = name.Value;
+                        else
+                        {
+                            cell++;
+                        }
                     }
                 }
 
-                line++;
-                cell = 0;
-                ZeroBasedSheet.Cell(sheet, line, cell++).Value = crmVisualization.Id.ToString("B");
-                ZeroBasedSheet.Cell(sheet, line, cell++).Value = crmVisualization.Entity;
-                ZeroBasedSheet.Cell(sheet, line, cell++).Value = "Description";
-
-                foreach (var lcid in languages)
+                if (settings.ExportDescriptions)
                 {
-                    var desc = crmVisualization.Descriptions.FirstOrDefault(n => n.Key == lcid);
-                    if (desc.Value != null)
-                        ZeroBasedSheet.Cell(sheet, line, cell++).Value = desc.Value;
-                    else
+                    line++;
+                    cell = 0;
+                    ZeroBasedSheet.Cell(sheet, line, cell++).Value = crmVisualization.Id.ToString("B");
+                    ZeroBasedSheet.Cell(sheet, line, cell++).Value = crmVisualization.Entity;
+                    ZeroBasedSheet.Cell(sheet, line, cell++).Value = "Description";
+
+                    foreach (var lcid in languages)
                     {
-                        cell++;
+                        var desc = crmVisualization.Descriptions.FirstOrDefault(n => n.Key == lcid);
+                        if (desc.Value != null)
+                            ZeroBasedSheet.Cell(sheet, line, cell++).Value = desc.Value;
+                        else
+                        {
+                            cell++;
+                        }
                     }
                 }
-                line++;
             }
 
             // Applying style to cells
@@ -123,7 +139,7 @@ namespace MsCrmTools.Translator.AppCode
                 StyleMutator.TitleCell(ZeroBasedSheet.Cell(sheet, 0, i).Style);
             }
 
-            for (int i = 1; i < line; i++)
+            for (int i = 1; i <= line; i++)
             {
                 for (int j = 0; j < 3; j++)
                 {
@@ -195,7 +211,6 @@ namespace MsCrmTools.Translator.AppCode
                     Item = i * 100 / requests.Count
                 });
             }
-
         }
 
         private void AddHeader(ExcelWorksheet sheet, IEnumerable<int> languages)

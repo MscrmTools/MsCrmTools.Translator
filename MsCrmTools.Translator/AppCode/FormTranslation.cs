@@ -15,8 +15,12 @@ namespace MsCrmTools.Translator.AppCode
 {
     public class FormTranslation : BaseTranslation
     {
-        public void Export(List<EntityMetadata> entities, List<int> languages, ExcelWorkbook file, IOrganizationService service, FormExportOption options)
+        private static ExportSettings settings;
+
+        public void Export(List<EntityMetadata> entities, List<int> languages, ExcelWorkbook file, IOrganizationService service, FormExportOption options, ExportSettings esettings)
         {
+            settings = esettings;
+
             // Retrieve current user language information
             var setting = GetCurrentUserSettings(service);
 
@@ -127,35 +131,44 @@ namespace MsCrmTools.Translator.AppCode
                         crmForms.Add(crmForm);
                     }
 
-                    // Names
-                    var request = new RetrieveLocLabelsRequest
-                    {
-                        AttributeName = "name",
-                        EntityMoniker = new EntityReference("systemform", form.Id)
-                    };
+                    RetrieveLocLabelsRequest request;
+                    RetrieveLocLabelsResponse response;
 
-                    var response = (RetrieveLocLabelsResponse)service.Execute(request);
-                    foreach (var locLabel in response.Label.LocalizedLabels)
+                    if (settings.ExportNames)
                     {
-                        crmForm.Names.Add(locLabel.LanguageCode, locLabel.Label);
+                        // Names
+                        request = new RetrieveLocLabelsRequest
+                        {
+                            AttributeName = "name",
+                            EntityMoniker = new EntityReference("systemform", form.Id)
+                        };
+
+                        response = (RetrieveLocLabelsResponse)service.Execute(request);
+                        foreach (var locLabel in response.Label.LocalizedLabels)
+                        {
+                            crmForm.Names.Add(locLabel.LanguageCode, locLabel.Label);
+                        }
                     }
 
-                    // Descriptions
-                    request = new RetrieveLocLabelsRequest
+                    if (settings.ExportDescriptions)
                     {
-                        AttributeName = "description",
-                        EntityMoniker = new EntityReference("systemform", form.Id)
-                    };
+                        // Descriptions
+                        request = new RetrieveLocLabelsRequest
+                        {
+                            AttributeName = "description",
+                            EntityMoniker = new EntityReference("systemform", form.Id)
+                        };
 
-                    response = (RetrieveLocLabelsResponse)service.Execute(request);
-                    foreach (var locLabel in response.Label.LocalizedLabels)
-                    {
-                        crmForm.Descriptions.Add(locLabel.LanguageCode, locLabel.Label);
+                        response = (RetrieveLocLabelsResponse)service.Execute(request);
+                        foreach (var locLabel in response.Label.LocalizedLabels)
+                        {
+                            crmForm.Descriptions.Add(locLabel.LanguageCode, locLabel.Label);
+                        }
                     }
                 }
             }
 
-            var line = 1;
+            var line = 0;
             if (options.ExportForms)
             {
                 var formSheet = file.Worksheets.Add("Forms");
@@ -172,7 +185,7 @@ namespace MsCrmTools.Translator.AppCode
                     StyleMutator.TitleCell(ZeroBasedSheet.Cell(formSheet, 0, i).Style);
                 }
 
-                for (int i = 1; i < line; i++)
+                for (int i = 1; i <= line; i++)
                 {
                     for (int j = 0; j < 4; j++)
                     {
@@ -518,39 +531,48 @@ namespace MsCrmTools.Translator.AppCode
 
         private static int ExportForm(List<int> languages, ExcelWorksheet formSheet, int line, CrmForm crmForm)
         {
-            var cell = 0;
+            int cell;
 
-            ZeroBasedSheet.Cell(formSheet, line, cell++).Value = crmForm.FormUniqueId.ToString("B");
-            ZeroBasedSheet.Cell(formSheet, line, cell++).Value = crmForm.Id.ToString("B");
-            ZeroBasedSheet.Cell(formSheet, line, cell++).Value = crmForm.Entity;
-            ZeroBasedSheet.Cell(formSheet, line, cell++).Value = "Name";
-
-            foreach (var lcid in languages)
+            if (settings.ExportNames)
             {
-                var name = crmForm.Names.FirstOrDefault(n => n.Key == lcid);
-                if (name.Value != null)
-                    ZeroBasedSheet.Cell(formSheet, line, cell++).Value = name.Value;
-                else
-                    cell++;
+                line++;
+                cell = 0;
+
+                ZeroBasedSheet.Cell(formSheet, line, cell++).Value = crmForm.FormUniqueId.ToString("B");
+                ZeroBasedSheet.Cell(formSheet, line, cell++).Value = crmForm.Id.ToString("B");
+                ZeroBasedSheet.Cell(formSheet, line, cell++).Value = crmForm.Entity;
+                ZeroBasedSheet.Cell(formSheet, line, cell++).Value = "Name";
+
+                foreach (var lcid in languages)
+                {
+                    var name = crmForm.Names.FirstOrDefault(n => n.Key == lcid);
+                    if (name.Value != null)
+                        ZeroBasedSheet.Cell(formSheet, line, cell++).Value = name.Value;
+                    else
+                        cell++;
+                }
             }
 
-            line++;
-            cell = 0;
-
-            ZeroBasedSheet.Cell(formSheet, line, cell++).Value = crmForm.FormUniqueId.ToString("B");
-            ZeroBasedSheet.Cell(formSheet, line, cell++).Value = crmForm.Id.ToString("B");
-            ZeroBasedSheet.Cell(formSheet, line, cell++).Value = crmForm.Entity;
-            ZeroBasedSheet.Cell(formSheet, line, cell++).Value = "Description";
-
-            foreach (var lcid in languages)
+            if (settings.ExportDescriptions)
             {
-                var desc = crmForm.Descriptions.FirstOrDefault(n => n.Key == lcid);
-                if (desc.Value != null)
-                    ZeroBasedSheet.Cell(formSheet, line, cell++).Value = desc.Value;
-                else
-                    cell++;
+                line++;
+                cell = 0;
+
+                ZeroBasedSheet.Cell(formSheet, line, cell++).Value = crmForm.FormUniqueId.ToString("B");
+                ZeroBasedSheet.Cell(formSheet, line, cell++).Value = crmForm.Id.ToString("B");
+                ZeroBasedSheet.Cell(formSheet, line, cell++).Value = crmForm.Entity;
+                ZeroBasedSheet.Cell(formSheet, line, cell++).Value = "Description";
+
+                foreach (var lcid in languages)
+                {
+                    var desc = crmForm.Descriptions.FirstOrDefault(n => n.Key == lcid);
+                    if (desc.Value != null)
+                        ZeroBasedSheet.Cell(formSheet, line, cell++).Value = desc.Value;
+                    else
+                        cell++;
+                }
             }
-            line++;
+
             return line;
         }
 

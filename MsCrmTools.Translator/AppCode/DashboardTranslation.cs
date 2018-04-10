@@ -14,8 +14,12 @@ namespace MsCrmTools.Translator.AppCode
 {
     public class DashboardTranslation : BaseTranslation
     {
-        public void Export(List<int> languages, ExcelWorkbook file, IOrganizationService service)
+        private static ExportSettings settings;
+
+        public void Export(List<int> languages, ExcelWorkbook file, IOrganizationService service, ExportSettings esettings)
         {
+            settings = esettings;
+
             // Retrieve current user language information
             var setting = GetCurrentUserSettings(service);
 
@@ -104,34 +108,43 @@ namespace MsCrmTools.Translator.AppCode
                     crmForms.Add(crmForm);
                 }
 
-                // Names
-                var request = new RetrieveLocLabelsRequest
-                {
-                    AttributeName = "name",
-                    EntityMoniker = new EntityReference("systemform", form.Id)
-                };
+                RetrieveLocLabelsRequest request;
+                RetrieveLocLabelsResponse response;
 
-                var response = (RetrieveLocLabelsResponse)service.Execute(request);
-                foreach (var locLabel in response.Label.LocalizedLabels)
+                if (settings.ExportNames)
                 {
-                    crmForm.Names.Add(locLabel.LanguageCode, locLabel.Label);
+                    // Names
+                    request = new RetrieveLocLabelsRequest
+                    {
+                        AttributeName = "name",
+                        EntityMoniker = new EntityReference("systemform", form.Id)
+                    };
+
+                    response = (RetrieveLocLabelsResponse)service.Execute(request);
+                    foreach (var locLabel in response.Label.LocalizedLabels)
+                    {
+                        crmForm.Names.Add(locLabel.LanguageCode, locLabel.Label);
+                    }
                 }
 
-                // Descriptions
-                request = new RetrieveLocLabelsRequest
+                if (settings.ExportDescriptions)
                 {
-                    AttributeName = "description",
-                    EntityMoniker = new EntityReference("systemform", form.Id)
-                };
+                    // Descriptions
+                    request = new RetrieveLocLabelsRequest
+                    {
+                        AttributeName = "description",
+                        EntityMoniker = new EntityReference("systemform", form.Id)
+                    };
 
-                response = (RetrieveLocLabelsResponse)service.Execute(request);
-                foreach (var locLabel in response.Label.LocalizedLabels)
-                {
-                    crmForm.Descriptions.Add(locLabel.LanguageCode, locLabel.Label);
+                    response = (RetrieveLocLabelsResponse)service.Execute(request);
+                    foreach (var locLabel in response.Label.LocalizedLabels)
+                    {
+                        crmForm.Descriptions.Add(locLabel.LanguageCode, locLabel.Label);
+                    }
                 }
             }
 
-            var line = 1;
+            var line = 0;
             var formSheet = file.Worksheets.Add("Dashboards");
             AddFormHeader(formSheet, languages);
 
@@ -146,7 +159,7 @@ namespace MsCrmTools.Translator.AppCode
                 StyleMutator.TitleCell(ZeroBasedSheet.Cell(formSheet, 0, i).Style);
             }
 
-            for (int i = 1; i < line; i++)
+            for (int i = 1; i <= line; i++)
             {
                 for (int j = 0; j < 3; j++)
                 {
@@ -155,7 +168,7 @@ namespace MsCrmTools.Translator.AppCode
             }
 
             var tabSheet = file.Worksheets.Add("Dashboards Tabs");
-            line = 1;
+            line = 0;
             AddFormTabHeader(tabSheet, languages);
             foreach (var crmFormTab in crmFormTabs)
             {
@@ -168,7 +181,7 @@ namespace MsCrmTools.Translator.AppCode
                 StyleMutator.TitleCell(ZeroBasedSheet.Cell(tabSheet, 0, i).Style);
             }
 
-            for (int i = 1; i < line; i++)
+            for (int i = 1; i <= line; i++)
             {
                 for (int j = 0; j < 4; j++)
                 {
@@ -177,7 +190,7 @@ namespace MsCrmTools.Translator.AppCode
             }
 
             var sectionSheet = file.Worksheets.Add("Dashboards Sections");
-            line = 1;
+            line = 0;
             AddFormSectionHeader(sectionSheet, languages);
             foreach (var crmFormSection in crmFormSections)
             {
@@ -190,7 +203,7 @@ namespace MsCrmTools.Translator.AppCode
                 StyleMutator.TitleCell(ZeroBasedSheet.Cell(sectionSheet, 0, i).Style);
             }
 
-            for (int i = 1; i < line; i++)
+            for (int i = 1; i <= line; i++)
             {
                 for (int j = 0; j < 5; j++)
                 {
@@ -200,7 +213,7 @@ namespace MsCrmTools.Translator.AppCode
 
             var labelSheet = file.Worksheets.Add("Dashboards Fields");
             AddFormLabelsHeader(labelSheet, languages);
-            line = 1;
+            line = 0;
             foreach (var crmFormLabel in crmFormLabels)
             {
                 line = ExportField(languages, labelSheet, line, crmFormLabel);
@@ -212,7 +225,7 @@ namespace MsCrmTools.Translator.AppCode
                 StyleMutator.TitleCell(ZeroBasedSheet.Cell(labelSheet, 0, i).Style);
             }
 
-            for (int i = 1; i < line; i++)
+            for (int i = 1; i <= line; i++)
             {
                 for (int j = 0; j < 7; j++)
                 {
@@ -456,6 +469,8 @@ namespace MsCrmTools.Translator.AppCode
         private static int ExportField(List<int> languages, ExcelWorksheet labelSheet, int line,
           CrmFormLabel crmFormLabel)
         {
+            line++;
+
             var cell = 0;
 
             ZeroBasedSheet.Cell(labelSheet, line, cell++).Value = crmFormLabel.Id.ToString("B");
@@ -474,7 +489,6 @@ namespace MsCrmTools.Translator.AppCode
                     : string.Empty;
             }
 
-            line++;
             return line;
         }
 
@@ -482,35 +496,44 @@ namespace MsCrmTools.Translator.AppCode
         {
             var cell = 0;
 
-            ZeroBasedSheet.Cell(formSheet, line, cell++).Value = crmForm.FormUniqueId.ToString("B");
-            ZeroBasedSheet.Cell(formSheet, line, cell++).Value = crmForm.Id.ToString("B");
-            ZeroBasedSheet.Cell(formSheet, line, cell++).Value = "Name";
-
-            foreach (var lcid in languages)
+            if (settings.ExportNames)
             {
-                var name = crmForm.Names.FirstOrDefault(n => n.Key == lcid);
-                if (name.Value != null)
-                    ZeroBasedSheet.Cell(formSheet, line, cell++).Value = name.Value;
-                else
-                    cell++;
+                line++;
+                cell = 0;
+
+                ZeroBasedSheet.Cell(formSheet, line, cell++).Value = crmForm.FormUniqueId.ToString("B");
+                ZeroBasedSheet.Cell(formSheet, line, cell++).Value = crmForm.Id.ToString("B");
+                ZeroBasedSheet.Cell(formSheet, line, cell++).Value = "Name";
+
+                foreach (var lcid in languages)
+                {
+                    var name = crmForm.Names.FirstOrDefault(n => n.Key == lcid);
+                    if (name.Value != null)
+                        ZeroBasedSheet.Cell(formSheet, line, cell++).Value = name.Value;
+                    else
+                        cell++;
+                }
             }
 
-            line++;
-            cell = 0;
-
-            ZeroBasedSheet.Cell(formSheet, line, cell++).Value = crmForm.FormUniqueId.ToString("B");
-            ZeroBasedSheet.Cell(formSheet, line, cell++).Value = crmForm.Id.ToString("B");
-            ZeroBasedSheet.Cell(formSheet, line, cell++).Value = "Description";
-
-            foreach (var lcid in languages)
+            if (settings.ExportDescriptions)
             {
-                var desc = crmForm.Descriptions.FirstOrDefault(n => n.Key == lcid);
-                if (desc.Value != null)
-                    ZeroBasedSheet.Cell(formSheet, line, cell++).Value = desc.Value;
-                else
-                    cell++;
+                line++;
+                cell = 0;
+
+                ZeroBasedSheet.Cell(formSheet, line, cell++).Value = crmForm.FormUniqueId.ToString("B");
+                ZeroBasedSheet.Cell(formSheet, line, cell++).Value = crmForm.Id.ToString("B");
+                ZeroBasedSheet.Cell(formSheet, line, cell++).Value = "Description";
+
+                foreach (var lcid in languages)
+                {
+                    var desc = crmForm.Descriptions.FirstOrDefault(n => n.Key == lcid);
+                    if (desc.Value != null)
+                        ZeroBasedSheet.Cell(formSheet, line, cell++).Value = desc.Value;
+                    else
+                        cell++;
+                }
             }
-            line++;
+
             return line;
         }
 

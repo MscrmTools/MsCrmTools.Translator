@@ -21,9 +21,10 @@ namespace MsCrmTools.Translator.AppCode
         /// <param name="entities"></param>
         /// <param name="languages"></param>
         /// <param name="sheet"></param>
-        public void Export(List<EntityMetadata> entities, List<int> languages, ExcelWorksheet sheet)
+        public void Export(List<EntityMetadata> entities, List<int> languages, ExcelWorksheet sheet, ExportSettings settings)
         {
-            var line = 1;
+            var line = 0;
+            var cell = 0;
 
             AddHeader(sheet, languages);
 
@@ -31,8 +32,6 @@ namespace MsCrmTools.Translator.AppCode
             {
                 foreach (var attribute in entity.Attributes.OrderBy(a => a.LogicalName))
                 {
-                    var cell = 0;
-
                     if (attribute.AttributeType == null
                         || attribute.AttributeType.Value != AttributeTypeCode.Boolean
                         || !attribute.MetadataId.HasValue)
@@ -43,108 +42,125 @@ namespace MsCrmTools.Translator.AppCode
                     if (bAmd.OptionSet.IsGlobal.Value)
                         continue;
 
-                    ZeroBasedSheet.Cell(sheet, line, cell++).Value = attribute.MetadataId.Value.ToString("B");
-                    ZeroBasedSheet.Cell(sheet, line, cell++).Value = entity.LogicalName;
-                    ZeroBasedSheet.Cell(sheet, line, cell++).Value = attribute.LogicalName;
-                    ZeroBasedSheet.Cell(sheet, line, cell++).Value = bAmd.OptionSet.FalseOption.Value;
-                    ZeroBasedSheet.Cell(sheet, line, cell++).Value = "Label";
-
-                    foreach (var lcid in languages)
+                    if (settings.ExportNames)
                     {
-                        var label = string.Empty;
+                        line++;
+                        cell = 0;
 
-                        if (bAmd.OptionSet.FalseOption.Label != null)
+                        ZeroBasedSheet.Cell(sheet, line, cell++).Value = attribute.MetadataId.Value.ToString("B");
+                        ZeroBasedSheet.Cell(sheet, line, cell++).Value = entity.LogicalName;
+                        ZeroBasedSheet.Cell(sheet, line, cell++).Value = attribute.LogicalName;
+                        ZeroBasedSheet.Cell(sheet, line, cell++).Value = bAmd.OptionSet.FalseOption.Value;
+                        ZeroBasedSheet.Cell(sheet, line, cell++).Value = "Label";
+
+                        foreach (var lcid in languages)
                         {
-                            var optionLabel =
-                                bAmd.OptionSet.FalseOption.Label.LocalizedLabels.FirstOrDefault(l => l.LanguageCode == lcid);
-                            if (optionLabel != null)
-                            {
-                                label = optionLabel.Label;
-                            }
-                        }
+                            var label = string.Empty;
 
-                        ZeroBasedSheet.Cell(sheet, line, cell++).Value = label;
+                            if (bAmd.OptionSet.FalseOption.Label != null)
+                            {
+                                var optionLabel =
+                                    bAmd.OptionSet.FalseOption.Label.LocalizedLabels.FirstOrDefault(l =>
+                                        l.LanguageCode == lcid);
+                                if (optionLabel != null)
+                                {
+                                    label = optionLabel.Label;
+                                }
+                            }
+
+                            ZeroBasedSheet.Cell(sheet, line, cell++).Value = label;
+                        }
                     }
 
-                    line++;
-                    cell = 0;
-
-                    ZeroBasedSheet.Cell(sheet, line, cell++).Value = attribute.MetadataId.Value.ToString("B");
-                    ZeroBasedSheet.Cell(sheet, line, cell++).Value = entity.LogicalName;
-                    ZeroBasedSheet.Cell(sheet, line, cell++).Value = attribute.LogicalName;
-                    ZeroBasedSheet.Cell(sheet, line, cell++).Value = bAmd.OptionSet.FalseOption.Value;
-                    ZeroBasedSheet.Cell(sheet, line, cell++).Value = "Description";
-
-                    foreach (var lcid in languages)
+                    if (settings.ExportDescriptions)
                     {
-                        var label = string.Empty;
+                        line++;
+                        cell = 0;
 
-                        if (bAmd.OptionSet.FalseOption.Description != null)
+                        ZeroBasedSheet.Cell(sheet, line, cell++).Value = attribute.MetadataId.Value.ToString("B");
+                        ZeroBasedSheet.Cell(sheet, line, cell++).Value = entity.LogicalName;
+                        ZeroBasedSheet.Cell(sheet, line, cell++).Value = attribute.LogicalName;
+                        ZeroBasedSheet.Cell(sheet, line, cell++).Value = bAmd.OptionSet.FalseOption.Value;
+                        ZeroBasedSheet.Cell(sheet, line, cell++).Value = "Description";
+
+                        foreach (var lcid in languages)
                         {
-                            var optionLabel =
-                                bAmd.OptionSet.FalseOption.Description.LocalizedLabels.FirstOrDefault(l => l.LanguageCode == lcid);
-                            if (optionLabel != null)
-                            {
-                                label = optionLabel.Label;
-                            }
-                        }
+                            var label = string.Empty;
 
-                        ZeroBasedSheet.Cell(sheet, line, cell++).Value = label;
+                            if (bAmd.OptionSet.FalseOption.Description != null)
+                            {
+                                var optionLabel =
+                                    bAmd.OptionSet.FalseOption.Description.LocalizedLabels.FirstOrDefault(l =>
+                                        l.LanguageCode == lcid);
+                                if (optionLabel != null)
+                                {
+                                    label = optionLabel.Label;
+                                }
+                            }
+
+                            ZeroBasedSheet.Cell(sheet, line, cell++).Value = label;
+                        }
                     }
 
-                    line++;
-                    cell = 0;
-
-                    ZeroBasedSheet.Cell(sheet, line, cell++).Value = attribute.MetadataId.Value.ToString("B");
-                    ZeroBasedSheet.Cell(sheet, line, cell++).Value = entity.LogicalName;
-                    ZeroBasedSheet.Cell(sheet, line, cell++).Value = attribute.LogicalName;
-                    ZeroBasedSheet.Cell(sheet, line, cell++).Value = bAmd.OptionSet.TrueOption.Value;
-                    ZeroBasedSheet.Cell(sheet, line, cell++).Value = "Label";
-
-                    foreach (var lcid in languages)
+                    if (settings.ExportNames)
                     {
-                        var label = string.Empty;
+                        line++;
+                        cell = 0;
 
-                        if (bAmd.OptionSet.TrueOption.Label != null)
+                        ZeroBasedSheet.Cell(sheet, line, cell++).Value = attribute.MetadataId.Value.ToString("B");
+                        ZeroBasedSheet.Cell(sheet, line, cell++).Value = entity.LogicalName;
+                        ZeroBasedSheet.Cell(sheet, line, cell++).Value = attribute.LogicalName;
+                        ZeroBasedSheet.Cell(sheet, line, cell++).Value = bAmd.OptionSet.TrueOption.Value;
+                        ZeroBasedSheet.Cell(sheet, line, cell++).Value = "Label";
+
+                        foreach (var lcid in languages)
                         {
-                            var optionLabel =
-                                bAmd.OptionSet.TrueOption.Label.LocalizedLabels.FirstOrDefault(l => l.LanguageCode == lcid);
-                            if (optionLabel != null)
-                            {
-                                label = optionLabel.Label;
-                            }
-                        }
+                            var label = string.Empty;
 
-                        ZeroBasedSheet.Cell(sheet, line, cell++).Value = label;
+                            if (bAmd.OptionSet.TrueOption.Label != null)
+                            {
+                                var optionLabel =
+                                    bAmd.OptionSet.TrueOption.Label.LocalizedLabels.FirstOrDefault(l =>
+                                        l.LanguageCode == lcid);
+                                if (optionLabel != null)
+                                {
+                                    label = optionLabel.Label;
+                                }
+                            }
+
+                            ZeroBasedSheet.Cell(sheet, line, cell++).Value = label;
+                        }
                     }
 
-                    line++;
-                    cell = 0;
-
-                    ZeroBasedSheet.Cell(sheet, line, cell++).Value = attribute.MetadataId.Value.ToString("B");
-                    ZeroBasedSheet.Cell(sheet, line, cell++).Value = entity.LogicalName;
-                    ZeroBasedSheet.Cell(sheet, line, cell++).Value = attribute.LogicalName;
-                    ZeroBasedSheet.Cell(sheet, line, cell++).Value = bAmd.OptionSet.TrueOption.Value;
-                    ZeroBasedSheet.Cell(sheet, line, cell++).Value = "Description";
-
-                    foreach (var lcid in languages)
+                    if (settings.ExportDescriptions)
                     {
-                        var label = string.Empty;
+                        line++;
+                        cell = 0;
 
-                        if (bAmd.OptionSet.TrueOption.Description != null)
+                        ZeroBasedSheet.Cell(sheet, line, cell++).Value = attribute.MetadataId.Value.ToString("B");
+                        ZeroBasedSheet.Cell(sheet, line, cell++).Value = entity.LogicalName;
+                        ZeroBasedSheet.Cell(sheet, line, cell++).Value = attribute.LogicalName;
+                        ZeroBasedSheet.Cell(sheet, line, cell++).Value = bAmd.OptionSet.TrueOption.Value;
+                        ZeroBasedSheet.Cell(sheet, line, cell++).Value = "Description";
+
+                        foreach (var lcid in languages)
                         {
-                            var optionLabel =
-                                bAmd.OptionSet.TrueOption.Description.LocalizedLabels.FirstOrDefault(l => l.LanguageCode == lcid);
-                            if (optionLabel != null)
+                            var label = string.Empty;
+
+                            if (bAmd.OptionSet.TrueOption.Description != null)
                             {
-                                label = optionLabel.Label;
+                                var optionLabel =
+                                    bAmd.OptionSet.TrueOption.Description.LocalizedLabels.FirstOrDefault(l =>
+                                        l.LanguageCode == lcid);
+                                if (optionLabel != null)
+                                {
+                                    label = optionLabel.Label;
+                                }
                             }
+
+                            ZeroBasedSheet.Cell(sheet, line, cell++).Value = label;
                         }
-
-                        ZeroBasedSheet.Cell(sheet, line, cell++).Value = label;
                     }
-
-                    line++;
                 }
             }
 
@@ -154,7 +170,7 @@ namespace MsCrmTools.Translator.AppCode
                 StyleMutator.TitleCell(ZeroBasedSheet.Cell(sheet, 0, i).Style);
             }
 
-            for (int i = 1; i < line; i++)
+            for (int i = 1; i <= line; i++)
             {
                 for (int j = 0; j < 5; j++)
                 {

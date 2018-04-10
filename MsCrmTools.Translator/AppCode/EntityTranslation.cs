@@ -21,9 +21,10 @@ namespace MsCrmTools.Translator.AppCode
         /// <param name="entities"></param>
         /// <param name="languages"></param>
         /// <param name="sheet"></param>
-        public void Export(List<EntityMetadata> entities, List<int> languages, ExcelWorksheet sheet)
+        public void Export(List<EntityMetadata> entities, List<int> languages, ExcelWorksheet sheet, ExportSettings settings)
         {
-            var line = 1;
+            var line = 0;
+            var cell = 0;
 
             AddHeader(sheet, languages);
 
@@ -32,77 +33,86 @@ namespace MsCrmTools.Translator.AppCode
                 if (!entity.MetadataId.HasValue)
                     continue;
 
-                var cell = 0;
-
-                ZeroBasedSheet.Cell(sheet, line, cell++).Value = entity.MetadataId.Value.ToString("B");
-                ZeroBasedSheet.Cell(sheet, line, cell++).Value = entity.LogicalName;
-
-                // DisplayName
-                ZeroBasedSheet.Cell(sheet, line, cell++).Value = "DisplayName";
-
-                foreach (var lcid in languages)
+                if (settings.ExportNames)
                 {
-                    var displayName = string.Empty;
+                    line++;
+                    cell = 0;
 
-                    if (entity.DisplayName != null)
+                    ZeroBasedSheet.Cell(sheet, line, cell++).Value = entity.MetadataId.Value.ToString("B");
+                    ZeroBasedSheet.Cell(sheet, line, cell++).Value = entity.LogicalName;
+
+                    // DisplayName
+                    ZeroBasedSheet.Cell(sheet, line, cell++).Value = "DisplayName";
+
+                    foreach (var lcid in languages)
                     {
-                        var displayNameLabel = entity.DisplayName.LocalizedLabels.FirstOrDefault(l => l.LanguageCode == lcid);
-                        if (displayNameLabel != null)
+                        var displayName = string.Empty;
+
+                        if (entity.DisplayName != null)
                         {
-                            displayName = displayNameLabel.Label;
+                            var displayNameLabel =
+                                entity.DisplayName.LocalizedLabels.FirstOrDefault(l => l.LanguageCode == lcid);
+                            if (displayNameLabel != null)
+                            {
+                                displayName = displayNameLabel.Label;
+                            }
                         }
+
+                        ZeroBasedSheet.Cell(sheet, line, cell++).Value = displayName;
                     }
 
-                    ZeroBasedSheet.Cell(sheet, line, cell++).Value = displayName;
-                }
+                    // Plural Name
+                    line++;
+                    cell = 0;
+                    ZeroBasedSheet.Cell(sheet, line, cell++).Value = entity.MetadataId.Value.ToString("B");
+                    ZeroBasedSheet.Cell(sheet, line, cell++).Value = entity.LogicalName;
+                    ZeroBasedSheet.Cell(sheet, line, cell++).Value = "DisplayCollectionName";
 
-                // Plural Name
-                line++;
-                cell = 0;
-                ZeroBasedSheet.Cell(sheet, line, cell++).Value = entity.MetadataId.Value.ToString("B");
-                ZeroBasedSheet.Cell(sheet, line, cell++).Value = entity.LogicalName;
-                ZeroBasedSheet.Cell(sheet, line, cell++).Value = "DisplayCollectionName";
-
-                foreach (var lcid in languages)
-                {
-                    var collectionName = string.Empty;
-
-                    if (entity.DisplayCollectionName != null)
+                    foreach (var lcid in languages)
                     {
-                        var collectionNameLabel = entity.DisplayCollectionName.LocalizedLabels.FirstOrDefault(l => l.LanguageCode == lcid);
-                        if (collectionNameLabel != null)
-                        {
-                            collectionName = collectionNameLabel.Label;
-                        }
-                    }
+                        var collectionName = string.Empty;
 
-                    ZeroBasedSheet.Cell(sheet, line, cell++).Value = collectionName;
+                        if (entity.DisplayCollectionName != null)
+                        {
+                            var collectionNameLabel =
+                                entity.DisplayCollectionName.LocalizedLabels.FirstOrDefault(l =>
+                                    l.LanguageCode == lcid);
+                            if (collectionNameLabel != null)
+                            {
+                                collectionName = collectionNameLabel.Label;
+                            }
+                        }
+
+                        ZeroBasedSheet.Cell(sheet, line, cell++).Value = collectionName;
+                    }
                 }
 
-                // Description
-                line++;
-                cell = 0;
-                ZeroBasedSheet.Cell(sheet, line, cell++).Value = entity.MetadataId.Value.ToString("B");
-                ZeroBasedSheet.Cell(sheet, line, cell++).Value = entity.LogicalName;
-                ZeroBasedSheet.Cell(sheet, line, cell++).Value = "Description";
-
-                foreach (var lcid in languages)
+                if (settings.ExportDescriptions)
                 {
-                    var description = string.Empty;
+                    // Description
+                    line++;
+                    cell = 0;
+                    ZeroBasedSheet.Cell(sheet, line, cell++).Value = entity.MetadataId.Value.ToString("B");
+                    ZeroBasedSheet.Cell(sheet, line, cell++).Value = entity.LogicalName;
+                    ZeroBasedSheet.Cell(sheet, line, cell++).Value = "Description";
 
-                    if (entity.Description != null)
+                    foreach (var lcid in languages)
                     {
-                        var descriptionLabel = entity.Description.LocalizedLabels.FirstOrDefault(l => l.LanguageCode == lcid);
-                        if (descriptionLabel != null)
+                        var description = string.Empty;
+
+                        if (entity.Description != null)
                         {
-                            description = descriptionLabel.Label;
+                            var descriptionLabel =
+                                entity.Description.LocalizedLabels.FirstOrDefault(l => l.LanguageCode == lcid);
+                            if (descriptionLabel != null)
+                            {
+                                description = descriptionLabel.Label;
+                            }
                         }
+
+                        ZeroBasedSheet.Cell(sheet, line, cell++).Value = description;
                     }
-
-                    ZeroBasedSheet.Cell(sheet, line, cell++).Value = description;
                 }
-
-                line++;
             }
 
             // Applying style to cells
@@ -111,7 +121,7 @@ namespace MsCrmTools.Translator.AppCode
                 StyleMutator.TitleCell(ZeroBasedSheet.Cell(sheet, 0, i).Style);
             }
 
-            for (int i = 1; i < line; i++)
+            for (int i = 1; i <= line; i++)
             {
                 for (int j = 0; j < 3; j++)
                 {
@@ -136,7 +146,7 @@ namespace MsCrmTools.Translator.AppCode
                         EntityFilters = EntityFilters.Entity | EntityFilters.Attributes | EntityFilters.Relationships
                     };
 
-                    var response = ((RetrieveEntityResponse) service.Execute(request));
+                    var response = ((RetrieveEntityResponse)service.Execute(request));
                     emd = response.EntityMetadata;
 
                     emds.Add(emd);
@@ -210,7 +220,7 @@ namespace MsCrmTools.Translator.AppCode
 
                 try
                 {
-                    var request = new UpdateEntityRequest {Entity = entityUpdate};
+                    var request = new UpdateEntityRequest { Entity = entityUpdate };
 
                     service.Execute(request);
 

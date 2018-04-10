@@ -1,10 +1,10 @@
-﻿using System;
-using Microsoft.Crm.Sdk.Messages;
+﻿using Microsoft.Crm.Sdk.Messages;
 using Microsoft.Xrm.Sdk;
 using Microsoft.Xrm.Sdk.Messages;
 using Microsoft.Xrm.Sdk.Metadata;
 using MsCrmTools.Translator.AppCode;
 using OfficeOpenXml;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics;
@@ -67,7 +67,7 @@ namespace MsCrmTools.Translator
 
                 var sheet = file.Workbook.Worksheets.Add("Entities");
                 var et = new EntityTranslation();
-                et.Export(emds, lcids, sheet);
+                et.Export(emds, lcids, sheet, settings);
                 StyleMutator.FontDefaults(sheet);
             }
 
@@ -80,7 +80,7 @@ namespace MsCrmTools.Translator
 
                 var sheet = file.Workbook.Worksheets.Add("Attributes");
                 var at = new AttributeTranslation();
-                at.Export(emds, lcids, sheet);
+                at.Export(emds, lcids, sheet, settings);
                 StyleMutator.FontDefaults(sheet);
             }
 
@@ -111,7 +111,7 @@ namespace MsCrmTools.Translator
 
                 var sheet = file.Workbook.Worksheets.Add("Global OptionSets");
                 var ot = new GlobalOptionSetTranslation();
-                ot.Export(lcids, sheet, service);
+                ot.Export(lcids, sheet, service, settings);
                 StyleMutator.FontDefaults(sheet);
             }
 
@@ -124,7 +124,7 @@ namespace MsCrmTools.Translator
 
                 var sheet = file.Workbook.Worksheets.Add("OptionSets");
                 var ot = new OptionSetTranslation();
-                ot.Export(emds, lcids, sheet);
+                ot.Export(emds, lcids, sheet, settings);
                 StyleMutator.FontDefaults(sheet);
             }
 
@@ -138,7 +138,7 @@ namespace MsCrmTools.Translator
                 var sheet = file.Workbook.Worksheets.Add("Booleans");
 
                 var bt = new BooleanTranslation();
-                bt.Export(emds, lcids, sheet);
+                bt.Export(emds, lcids, sheet, settings);
                 StyleMutator.FontDefaults(sheet);
             }
 
@@ -151,7 +151,7 @@ namespace MsCrmTools.Translator
 
                 var sheet = file.Workbook.Worksheets.Add("Views");
                 var vt = new ViewTranslation();
-                vt.Export(emds, lcids, sheet, service);
+                vt.Export(emds, lcids, sheet, service, settings);
                 StyleMutator.FontDefaults(sheet);
             }
 
@@ -164,7 +164,7 @@ namespace MsCrmTools.Translator
 
                 var sheet = file.Workbook.Worksheets.Add("Charts");
                 var vt = new VisualizationTranslation();
-                vt.Export(emds, lcids, sheet, service);
+                vt.Export(emds, lcids, sheet, service, settings);
                 StyleMutator.FontDefaults(sheet);
             }
 
@@ -184,7 +184,7 @@ namespace MsCrmTools.Translator
                         ExportFormTabs = settings.ExportFormTabs,
                         ExportFormSections = settings.ExportFormSections,
                         ExportFormFields = settings.ExportFormFields
-                    });
+                    }, settings);
             }
 
             if (settings.ExportSiteMap)
@@ -196,7 +196,7 @@ namespace MsCrmTools.Translator
 
                 var st = new SiteMapTranslation();
 
-                st.Export(lcids, file.Workbook, service);
+                st.Export(lcids, file.Workbook, service, settings);
             }
 
             if (settings.ExportDashboards)
@@ -208,7 +208,7 @@ namespace MsCrmTools.Translator
 
                 var st = new DashboardTranslation();
 
-                st.Export(lcids, file.Workbook, service);
+                st.Export(lcids, file.Workbook, service, settings);
             }
 
             file.Save();
@@ -267,7 +267,7 @@ namespace MsCrmTools.Translator
                             {
                                 Message = "Importing entities translations...",
                                 Item = 1,
-                                Overall = overallProgress == 0 ? 1 : overallProgress*100/count
+                                Overall = overallProgress == 0 ? 1 : overallProgress * 100 / count
                             });
 
                             var et = new EntityTranslation();
@@ -281,7 +281,7 @@ namespace MsCrmTools.Translator
                             {
                                 Message = "Importing attributes translations...",
                                 Item = 1,
-                                Overall = overallProgress == 0 ? 1 : overallProgress*100/count
+                                Overall = overallProgress == 0 ? 1 : overallProgress * 100 / count
                             });
 
                             var at = new AttributeTranslation();
@@ -290,39 +290,39 @@ namespace MsCrmTools.Translator
                             break;
 
                         case "Relationships":
-                        {
-                            worker.ReportProgressIfPossible(0, new ProgressInfo
                             {
-                                Message = "Importing Relationships with custom label translations...",
-                                Item = 1,
-                                Overall = overallProgress == 0 ? 1 : overallProgress*100/count
-                            });
+                                worker.ReportProgressIfPossible(0, new ProgressInfo
+                                {
+                                    Message = "Importing Relationships with custom label translations...",
+                                    Item = 1,
+                                    Overall = overallProgress == 0 ? 1 : overallProgress * 100 / count
+                                });
 
-                            var rt = new RelationshipTranslation();
-                            rt.Result += Engine_OnResult;
-                            rt.Import(sheet, emds, service, worker);
-                            break;
-                        }
+                                var rt = new RelationshipTranslation();
+                                rt.Result += Engine_OnResult;
+                                rt.Import(sheet, emds, service, worker);
+                                break;
+                            }
                         case "RelationshipsNN":
-                        {
-                            worker.ReportProgressIfPossible(0, new ProgressInfo
                             {
-                                Message = "Importing NN Relationships with custom label translations...",
-                                Item = 1,
-                                Overall = overallProgress == 0 ? 1 : overallProgress*100/count
-                            });
+                                worker.ReportProgressIfPossible(0, new ProgressInfo
+                                {
+                                    Message = "Importing NN Relationships with custom label translations...",
+                                    Item = 1,
+                                    Overall = overallProgress == 0 ? 1 : overallProgress * 100 / count
+                                });
 
-                            var rtNn = new RelationshipNnTranslation();
-                            rtNn.Result += Engine_OnResult;
-                            rtNn.Import(sheet, emds, service, worker);
-                            break;
-                        }
+                                var rtNn = new RelationshipNnTranslation();
+                                rtNn.Result += Engine_OnResult;
+                                rtNn.Import(sheet, emds, service, worker);
+                                break;
+                            }
                         case "Global OptionSets":
                             worker.ReportProgressIfPossible(0, new ProgressInfo
                             {
                                 Message = "Importing global optionsets translations...",
                                 Item = 1,
-                                Overall = overallProgress == 0 ? 1 : overallProgress*100/count
+                                Overall = overallProgress == 0 ? 1 : overallProgress * 100 / count
                             });
 
                             var got = new GlobalOptionSetTranslation();
@@ -335,7 +335,7 @@ namespace MsCrmTools.Translator
                             {
                                 Message = "Importing optionsets translations...",
                                 Item = 1,
-                                Overall = overallProgress == 0 ? 1 : overallProgress*100/count
+                                Overall = overallProgress == 0 ? 1 : overallProgress * 100 / count
                             });
 
                             var ot = new OptionSetTranslation();
@@ -348,7 +348,7 @@ namespace MsCrmTools.Translator
                             {
                                 Message = "Importing booleans translations...",
                                 Item = 1,
-                                Overall = overallProgress == 0 ? 1 : overallProgress*100/count
+                                Overall = overallProgress == 0 ? 1 : overallProgress * 100 / count
                             });
 
                             var bt = new BooleanTranslation();
@@ -361,7 +361,7 @@ namespace MsCrmTools.Translator
                             {
                                 Message = "Importing views translations...",
                                 Item = 1,
-                                Overall = overallProgress == 0 ? 1 : overallProgress*100/count
+                                Overall = overallProgress == 0 ? 1 : overallProgress * 100 / count
                             });
 
                             var vt = new ViewTranslation();
@@ -374,7 +374,7 @@ namespace MsCrmTools.Translator
                             {
                                 Message = "Importing charts translations...",
                                 Item = 1,
-                                Overall = overallProgress == 0 ? 1 : overallProgress*100/count
+                                Overall = overallProgress == 0 ? 1 : overallProgress * 100 / count
                             });
 
                             var vt2 = new VisualizationTranslation();
@@ -387,7 +387,7 @@ namespace MsCrmTools.Translator
                             {
                                 Message = "Importing forms translations...",
                                 Item = 1,
-                                Overall = overallProgress == 0 ? 1 : overallProgress*100/count
+                                Overall = overallProgress == 0 ? 1 : overallProgress * 100 / count
                             });
 
                             ft.ImportFormName(sheet, service, worker);
@@ -413,7 +413,7 @@ namespace MsCrmTools.Translator
                             {
                                 Message = "Importing dashboard translations...",
                                 Item = 1,
-                                Overall = overallProgress == 0 ? 1 : overallProgress*100/count
+                                Overall = overallProgress == 0 ? 1 : overallProgress * 100 / count
                             });
 
                             db.ImportFormName(sheet, service, worker);
@@ -456,7 +456,7 @@ namespace MsCrmTools.Translator
                         {
                             Message = "Importing form content translations...",
                             Item = 1,
-                            Overall = overallProgress == 0 ? 1 : overallProgress*100/count
+                            Overall = overallProgress == 0 ? 1 : overallProgress * 100 / count
                         });
 
                         ft.ImportFormsContent(service, forms, worker);
@@ -468,7 +468,7 @@ namespace MsCrmTools.Translator
                         {
                             Message = "Importing dashboard content translations...",
                             Item = 1,
-                            Overall = overallProgress == 0 ? 1 : overallProgress*100/count
+                            Overall = overallProgress == 0 ? 1 : overallProgress * 100 / count
                         });
 
                         db.ImportFormsContent(service, forms, worker);
@@ -480,7 +480,7 @@ namespace MsCrmTools.Translator
                         {
                             Message = "Importing SiteMap translations...",
                             Item = 1,
-                            Overall = overallProgress == 0 ? 1 : overallProgress*100/count
+                            Overall = overallProgress == 0 ? 1 : overallProgress * 100 / count
                         });
 
                         st.Import(service);

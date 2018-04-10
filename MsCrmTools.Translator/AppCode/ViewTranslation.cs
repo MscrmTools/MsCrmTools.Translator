@@ -11,7 +11,7 @@ using System.Linq;
 
 namespace MsCrmTools.Translator.AppCode
 {
-    public class ViewTranslation:BaseTranslation
+    public class ViewTranslation : BaseTranslation
     {
         /// <summary>
         ///
@@ -22,9 +22,10 @@ namespace MsCrmTools.Translator.AppCode
         /// <param name="entities"></param>
         /// <param name="languages"></param>
         /// <param name="sheet"></param>
-        public void Export(List<EntityMetadata> entities, List<int> languages, ExcelWorksheet sheet, IOrganizationService service)
+        public void Export(List<EntityMetadata> entities, List<int> languages, ExcelWorksheet sheet, IOrganizationService service, ExportSettings settings)
         {
-            var line = 1;
+            var line = 0;
+            var cell = 0;
 
             AddHeader(sheet, languages);
 
@@ -53,71 +54,86 @@ namespace MsCrmTools.Translator.AppCode
                         crmViews.Add(crmView);
                     }
 
-                    // Names
-                    var request = new RetrieveLocLabelsRequest
-                    {
-                        AttributeName = "name",
-                        EntityMoniker = new EntityReference("savedquery", view.Id)
-                    };
+                    RetrieveLocLabelsRequest request;
+                    RetrieveLocLabelsResponse response;
 
-                    var response = (RetrieveLocLabelsResponse)service.Execute(request);
-                    foreach (var locLabel in response.Label.LocalizedLabels)
+                    if (settings.ExportNames)
                     {
-                        crmView.Names.Add(locLabel.LanguageCode, locLabel.Label);
+                        // Names
+                        request = new RetrieveLocLabelsRequest
+                        {
+                            AttributeName = "name",
+                            EntityMoniker = new EntityReference("savedquery", view.Id)
+                        };
+
+                        response = (RetrieveLocLabelsResponse)service.Execute(request);
+                        foreach (var locLabel in response.Label.LocalizedLabels)
+                        {
+                            crmView.Names.Add(locLabel.LanguageCode, locLabel.Label);
+                        }
                     }
 
-                    // Descriptions
-                    request = new RetrieveLocLabelsRequest
+                    if (settings.ExportDescriptions)
                     {
-                        AttributeName = "description",
-                        EntityMoniker = new EntityReference("savedquery", view.Id)
-                    };
+                        // Descriptions
+                        request = new RetrieveLocLabelsRequest
+                        {
+                            AttributeName = "description",
+                            EntityMoniker = new EntityReference("savedquery", view.Id)
+                        };
 
-                    response = (RetrieveLocLabelsResponse)service.Execute(request);
-                    foreach (var locLabel in response.Label.LocalizedLabels)
-                    {
-                        crmView.Descriptions.Add(locLabel.LanguageCode, locLabel.Label);
+                        response = (RetrieveLocLabelsResponse)service.Execute(request);
+                        foreach (var locLabel in response.Label.LocalizedLabels)
+                        {
+                            crmView.Descriptions.Add(locLabel.LanguageCode, locLabel.Label);
+                        }
                     }
                 }
             }
 
             foreach (var crmView in crmViews.OrderBy(cv => cv.Entity).ThenBy(cv => cv.Type))
             {
-                var cell = 0;
-                ZeroBasedSheet.Cell(sheet, line, cell++).Value = crmView.Id.ToString("B");
-                ZeroBasedSheet.Cell(sheet, line, cell++).Value = crmView.Entity;
-                ZeroBasedSheet.Cell(sheet, line, cell++).Value = crmView.Type;
-                ZeroBasedSheet.Cell(sheet, line, cell++).Value = "Name";
-
-                foreach (var lcid in languages)
+                if (settings.ExportNames)
                 {
-                    var name = crmView.Names.FirstOrDefault(n => n.Key == lcid);
-                    if (name.Value != null)
-                        ZeroBasedSheet.Cell(sheet, line, cell++).Value = name.Value;
-                    else
+                    line++;
+                    cell = 0;
+                    ZeroBasedSheet.Cell(sheet, line, cell++).Value = crmView.Id.ToString("B");
+                    ZeroBasedSheet.Cell(sheet, line, cell++).Value = crmView.Entity;
+                    ZeroBasedSheet.Cell(sheet, line, cell++).Value = crmView.Type;
+                    ZeroBasedSheet.Cell(sheet, line, cell++).Value = "Name";
+
+                    foreach (var lcid in languages)
                     {
-                        cell++;
+                        var name = crmView.Names.FirstOrDefault(n => n.Key == lcid);
+                        if (name.Value != null)
+                            ZeroBasedSheet.Cell(sheet, line, cell++).Value = name.Value;
+                        else
+                        {
+                            cell++;
+                        }
                     }
                 }
 
-                line++;
-                cell = 0;
-                ZeroBasedSheet.Cell(sheet, line, cell++).Value = crmView.Id.ToString("B");
-                ZeroBasedSheet.Cell(sheet, line, cell++).Value = crmView.Entity;
-                ZeroBasedSheet.Cell(sheet, line, cell++).Value = crmView.Type;
-                ZeroBasedSheet.Cell(sheet, line, cell++).Value = "Description";
-
-                foreach (var lcid in languages)
+                if (settings.ExportDescriptions)
                 {
-                    var desc = crmView.Descriptions.FirstOrDefault(n => n.Key == lcid);
-                    if (desc.Value != null)
-                        ZeroBasedSheet.Cell(sheet, line, cell++).Value = desc.Value;
-                    else
+                    line++;
+                    cell = 0;
+                    ZeroBasedSheet.Cell(sheet, line, cell++).Value = crmView.Id.ToString("B");
+                    ZeroBasedSheet.Cell(sheet, line, cell++).Value = crmView.Entity;
+                    ZeroBasedSheet.Cell(sheet, line, cell++).Value = crmView.Type;
+                    ZeroBasedSheet.Cell(sheet, line, cell++).Value = "Description";
+
+                    foreach (var lcid in languages)
                     {
-                        cell++;
+                        var desc = crmView.Descriptions.FirstOrDefault(n => n.Key == lcid);
+                        if (desc.Value != null)
+                            ZeroBasedSheet.Cell(sheet, line, cell++).Value = desc.Value;
+                        else
+                        {
+                            cell++;
+                        }
                     }
                 }
-                line++;
             }
 
             // Applying style to cells
@@ -126,7 +142,7 @@ namespace MsCrmTools.Translator.AppCode
                 StyleMutator.TitleCell(ZeroBasedSheet.Cell(sheet, 0, i).Style);
             }
 
-            for (int i = 1; i < line; i++)
+            for (int i = 1; i <= line; i++)
             {
                 for (int j = 0; j < 4; j++)
                 {

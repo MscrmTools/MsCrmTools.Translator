@@ -21,9 +21,10 @@ namespace MsCrmTools.Translator.AppCode
         /// <param name="languages"></param>
         /// <param name="sheet"></param>
         /// <param name="service"></param>
-        public void Export(List<int> languages, ExcelWorksheet sheet, IOrganizationService service)
+        public void Export(List<int> languages, ExcelWorksheet sheet, IOrganizationService service, ExportSettings settings)
         {
-            var line = 1;
+            var line = 0;
+            var cell = 0;
 
             AddHeader(sheet, languages);
 
@@ -37,151 +38,171 @@ namespace MsCrmTools.Translator.AppCode
                     var oomd = (OptionSetMetadata)omd;
                     foreach (var option in oomd.Options.OrderBy(o => o.Value))
                     {
-                        var cell = 0;
-                        ZeroBasedSheet.Cell(sheet, line, cell++).Value = omd.MetadataId.Value.ToString("B");
-                        ZeroBasedSheet.Cell(sheet, line, cell++).Value = omd.Name;
-                        ZeroBasedSheet.Cell(sheet, line, cell++).Value = option.Value;
-                        ZeroBasedSheet.Cell(sheet, line, cell++).Value = "Label";
-
-                        foreach (var lcid in languages)
+                        if (settings.ExportNames)
                         {
-                            var label = string.Empty;
+                            line++;
+                            cell = 0;
+                            ZeroBasedSheet.Cell(sheet, line, cell++).Value = omd.MetadataId.Value.ToString("B");
+                            ZeroBasedSheet.Cell(sheet, line, cell++).Value = omd.Name;
+                            ZeroBasedSheet.Cell(sheet, line, cell++).Value = option.Value;
+                            ZeroBasedSheet.Cell(sheet, line, cell++).Value = "Label";
 
-                            var optionLabel = option.Label.LocalizedLabels.FirstOrDefault(l => l.LanguageCode == lcid);
-                            if (optionLabel != null)
+                            foreach (var lcid in languages)
                             {
-                                label = optionLabel.Label;
-                            }
+                                var label = string.Empty;
 
-                            ZeroBasedSheet.Cell(sheet, line, cell++).Value = label;
+                                var optionLabel =
+                                    option.Label.LocalizedLabels.FirstOrDefault(l => l.LanguageCode == lcid);
+                                if (optionLabel != null)
+                                {
+                                    label = optionLabel.Label;
+                                }
+
+                                ZeroBasedSheet.Cell(sheet, line, cell++).Value = label;
+                            }
                         }
 
-                        line++;
-                        cell = 0;
-                        ZeroBasedSheet.Cell(sheet, line, cell++).Value = omd.MetadataId.Value.ToString("B");
-                        ZeroBasedSheet.Cell(sheet, line, cell++).Value = omd.Name;
-                        ZeroBasedSheet.Cell(sheet, line, cell++).Value = option.Value;
-                        ZeroBasedSheet.Cell(sheet, line, cell++).Value = "Description";
-
-                        foreach (var lcid in languages)
+                        if (settings.ExportDescriptions)
                         {
-                            var label = string.Empty;
+                            line++;
+                            cell = 0;
+                            ZeroBasedSheet.Cell(sheet, line, cell++).Value = omd.MetadataId.Value.ToString("B");
+                            ZeroBasedSheet.Cell(sheet, line, cell++).Value = omd.Name;
+                            ZeroBasedSheet.Cell(sheet, line, cell++).Value = option.Value;
+                            ZeroBasedSheet.Cell(sheet, line, cell++).Value = "Description";
 
-                            var optionDescription = option.Description.LocalizedLabels.FirstOrDefault(l => l.LanguageCode == lcid);
-                            if (optionDescription != null)
+                            foreach (var lcid in languages)
                             {
-                                label = optionDescription.Label;
+                                var label = string.Empty;
+
+                                var optionDescription =
+                                    option.Description.LocalizedLabels.FirstOrDefault(l => l.LanguageCode == lcid);
+                                if (optionDescription != null)
+                                {
+                                    label = optionDescription.Label;
+                                }
+
+                                ZeroBasedSheet.Cell(sheet, line, cell++).Value = label;
                             }
-
-                            ZeroBasedSheet.Cell(sheet, line, cell++).Value = label;
                         }
-
-                        line++;
                     }
                 }
                 else if (omd is BooleanOptionSetMetadata)
                 {
                     var bomd = (BooleanOptionSetMetadata)omd;
 
-                    var cell = 0;
-                    ZeroBasedSheet.Cell(sheet, line, cell++).Value = omd.MetadataId.Value.ToString("B");
-                    ZeroBasedSheet.Cell(sheet, line, cell++).Value = omd.Name;
-                    ZeroBasedSheet.Cell(sheet, line, cell++).Value = bomd.FalseOption.Value;
-                    ZeroBasedSheet.Cell(sheet, line, cell++).Value = "Label";
-
-                    foreach (var lcid in languages)
+                    if (settings.ExportNames)
                     {
-                        var label = string.Empty;
+                        line++;
+                        cell = 0;
+                        ZeroBasedSheet.Cell(sheet, line, cell++).Value = omd.MetadataId.Value.ToString("B");
+                        ZeroBasedSheet.Cell(sheet, line, cell++).Value = omd.Name;
+                        ZeroBasedSheet.Cell(sheet, line, cell++).Value = bomd.FalseOption.Value;
+                        ZeroBasedSheet.Cell(sheet, line, cell++).Value = "Label";
 
-                        if (bomd.FalseOption.Label != null)
+                        foreach (var lcid in languages)
                         {
-                            var optionLabel =
-                                bomd.FalseOption.Label.LocalizedLabels.FirstOrDefault(l => l.LanguageCode == lcid);
-                            if (optionLabel != null)
-                            {
-                                label = optionLabel.Label;
-                            }
-                        }
+                            var label = string.Empty;
 
-                        ZeroBasedSheet.Cell(sheet, line, cell++).Value = label;
+                            if (bomd.FalseOption.Label != null)
+                            {
+                                var optionLabel =
+                                    bomd.FalseOption.Label.LocalizedLabels.FirstOrDefault(l => l.LanguageCode == lcid);
+                                if (optionLabel != null)
+                                {
+                                    label = optionLabel.Label;
+                                }
+                            }
+
+                            ZeroBasedSheet.Cell(sheet, line, cell++).Value = label;
+                        }
                     }
 
-                    line++;
-                    cell = 0;
-
-                    ZeroBasedSheet.Cell(sheet, line, cell++).Value = omd.MetadataId.Value.ToString("B");
-                    ZeroBasedSheet.Cell(sheet, line, cell++).Value = omd.Name;
-                    ZeroBasedSheet.Cell(sheet, line, cell++).Value = bomd.FalseOption.Value;
-                    ZeroBasedSheet.Cell(sheet, line, cell++).Value = "Description";
-
-                    foreach (var lcid in languages)
+                    if (settings.ExportDescriptions)
                     {
-                        var label = string.Empty;
+                        line++;
+                        cell = 0;
 
-                        if (bomd.FalseOption.Description != null)
+                        ZeroBasedSheet.Cell(sheet, line, cell++).Value = omd.MetadataId.Value.ToString("B");
+                        ZeroBasedSheet.Cell(sheet, line, cell++).Value = omd.Name;
+                        ZeroBasedSheet.Cell(sheet, line, cell++).Value = bomd.FalseOption.Value;
+                        ZeroBasedSheet.Cell(sheet, line, cell++).Value = "Description";
+
+                        foreach (var lcid in languages)
                         {
-                            var optionLabel =
-                                bomd.FalseOption.Description.LocalizedLabels.FirstOrDefault(l => l.LanguageCode == lcid);
-                            if (optionLabel != null)
-                            {
-                                label = optionLabel.Label;
-                            }
-                        }
+                            var label = string.Empty;
 
-                        ZeroBasedSheet.Cell(sheet, line, cell++).Value = label;
+                            if (bomd.FalseOption.Description != null)
+                            {
+                                var optionLabel =
+                                    bomd.FalseOption.Description.LocalizedLabels.FirstOrDefault(l =>
+                                        l.LanguageCode == lcid);
+                                if (optionLabel != null)
+                                {
+                                    label = optionLabel.Label;
+                                }
+                            }
+
+                            ZeroBasedSheet.Cell(sheet, line, cell++).Value = label;
+                        }
                     }
 
-                    line++;
-                    cell = 0;
-
-                    ZeroBasedSheet.Cell(sheet, line, cell++).Value = omd.MetadataId.Value.ToString("B");
-                    ZeroBasedSheet.Cell(sheet, line, cell++).Value = omd.Name;
-                    ZeroBasedSheet.Cell(sheet, line, cell++).Value = bomd.TrueOption.Value;
-                    ZeroBasedSheet.Cell(sheet, line, cell++).Value = "Label";
-
-                    foreach (var lcid in languages)
+                    if (settings.ExportNames)
                     {
-                        var label = string.Empty;
+                        line++;
+                        cell = 0;
 
-                        if (bomd.TrueOption.Label != null)
+                        ZeroBasedSheet.Cell(sheet, line, cell++).Value = omd.MetadataId.Value.ToString("B");
+                        ZeroBasedSheet.Cell(sheet, line, cell++).Value = omd.Name;
+                        ZeroBasedSheet.Cell(sheet, line, cell++).Value = bomd.TrueOption.Value;
+                        ZeroBasedSheet.Cell(sheet, line, cell++).Value = "Label";
+
+                        foreach (var lcid in languages)
                         {
-                            var optionLabel =
-                                bomd.TrueOption.Label.LocalizedLabels.FirstOrDefault(l => l.LanguageCode == lcid);
-                            if (optionLabel != null)
-                            {
-                                label = optionLabel.Label;
-                            }
-                        }
+                            var label = string.Empty;
 
-                        ZeroBasedSheet.Cell(sheet, line, cell++).Value = label;
+                            if (bomd.TrueOption.Label != null)
+                            {
+                                var optionLabel =
+                                    bomd.TrueOption.Label.LocalizedLabels.FirstOrDefault(l => l.LanguageCode == lcid);
+                                if (optionLabel != null)
+                                {
+                                    label = optionLabel.Label;
+                                }
+                            }
+
+                            ZeroBasedSheet.Cell(sheet, line, cell++).Value = label;
+                        }
                     }
 
-                    line++;
-                    cell = 0;
-
-                    ZeroBasedSheet.Cell(sheet, line, cell++).Value = omd.MetadataId.Value.ToString("B");
-                    ZeroBasedSheet.Cell(sheet, line, cell++).Value = omd.Name;
-                    ZeroBasedSheet.Cell(sheet, line, cell++).Value = bomd.TrueOption.Value;
-                    ZeroBasedSheet.Cell(sheet, line, cell++).Value = "Description";
-
-                    foreach (var lcid in languages)
+                    if (settings.ExportDescriptions)
                     {
-                        var label = string.Empty;
+                        line++;
+                        cell = 0;
 
-                        if (bomd.TrueOption.Description != null)
+                        ZeroBasedSheet.Cell(sheet, line, cell++).Value = omd.MetadataId.Value.ToString("B");
+                        ZeroBasedSheet.Cell(sheet, line, cell++).Value = omd.Name;
+                        ZeroBasedSheet.Cell(sheet, line, cell++).Value = bomd.TrueOption.Value;
+                        ZeroBasedSheet.Cell(sheet, line, cell++).Value = "Description";
+
+                        foreach (var lcid in languages)
                         {
-                            var optionLabel =
-                                bomd.TrueOption.Description.LocalizedLabels.FirstOrDefault(l => l.LanguageCode == lcid);
-                            if (optionLabel != null)
+                            var label = string.Empty;
+
+                            if (bomd.TrueOption.Description != null)
                             {
-                                label = optionLabel.Label;
+                                var optionLabel =
+                                    bomd.TrueOption.Description.LocalizedLabels.FirstOrDefault(l =>
+                                        l.LanguageCode == lcid);
+                                if (optionLabel != null)
+                                {
+                                    label = optionLabel.Label;
+                                }
                             }
+
+                            ZeroBasedSheet.Cell(sheet, line, cell++).Value = label;
                         }
-
-                        ZeroBasedSheet.Cell(sheet, line, cell++).Value = label;
                     }
-
-                    line++;
                 }
             }
 
@@ -191,7 +212,7 @@ namespace MsCrmTools.Translator.AppCode
                 StyleMutator.TitleCell(ZeroBasedSheet.Cell(sheet, 0, i).Style);
             }
 
-            for (int i = 1; i < line; i++)
+            for (int i = 1; i <= line; i++)
             {
                 for (int j = 0; j < 4; j++)
                 {
