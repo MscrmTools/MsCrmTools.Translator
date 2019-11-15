@@ -170,6 +170,7 @@ namespace MsCrmTools.Translator.AppCode
             var tabSheet = file.Worksheets.Add("Dashboards Tabs");
             line = 0;
             AddFormTabHeader(tabSheet, languages);
+            line++;
             foreach (var crmFormTab in crmFormTabs)
             {
                 line = ExportTab(languages, tabSheet, line, crmFormTab);
@@ -192,6 +193,7 @@ namespace MsCrmTools.Translator.AppCode
             var sectionSheet = file.Worksheets.Add("Dashboards Sections");
             line = 0;
             AddFormSectionHeader(sectionSheet, languages);
+            line++;
             foreach (var crmFormSection in crmFormSections)
             {
                 line = ExportSection(languages, sectionSheet, line, crmFormSection);
@@ -211,9 +213,9 @@ namespace MsCrmTools.Translator.AppCode
                 }
             }
 
+            line = 0;
             var labelSheet = file.Worksheets.Add("Dashboards Fields");
             AddFormLabelsHeader(labelSheet, languages);
-            line = 0;
             foreach (var crmFormLabel in crmFormLabels)
             {
                 line = ExportField(languages, labelSheet, line, crmFormLabel);
