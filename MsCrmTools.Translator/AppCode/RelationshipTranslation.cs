@@ -20,23 +20,9 @@ namespace MsCrmTools.Translator.AppCode
             var cellsCount = sheet.Dimension.Columns;
             for (var rowI = 1; rowI < rowsCount; rowI++)
             {
-                OnResult(new TranslationResultEventArgs
-                {
-                    Success = false,
-                    SheetName = sheet.Name,
-                    Message = $"1:{rowI}"
-                });
-
                 var rmd = rmds.FirstOrDefault(r => ZeroBasedSheet.Cell(sheet, rowI, 1).Value != null && r.MetadataId == new Guid(ZeroBasedSheet.Cell(sheet, rowI, 1).Value.ToString()));
                 if (rmd == null)
                 {
-                    OnResult(new TranslationResultEventArgs
-                    {
-                        Success = false,
-                        SheetName = sheet.Name,
-                        Message = $"2:{rowI}"
-                    });
-
                     var currentEntity = emds.FirstOrDefault(e => e.LogicalName == ZeroBasedSheet.Cell(sheet, rowI, 0).Value?.ToString());
                     if (currentEntity == null)
                     {
@@ -51,28 +37,11 @@ namespace MsCrmTools.Translator.AppCode
 
                         emds.Add(currentEntity);
                     }
-
-                    OnResult(new TranslationResultEventArgs
-                    {
-                        Success = false,
-                        SheetName = sheet.Name,
-                        Message = $"3:{rowI}"
-
-                    });
-
                     rmd =
                         currentEntity.OneToManyRelationships.FirstOrDefault(
                             r => r.SchemaName == ZeroBasedSheet.Cell(sheet, rowI, 2).Value?.ToString());
                     if (rmd == null)
                     {
-                        OnResult(new TranslationResultEventArgs
-                        {
-                            Success = false,
-                            SheetName = sheet.Name,
-                            Message = $"4:{rowI}"
-
-                        });
-
                         rmd =
                             currentEntity.ManyToOneRelationships.FirstOrDefault(
                                 r => r.SchemaName == ZeroBasedSheet.Cell(sheet, rowI, 2).Value?.ToString());
