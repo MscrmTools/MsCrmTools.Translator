@@ -1,13 +1,13 @@
 ﻿using Microsoft.Xrm.Sdk;
 using Microsoft.Xrm.Sdk.Messages;
 using Microsoft.Xrm.Sdk.Metadata;
+using Microsoft.Xrm.Sdk.Metadata.Query;
 using Microsoft.Xrm.Sdk.Query;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Xml;
-using Microsoft.Xrm.Sdk.Metadata.Query;
 using XrmToolBox;
 
 namespace MsCrmTools.Translator
@@ -36,7 +36,7 @@ namespace MsCrmTools.Translator
 
                 foreach (EntityMetadata emd in response.EntityMetadata)
                 {
-                    if (emd.DisplayName.UserLocalizedLabel != null &&
+                    if (emd.DisplayName?.UserLocalizedLabel != null &&
                         (emd.IsCustomizable.Value || emd.IsManaged.Value == false))
                     {
                         entities.Add(emd);

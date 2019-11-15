@@ -1,11 +1,11 @@
-﻿using System;
+﻿using Microsoft.Xrm.Sdk.Metadata;
+using MsCrmTools.Translator.AppCode;
+using MsCrmTools.Translator.Forms;
+using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
 using System.Windows.Forms;
-using Microsoft.Xrm.Sdk.Metadata;
-using MsCrmTools.Translator.AppCode;
-using MsCrmTools.Translator.Forms;
 using XrmToolBox.Extensibility;
 using XrmToolBox.Extensibility.Interfaces;
 using CrmExceptionHelper = XrmToolBox.CrmExceptionHelper;
@@ -40,6 +40,12 @@ namespace MsCrmTools.Translator
         }
 
         #endregion Methods
+
+        public string HelpUrl => "https://github.com/MscrmTools/MsCrmTools.Translator/wiki";
+
+        public string RepositoryName => "MscrmTools.Translator";
+
+        public string UserName => "MscrmTools";
 
         private void BtnBrowseImportFileClick(object sender, EventArgs e)
         {
@@ -226,6 +232,59 @@ namespace MsCrmTools.Translator
             });
         }
 
+        private void llGlobalSelector_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
+        {
+            bool newStatus;
+            if (llGlobalSelector.Text == "Clear all")
+            {
+                newStatus = false;
+                llGlobalSelector.Text = "Select all";
+            }
+            else
+            {
+                newStatus = true;
+                llGlobalSelector.Text = "Clear all";
+            }
+
+            foreach (var ctrl in gbGlobalOptions.Controls)
+            {
+                var cb = ctrl as CheckBox;
+                if (cb != null)
+                {
+                    cb.Checked = newStatus;
+                }
+            }
+        }
+
+        private void llOpenLog_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
+        {
+            OpenLogFile();
+        }
+
+        private void llRelatedSelector_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
+        {
+            bool newStatus;
+            if (llRelatedSelector.Text == "Clear all")
+            {
+                newStatus = false;
+                llRelatedSelector.Text = "Select all";
+            }
+            else
+            {
+                newStatus = true;
+                llRelatedSelector.Text = "Clear all";
+            }
+
+            foreach (var ctrl in gbEntitiesOptions.Controls)
+            {
+                var cb = ctrl as CheckBox;
+                if (cb != null)
+                {
+                    cb.Checked = newStatus;
+                }
+            }
+        }
+
         private void LoadEntities(bool allEntities)
         {
             Guid solutionId = Guid.Empty;
@@ -262,7 +321,7 @@ namespace MsCrmTools.Translator
                     {
                         foreach (EntityMetadata emd in (List<EntityMetadata>)e.Result)
                         {
-                            var item = new ListViewItem { Text = emd.DisplayName.UserLocalizedLabel.Label, Tag = emd };
+                            var item = new ListViewItem { Text = emd.DisplayName?.UserLocalizedLabel?.Label ?? "N/A", Tag = emd };
                             item.SubItems.Add(emd.LogicalName);
                             lvEntities.Items.Add(item);
                         }
@@ -290,63 +349,6 @@ namespace MsCrmTools.Translator
         private void TsbLoadEntitiesClick(object sender, EventArgs e)
         {
             ExecuteMethod(LoadEntities, true);
-        }
-
-        private void llOpenLog_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
-        {
-            OpenLogFile();
-        }
-
-        public string RepositoryName => "MscrmTools.Translator";
-        public string UserName => "MscrmTools";
-        public string HelpUrl => "https://github.com/MscrmTools/MsCrmTools.Translator/wiki";
-
-        private void llGlobalSelector_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
-        {
-            bool newStatus;
-            if (llGlobalSelector.Text == "Clear all")
-            {
-                newStatus = false;
-                llGlobalSelector.Text = "Select all";
-            }
-            else
-            {
-                newStatus = true;
-                llGlobalSelector.Text = "Clear all";
-            }
-
-            foreach (var ctrl in gbGlobalOptions.Controls)
-            {
-                var cb = ctrl as CheckBox;
-                if (cb != null)
-                {
-                    cb.Checked = newStatus;
-                }
-            }
-        }
-
-        private void llRelatedSelector_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
-        {
-            bool newStatus;
-            if (llRelatedSelector.Text == "Clear all")
-            {
-                newStatus = false;
-                llRelatedSelector.Text = "Select all";
-            }
-            else
-            {
-                newStatus = true;
-                llRelatedSelector.Text = "Clear all";
-            }
-
-            foreach (var ctrl in gbEntitiesOptions.Controls)
-            {
-                var cb = ctrl as CheckBox;
-                if (cb != null)
-                {
-                    cb.Checked = newStatus;
-                }
-            }
         }
 
         private void tsddbLoadEntities_DropDownItemClicked(object sender, ToolStripItemClickedEventArgs e)
