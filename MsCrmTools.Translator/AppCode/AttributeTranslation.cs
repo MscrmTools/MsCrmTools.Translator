@@ -169,7 +169,22 @@ namespace MsCrmTools.Translator.AppCode
                     }
 
                     amd = new MasterAttribute();
-                    amd.Amd = currentEntity.Attributes.FirstOrDefault(a => a.LogicalName == ZeroBasedSheet.Cell(sheet, rowI, 2).Value.ToString());
+                    amd.Amd = currentEntity.Attributes.FirstOrDefault(a => string.Equals(a.LogicalName,
+                        ZeroBasedSheet.Cell(sheet, rowI, 2).Value.ToString(), StringComparison.OrdinalIgnoreCase));
+
+                    if (amd.Amd == null
+                    ) //still null? someone deleted the attribute while we were busy translating. Let's skip it!
+                    {
+                        OnResult(new TranslationResultEventArgs
+                        {
+                            Success = false,
+                            SheetName = sheet.Name,
+                            Message =
+                                $"Attribute {ZeroBasedSheet.Cell(sheet, rowI, 1).Value.ToString()} - {ZeroBasedSheet.Cell(sheet, rowI, 2).Value.ToString()} is missing in CRM!"
+                        });
+                        continue;
+                    }
+
                     amds.Add(amd);
                 }
 
