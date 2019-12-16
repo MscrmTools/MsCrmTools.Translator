@@ -149,6 +149,13 @@ namespace MsCrmTools.Translator.AppCode
                     var response = ((RetrieveEntityResponse)service.Execute(request));
                     emd = response.EntityMetadata;
 
+                    OnResult(new TranslationResultEventArgs
+                    {
+                        Success = true,
+                        SheetName = sheet.Name,
+                        Message = $"Entity: {emd.LogicalName}"
+                    });
+
                     emds.Add(emd);
                 }
 

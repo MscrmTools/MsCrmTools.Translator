@@ -1,9 +1,11 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 14
-VisualStudioVersion = 14.0.25420.1
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.29411.108
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MsCrmTools.Translator", "MsCrmTools.Translator\MsCrmTools.Translator.csproj", "{E8A13109-B078-407A-9F6C-3711672770E2}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ImportTranslations", "ImportTranslations\ImportTranslations.csproj", "{8B57743C-2B57-4D73-847C-AB93CCC493D9}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -15,9 +17,16 @@ Global
 		{E8A13109-B078-407A-9F6C-3711672770E2}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{E8A13109-B078-407A-9F6C-3711672770E2}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{E8A13109-B078-407A-9F6C-3711672770E2}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8B57743C-2B57-4D73-847C-AB93CCC493D9}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8B57743C-2B57-4D73-847C-AB93CCC493D9}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8B57743C-2B57-4D73-847C-AB93CCC493D9}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8B57743C-2B57-4D73-847C-AB93CCC493D9}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {6295E6E2-E2AB-499B-9F1E-CA36E3F71319}
 	EndGlobalSection
 	GlobalSection(CodealikeProperties) = postSolution
 		SolutionGuid = 3527609f-d09f-4f43-86f8-26afc4fc1db1

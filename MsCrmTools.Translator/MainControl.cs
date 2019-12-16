@@ -4,6 +4,7 @@ using MsCrmTools.Translator.Forms;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
+using System.IO;
 using System.Linq;
 using System.Windows.Forms;
 using XrmToolBox.Extensibility;
@@ -52,7 +53,8 @@ namespace MsCrmTools.Translator
             var ofd = new OpenFileDialog
             {
                 Title = "Select translation file",
-                Filter = "Excel Workbook|*.xlsx"
+                Filter = "Excel Workbook|*.xlsx",
+                Multiselect = true
             };
 
             if (ofd.ShowDialog(this) == DialogResult.OK)
@@ -172,6 +174,17 @@ namespace MsCrmTools.Translator
                         {
                             numberOferrors++;
                             LogError("{0}\t{1}", evt.SheetName, evt.Message);
+
+                            //todo:quick fix for logging
+                            try
+                            {
+                                if (!string.IsNullOrWhiteSpace(evt.Message))
+                                {
+                                    File.AppendAllText("Logs\\ImportTranslations_" + DateTime.Now.Date.ToString("MMddyyyy") + ".log",
+                                        string.Format("{0}{1} - {2} - {3}", Environment.NewLine, evt.SheetName, evt.Success, evt.Message));
+                                }
+                            }
+                            catch { }
                         }
                     };
                     engine.Import(e.Argument.ToString(), Service, bw);

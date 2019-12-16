@@ -219,7 +219,7 @@ namespace MsCrmTools.Translator
             }
         }
 
-        public void Import(string filePath, IOrganizationService service, BackgroundWorker worker = null)
+        public void Import(string filePath, IOrganizationService service, BackgroundWorker worker = null, int? lcidToProcess = null)
         {
             using (var stream = new FileStream(filePath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
             {
@@ -261,6 +261,10 @@ namespace MsCrmTools.Translator
                 int overallProgress = 0;
                 foreach (var sheet in file.Workbook.Worksheets)
                 {
+                    RemoveOtherLanguages(sheet, lcidToProcess);
+                    //todo: test code
+                    //file.SaveAs(new FileInfo(@"C:\Users\arvind-v\Documents\UNHCR\Data\Translation\XrmToolbox\toprocess\saved.xlsx"));
+
                     try
                     {
                         switch (sheet.Name)
@@ -523,11 +527,35 @@ namespace MsCrmTools.Translator
             }
         }
 
+        private void RemoveOtherLanguages(ExcelWorksheet sheet, int? lcidToProcess)
+        {
+            if (!lcidToProcess.HasValue)
+                return; //process all languages
+
+            for (int col = sheet.Dimension.Columns - 1; col >= 0; col--)
+            {
+                if (int.TryParse(ZeroBasedSheet.Cell(sheet, 0, col)?.Value?.ToString(), out int lcid)
+                    && lcid != lcidToProcess.Value
+                    && lcid != 1033)    //check for base language too
+                    sheet.DeleteColumn(col + 1);
+            }
+        }
+
         public event EventHandler<TranslationResultEventArgs> OnLog;
 
         private void Engine_OnResult(object sender, TranslationResultEventArgs e)
         {
             OnLog?.Invoke(sender, e);
+
+            try
+            {
+                if (!string.IsNullOrWhiteSpace(e.Message))
+                {
+                    File.AppendAllText("Logs\\ImportTranslations_" + DateTime.Now.Date.ToString("MMddyyyy") + ".log",
+                        string.Format("{0}{1} - {2} - {3}", Environment.NewLine, e.SheetName, e.Success, e.Message));
+                }
+            }
+            catch { }
         }
     }
 }
