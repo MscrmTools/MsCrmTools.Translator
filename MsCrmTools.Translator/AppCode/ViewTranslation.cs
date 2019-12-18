@@ -119,7 +119,7 @@ namespace MsCrmTools.Translator.AppCode
                     cell = 0;
                     ZeroBasedSheet.Cell(sheet, line, cell++).Value = crmView.Id.ToString("B");
                     ZeroBasedSheet.Cell(sheet, line, cell++).Value = crmView.Entity;
-                    ZeroBasedSheet.Cell(sheet, line, cell++).Value = _viewTypes[crmView.Type];
+                    ZeroBasedSheet.Cell(sheet, line, cell++).Value = _viewTypes.ContainsKey(crmView.Type) ?_viewTypes[crmView.Type] : crmView.Type.ToString();
                     ZeroBasedSheet.Cell(sheet, line, cell++).Value = "Name";
 
                     foreach (var lcid in languages)
@@ -140,7 +140,7 @@ namespace MsCrmTools.Translator.AppCode
                     cell = 0;
                     ZeroBasedSheet.Cell(sheet, line, cell++).Value = crmView.Id.ToString("B");
                     ZeroBasedSheet.Cell(sheet, line, cell++).Value = crmView.Entity;
-                    ZeroBasedSheet.Cell(sheet, line, cell++).Value = _viewTypes[crmView.Type];
+                    ZeroBasedSheet.Cell(sheet, line, cell++).Value = _viewTypes.ContainsKey(crmView.Type) ? _viewTypes[crmView.Type] : crmView.Type.ToString();
                     ZeroBasedSheet.Cell(sheet, line, cell++).Value = "Description";
 
                     foreach (var lcid in languages)
