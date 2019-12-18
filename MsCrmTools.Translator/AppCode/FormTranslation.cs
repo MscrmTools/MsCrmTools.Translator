@@ -385,8 +385,22 @@ namespace MsCrmTools.Translator.AppCode
                 var form = forms.FirstOrDefault(f => f.Id == formId);
                 if (form == null)
                 {
-                    form = service.Retrieve("systemform", formId, new ColumnSet(new[] { "formxml" }));
-                    forms.Add(form);
+                    try
+                    {
+                        form = service.Retrieve("systemform", formId, new ColumnSet(new[] {"formxml"}));
+                        forms.Add(form);
+                    }
+                    catch (Exception error) //lets not fail if the form is no more available in CRM
+                    {
+                        OnResult(new TranslationResultEventArgs
+                        {
+                            Success = false,
+                            SheetName = sheet.Name,
+                            Message = $"{formId}: {error.Message}"
+                        });
+
+                        continue;   //form is not found so no need to process further.
+                    }
                 }
 
                 // Load formxml
@@ -430,8 +444,22 @@ namespace MsCrmTools.Translator.AppCode
                 var form = forms.FirstOrDefault(f => f.Id == formId);
                 if (form == null)
                 {
-                    form = service.Retrieve("systemform", formId, new ColumnSet(new[] { "formxml" }));
-                    forms.Add(form);
+                    try
+                    {
+                        form = service.Retrieve("systemform", formId, new ColumnSet(new[] {"formxml"}));
+                        forms.Add(form);
+                    }
+                    catch (Exception error) //lets not fail if the form is no more available in CRM
+                    {
+                        OnResult(new TranslationResultEventArgs
+                        {
+                            Success = false,
+                            SheetName = sheet.Name,
+                            Message = $"{formId}: {error.Message}"
+                        });
+
+                        continue;   //form is not found so no need to process further.
+                    }
                 }
 
                 // Load formxml
@@ -475,8 +503,22 @@ namespace MsCrmTools.Translator.AppCode
                 var form = forms.FirstOrDefault(f => f.Id == formId);
                 if (form == null)
                 {
-                    form = service.Retrieve("systemform", formId, new ColumnSet(new[] { "formxml" }));
-                    forms.Add(form);
+                    try
+                    {
+                        form = service.Retrieve("systemform", formId, new ColumnSet(new[] { "formxml" }));
+                        forms.Add(form);
+                    }
+                    catch (Exception error) //lets not fail if the form is no more available in CRM
+                    {
+                        OnResult(new TranslationResultEventArgs
+                        {
+                            Success = false,
+                            SheetName = sheet.Name,
+                            Message = $"{formId}: {error.Message}"
+                        });
+
+                        continue;   //form is not found so no need to process further.
+                    }
                 }
 
                 // Load formxml
