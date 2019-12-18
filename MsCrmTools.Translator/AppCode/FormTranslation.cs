@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Globalization;
 using System.Linq;
+using System.Threading;
 using System.Xml;
 using ExcelWorksheet = OfficeOpenXml.ExcelWorksheet;
 
@@ -41,6 +42,8 @@ namespace MsCrmTools.Translator.AppCode
                     setting["helplanguageid"] = lcid;
                     service.Update(setting);
                     currentSetting = lcid;
+
+                    Thread.Sleep(2000);
                 }
 
                 foreach (var entity in entities.OrderBy(e => e.LogicalName))
