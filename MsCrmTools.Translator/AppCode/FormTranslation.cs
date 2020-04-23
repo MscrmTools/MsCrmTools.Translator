@@ -64,6 +64,16 @@ namespace MsCrmTools.Translator.AppCode
                             var formXml = new XmlDocument();
                             formXml.LoadXml(sFormXml);
 
+                            // Specific for header
+                            if (options.ExportFormFields)
+                            {
+                                var cellNodes = formXml.DocumentElement.SelectNodes("header/rows/row/cell");
+                                foreach (XmlNode cellNode in cellNodes)
+                                {
+                                    ExtractField(cellNode, crmFormLabels, form, null, null, entity, lcid);
+                                }
+                            }
+
                             foreach (XmlNode tabNode in formXml.SelectNodes("//tab"))
                             {
                                 var tabName = ExtractTabName(tabNode, lcid, crmFormTabs, form, entity);
@@ -94,6 +104,16 @@ namespace MsCrmTools.Translator.AppCode
                                 }
 
                                 #endregion Sections
+                            }
+
+                            // Specific for footer
+                            if (options.ExportFormFields)
+                            {
+                                var cellNodes = formXml.DocumentElement.SelectNodes("footer/rows/row/cell");
+                                foreach (XmlNode cellNode in cellNodes)
+                                {
+                                    ExtractField(cellNode, crmFormLabels, form, null, null, entity, lcid);
+                                }
                             }
                         }
 
@@ -410,7 +430,8 @@ namespace MsCrmTools.Translator.AppCode
 
                 var cellNode =
                     docXml.DocumentElement.SelectSingleNode(
-                        string.Format("tabs/tab/columns/column/sections/section/rows/row/cell[translate(@id,'ABCDEFGHIJKLMNOPQRSTUVWXYZ','abcdefghijklmnopqrstuvwxyz')='{0}']", labelId.ToLower()));
+                        //tabs/tab/columns/column/sections/section/rows/row
+                        string.Format("//cell[translate(@id,'ABCDEFGHIJKLMNOPQRSTUVWXYZ','abcdefghijklmnopqrstuvwxyz')='{0}']", labelId.ToLower()));
                 if (cellNode != null)
                 {
                     var columnIndex = 8;
@@ -775,8 +796,8 @@ namespace MsCrmTools.Translator.AppCode
             }
 
             var labelNode = cellNode.SelectSingleNode("labels/label[@languagecode='" + lcid + "']");
-            var labelNodeAttributes = labelNode == null ? null : labelNode.Attributes;
-            var labelDescription = labelNodeAttributes == null ? null : labelNodeAttributes["description"];
+            var labelNodeAttributes = labelNode?.Attributes;
+            var labelDescription = labelNodeAttributes?["description"];
 
             if (crmFormField.Names.ContainsKey(lcid))
             {
