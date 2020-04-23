@@ -387,7 +387,7 @@ namespace MsCrmTools.Translator.AppCode
                 {
                     try
                     {
-                        form = service.Retrieve("systemform", formId, new ColumnSet(new[] {"formxml"}));
+                        form = service.Retrieve("systemform", formId, new ColumnSet(new[] { "formxml" }));
                         forms.Add(form);
                     }
                     catch (Exception error) //lets not fail if the form is no more available in CRM
@@ -446,7 +446,7 @@ namespace MsCrmTools.Translator.AppCode
                 {
                     try
                     {
-                        form = service.Retrieve("systemform", formId, new ColumnSet(new[] {"formxml"}));
+                        form = service.Retrieve("systemform", formId, new ColumnSet(new[] { "formxml" }));
                         forms.Add(form);
                     }
                     catch (Exception error) //lets not fail if the form is no more available in CRM
@@ -892,7 +892,7 @@ namespace MsCrmTools.Translator.AppCode
                     Conditions =
                     {
                         new ConditionExpression("objecttypecode", ConditionOperator.Equal, logicalName),
-                        new ConditionExpression("type", ConditionOperator.In, new[] {2, 7})
+                        new ConditionExpression("type", ConditionOperator.In, new[] {2, 6, 7})
                     }
                 }
             };
