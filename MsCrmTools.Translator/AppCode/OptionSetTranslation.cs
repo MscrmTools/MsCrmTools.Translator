@@ -1,5 +1,4 @@
-﻿using System;
-using Microsoft.Xrm.Sdk;
+﻿using Microsoft.Xrm.Sdk;
 using Microsoft.Xrm.Sdk.Messages;
 using Microsoft.Xrm.Sdk.Metadata;
 using OfficeOpenXml;
@@ -13,6 +12,11 @@ namespace MsCrmTools.Translator.AppCode
 {
     public class OptionSetTranslation : BaseTranslation
     {
+        public OptionSetTranslation()
+        {
+            name = "OptionSet values";
+        }
+
         /// <summary>
         ///
         /// </summary>
@@ -22,10 +26,11 @@ namespace MsCrmTools.Translator.AppCode
         /// <param name="entities"></param>
         /// <param name="languages"></param>
         /// <param name="sheet"></param>
+        /// <param name="settings"></param>
         public void Export(List<EntityMetadata> entities, List<int> languages, ExcelWorksheet sheet, ExportSettings settings)
         {
             var line = 0;
-            var cell = 0;
+            int cell;
 
             AddHeader(sheet, languages);
 
@@ -243,35 +248,13 @@ namespace MsCrmTools.Translator.AppCode
                 }
             }
 
-            int i = 0;
+            var arg = new TranslationProgressEventArgs { SheetName = sheet.Name };
             foreach (var request in requests)
             {
-                try
-                {
-                    service.Execute(request);
-
-                    OnResult(new TranslationResultEventArgs
-                    {
-                        Success = true,
-                        SheetName = sheet.Name
-                    });
-                }
-                catch (Exception error)
-                {
-                    OnResult(new TranslationResultEventArgs
-                    {
-                        Success = false,
-                        SheetName = sheet.Name,
-                        Message = $"{request.EntityLogicalName}/{request.AttributeLogicalName}: {error.Message}"
-                    });
-                }
-
-                i++;
-                worker.ReportProgressIfPossible(0, new ProgressInfo
-                {
-                    Item = i * 100 / requests.Count
-                });
+                AddRequest(request);
+                ExecuteMultiple(service, arg);
             }
+            ExecuteMultiple(service, arg, true);
         }
 
         private void AddHeader(ExcelWorksheet sheet, IEnumerable<int> languages)

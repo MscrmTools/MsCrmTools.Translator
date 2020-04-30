@@ -33,6 +33,11 @@ namespace MsCrmTools.Translator.AppCode
             {131072,"Outlook template" }
         };
 
+        public ViewTranslation()
+        {
+            name = "Views";
+        }
+
         /// <summary>
         ///
         /// </summary>
@@ -42,10 +47,12 @@ namespace MsCrmTools.Translator.AppCode
         /// <param name="entities"></param>
         /// <param name="languages"></param>
         /// <param name="sheet"></param>
+        /// <param name="service"></param>
+        /// <param name="settings"></param>
         public void Export(List<EntityMetadata> entities, List<int> languages, ExcelWorksheet sheet, IOrganizationService service, ExportSettings settings)
         {
             var line = 0;
-            var cell = 0;
+            int cell;
 
             AddHeader(sheet, languages);
 
@@ -56,7 +63,7 @@ namespace MsCrmTools.Translator.AppCode
                 if (!entity.MetadataId.HasValue)
                     continue;
 
-                var views = RetrieveViews(entity.LogicalName, entity.ObjectTypeCode.Value, service);
+                var views = RetrieveViews(entity.ObjectTypeCode.Value, service);
 
                 foreach (var view in views)
                 {
@@ -119,7 +126,7 @@ namespace MsCrmTools.Translator.AppCode
                     cell = 0;
                     ZeroBasedSheet.Cell(sheet, line, cell++).Value = crmView.Id.ToString("B");
                     ZeroBasedSheet.Cell(sheet, line, cell++).Value = crmView.Entity;
-                    ZeroBasedSheet.Cell(sheet, line, cell++).Value = _viewTypes.ContainsKey(crmView.Type) ?_viewTypes[crmView.Type] : crmView.Type.ToString();
+                    ZeroBasedSheet.Cell(sheet, line, cell++).Value = _viewTypes.ContainsKey(crmView.Type) ? _viewTypes[crmView.Type] : crmView.Type.ToString();
                     ZeroBasedSheet.Cell(sheet, line, cell++).Value = "Name";
 
                     foreach (var lcid in languages)
@@ -206,35 +213,13 @@ namespace MsCrmTools.Translator.AppCode
                 requests.Add(request);
             }
 
-            int i = 0;
+            var arg = new TranslationProgressEventArgs { SheetName = sheet.Name };
             foreach (var request in requests)
             {
-                try
-                {
-                    service.Execute(request);
-
-                    OnResult(new TranslationResultEventArgs
-                    {
-                        Success = true,
-                        SheetName = sheet.Name
-                    });
-                }
-                catch (Exception error)
-                {
-                    OnResult(new TranslationResultEventArgs
-                    {
-                        Success = false,
-                        SheetName = sheet.Name,
-                        Message = $"{request.EntityMoniker.Id}/{request.AttributeName}: {error.Message}"
-                    });
-                }
-
-                i++;
-                worker.ReportProgressIfPossible(0, new ProgressInfo
-                {
-                    Item = i * 100 / requests.Count
-                });
+                AddRequest(request);
+                ExecuteMultiple(service, arg);
             }
+            ExecuteMultiple(service, arg, true);
         }
 
         private void AddHeader(ExcelWorksheet sheet, IEnumerable<int> languages)
@@ -252,7 +237,7 @@ namespace MsCrmTools.Translator.AppCode
             }
         }
 
-        private List<Entity> RetrieveViews(string entityLogicalName, int objectTypeCode, IOrganizationService service)
+        private List<Entity> RetrieveViews(int objectTypeCode, IOrganizationService service)
         {
             try
             {

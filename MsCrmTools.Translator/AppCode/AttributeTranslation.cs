@@ -13,6 +13,11 @@ namespace MsCrmTools.Translator.AppCode
 {
     public class AttributeTranslation : BaseTranslation
     {
+        public AttributeTranslation()
+        {
+            name = "Attributes";
+        }
+
         /// <summary>
         ///
         /// </summary>
@@ -22,10 +27,11 @@ namespace MsCrmTools.Translator.AppCode
         /// <param name="entities"></param>
         /// <param name="languages"></param>
         /// <param name="sheet"></param>
+        /// <param name="settings"></param>
         public void Export(List<EntityMetadata> entities, List<int> languages, ExcelWorksheet sheet, ExportSettings settings)
         {
             var line = 0;
-            var cell = 0;
+            int cell;
 
             AddHeader(sheet, languages);
 
@@ -172,15 +178,13 @@ namespace MsCrmTools.Translator.AppCode
                     amd.Amd = currentEntity.Attributes.FirstOrDefault(a => string.Equals(a.LogicalName,
                         ZeroBasedSheet.Cell(sheet, rowI, 2).Value.ToString(), StringComparison.OrdinalIgnoreCase));
 
-                    if (amd.Amd == null
-                    ) //still null? someone deleted the attribute while we were busy translating. Let's skip it!
+                    //still null? someone deleted the attribute while we were busy translating. Let's skip it!
+                    if (amd.Amd == null)
                     {
-                        OnResult(new TranslationResultEventArgs
+                        OnLog(new LogEventArgs
                         {
-                            Success = false,
-                            SheetName = sheet.Name,
-                            Message =
-                                $"Attribute {ZeroBasedSheet.Cell(sheet, rowI, 1).Value.ToString()} - {ZeroBasedSheet.Cell(sheet, rowI, 2).Value.ToString()} is missing in CRM!"
+                            Type = LogType.Warning,
+                            Message = $"Attribute {ZeroBasedSheet.Cell(sheet, rowI, 1).Value} - {ZeroBasedSheet.Cell(sheet, rowI, 2).Value} is missing in CRM!"
                         });
                         continue;
                     }
@@ -224,49 +228,24 @@ namespace MsCrmTools.Translator.AppCode
             }
 
             int i = 0;
+            var arg = new TranslationProgressEventArgs();
             foreach (var amd in amds)
             {
                 if (amd.Amd.DisplayName.LocalizedLabels.All(l => string.IsNullOrEmpty(l.Label))
                     || amd.Amd.IsRenameable.Value == false)
                 {
-                    i++;
-                    worker.ReportProgressIfPossible(0, new ProgressInfo
-                    {
-                        Item = i * 100 / amds.Count
-                    });
                     continue;
                 }
-                try
-                {
-                    var request = new UpdateAttributeRequest
-                    {
-                        Attribute = amd.Amd,
-                        EntityName = amd.Amd.EntityLogicalName
-                    };
-                    service.Execute(request);
 
-                    OnResult(new TranslationResultEventArgs
-                    {
-                        Success = true,
-                        SheetName = sheet.Name
-                    });
-                }
-                catch (Exception error)
+                AddRequest(new UpdateAttributeRequest
                 {
-                    OnResult(new TranslationResultEventArgs
-                    {
-                        Success = false,
-                        SheetName = sheet.Name,
-                        Message = $"{amd.Amd.SchemaName}: {error.Message}"
-                    });
-                }
-
-                i++;
-                worker.ReportProgressIfPossible(0, new ProgressInfo
-                {
-                    Item = i * 100 / amds.Count
+                    Attribute = amd.Amd,
+                    EntityName = amd.Amd.EntityLogicalName
                 });
+
+                ExecuteMultiple(service, arg);
             }
+            ExecuteMultiple(service, arg, true);
         }
 
         private void AddHeader(ExcelWorksheet sheet, IEnumerable<int> languages)

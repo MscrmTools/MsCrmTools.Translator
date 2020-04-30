@@ -7,15 +7,17 @@ using OfficeOpenXml;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
-using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Windows.Forms;
 
 namespace MsCrmTools.Translator
 {
     public class Engine
     {
+        public event EventHandler<LogEventArgs> OnLog;
+
+        public event EventHandler<TranslationProgressEventArgs> OnProgress;
+
         public void Export(ExportSettings settings, IOrganizationService service, BackgroundWorker worker = null)
         {
             // Loading available languages
@@ -212,11 +214,6 @@ namespace MsCrmTools.Translator
             }
 
             file.Save();
-
-            if (DialogResult.Yes == MessageBox.Show("Do you want to open generated document?", "Question", MessageBoxButtons.YesNo, MessageBoxIcon.Question))
-            {
-                Process.Start(settings.FilePath);
-            }
         }
 
         public void Import(string filePath, IOrganizationService service, BackgroundWorker worker = null)
@@ -229,8 +226,14 @@ namespace MsCrmTools.Translator
 
                 var forms = new List<Entity>();
                 var ft = new FormTranslation();
+                ft.Log += Engine_Log;
+                ft.Result += Engine_OnResult;
                 var st = new SiteMapTranslation();
+                st.Log += Engine_Log;
+                st.Result += Engine_OnResult;
                 var db = new DashboardTranslation();
+                db.Log += Engine_Log;
+                db.Result += Engine_OnResult;
                 bool hasFormContent = false;
                 bool hasDashboardContent = false;
                 bool hasSiteMapContent = false;
@@ -275,6 +278,7 @@ namespace MsCrmTools.Translator
 
                                 var et = new EntityTranslation();
                                 et.Result += Engine_OnResult;
+                                et.Log += Engine_Log;
                                 et.Import(sheet, emds, service, worker);
 
                                 break;
@@ -289,6 +293,7 @@ namespace MsCrmTools.Translator
 
                                 var at = new AttributeTranslation();
                                 at.Result += Engine_OnResult;
+                                at.Log += Engine_Log;
                                 at.Import(sheet, emds, service, worker);
                                 break;
 
@@ -303,6 +308,7 @@ namespace MsCrmTools.Translator
 
                                     var rt = new RelationshipTranslation();
                                     rt.Result += Engine_OnResult;
+                                    rt.Log += Engine_Log;
                                     rt.Import(sheet, emds, service, worker);
                                     break;
                                 }
@@ -317,6 +323,7 @@ namespace MsCrmTools.Translator
 
                                     var rtNn = new RelationshipNnTranslation();
                                     rtNn.Result += Engine_OnResult;
+                                    rtNn.Log += Engine_Log;
                                     rtNn.Import(sheet, emds, service, worker);
                                     break;
                                 }
@@ -330,6 +337,7 @@ namespace MsCrmTools.Translator
 
                                 var got = new GlobalOptionSetTranslation();
                                 got.Result += Engine_OnResult;
+                                got.Log += Engine_Log;
                                 got.Import(sheet, service, worker);
                                 break;
 
@@ -343,6 +351,7 @@ namespace MsCrmTools.Translator
 
                                 var ot = new OptionSetTranslation();
                                 ot.Result += Engine_OnResult;
+                                ot.Log += Engine_Log;
                                 ot.Import(sheet, service, worker);
                                 break;
 
@@ -356,6 +365,7 @@ namespace MsCrmTools.Translator
 
                                 var bt = new BooleanTranslation();
                                 bt.Result += Engine_OnResult;
+                                bt.Log += Engine_Log;
                                 bt.Import(sheet, service, worker);
                                 break;
 
@@ -369,6 +379,7 @@ namespace MsCrmTools.Translator
 
                                 var vt = new ViewTranslation();
                                 vt.Result += Engine_OnResult;
+                                vt.Log += Engine_Log;
                                 vt.Import(sheet, service, worker);
                                 break;
 
@@ -382,6 +393,7 @@ namespace MsCrmTools.Translator
 
                                 var vt2 = new VisualizationTranslation();
                                 vt2.Result += Engine_OnResult;
+                                vt2.Log += Engine_Log;
                                 vt2.Import(sheet, service, worker);
                                 break;
 
@@ -452,57 +464,60 @@ namespace MsCrmTools.Translator
                                 hasSiteMapContent = true;
                                 break;
                         }
-
-                        if (hasFormContent)
-                        {
-                            worker.ReportProgressIfPossible(0, new ProgressInfo
-                            {
-                                Message = "Importing form content translations...",
-                                Item = 1,
-                                Overall = overallProgress == 0 ? 1 : overallProgress * 100 / count
-                            });
-
-                            ft.ImportFormsContent(service, forms, worker);
-                        }
-
-                        if (hasDashboardContent)
-                        {
-                            worker.ReportProgressIfPossible(0, new ProgressInfo
-                            {
-                                Message = "Importing dashboard content translations...",
-                                Item = 1,
-                                Overall = overallProgress == 0 ? 1 : overallProgress * 100 / count
-                            });
-
-                            db.ImportFormsContent(service, forms, worker);
-                        }
-
-                        if (hasSiteMapContent)
-                        {
-                            worker.ReportProgressIfPossible(0, new ProgressInfo
-                            {
-                                Message = "Importing SiteMap translations...",
-                                Item = 1,
-                                Overall = overallProgress == 0 ? 1 : overallProgress * 100 / count
-                            });
-
-                            st.Import(service);
-                        }
                     }
                     catch (Exception error)
                     {
-                        Engine_OnResult(this, new TranslationResultEventArgs
-                        {
-                            Success = false,
-                            SheetName = sheet.Name,
-                            Message = error.Message
-                        });
+                        // TODO handle this
+                        //Engine_OnResult(this, new TranslationResultEventArgs
+                        //{
+                        //    Success = false,
+                        //    SheetName = sheet.Name,
+                        //    Message = error.Message
+                        //});
                     }
                     finally
                     {
                         overallProgress++;
                     }
                 }
+
+                if (hasFormContent)
+                {
+                    worker.ReportProgressIfPossible(0, new ProgressInfo
+                    {
+                        Message = "Importing form content translations...",
+                        Item = 1,
+                        Overall = overallProgress == 0 ? 1 : overallProgress * 100 / count
+                    });
+
+                    ft.ImportFormsContent(service, forms, worker);
+                }
+
+                if (hasDashboardContent)
+                {
+                    worker.ReportProgressIfPossible(0, new ProgressInfo
+                    {
+                        Message = "Importing dashboard content translations...",
+                        Item = 1,
+                        Overall = overallProgress == 0 ? 1 : overallProgress * 100 / count
+                    });
+
+                    db.ImportFormsContent(service, forms, worker);
+                }
+
+                if (hasSiteMapContent)
+                {
+                    worker.ReportProgressIfPossible(0, new ProgressInfo
+                    {
+                        Message = "Importing SiteMap translations...",
+                        Item = 1,
+                        Overall = overallProgress == 0 ? 1 : overallProgress * 100 / count
+                    });
+
+                    st.Import(service);
+                }
+
+                OnProgress?.Invoke(this, new TranslationProgressEventArgs());
 
                 worker.ReportProgressIfPossible(0, new ProgressInfo
                 {
@@ -523,11 +538,14 @@ namespace MsCrmTools.Translator
             }
         }
 
-        public event EventHandler<TranslationResultEventArgs> OnLog;
-
-        private void Engine_OnResult(object sender, TranslationResultEventArgs e)
+        private void Engine_Log(object sender, LogEventArgs e)
         {
             OnLog?.Invoke(sender, e);
+        }
+
+        private void Engine_OnResult(object sender, TranslationProgressEventArgs e)
+        {
+            OnProgress?.Invoke(sender, e);
         }
     }
 }

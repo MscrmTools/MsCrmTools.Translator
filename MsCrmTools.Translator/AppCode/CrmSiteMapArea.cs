@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 
 namespace MsCrmTools.Translator.AppCode
 {
@@ -12,6 +13,9 @@ namespace MsCrmTools.Translator.AppCode
 
         public Dictionary<int, string> Descriptions { get; set; }
         public string Id { get; set; }
+
+        public Guid SiteMapId { get; set; }
+        public string SiteMapName { get; set; }
         public Dictionary<int, string> Titles { get; set; }
     }
 }

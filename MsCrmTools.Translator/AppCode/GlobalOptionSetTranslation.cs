@@ -1,8 +1,8 @@
-﻿using System;
-using Microsoft.Xrm.Sdk;
+﻿using Microsoft.Xrm.Sdk;
 using Microsoft.Xrm.Sdk.Messages;
 using Microsoft.Xrm.Sdk.Metadata;
 using OfficeOpenXml;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Globalization;
@@ -12,6 +12,11 @@ namespace MsCrmTools.Translator.AppCode
 {
     public class GlobalOptionSetTranslation : BaseTranslation
     {
+        public GlobalOptionSetTranslation()
+        {
+            name = "Global OptionSet values";
+        }
+
         /// <summary>
         ///
         /// </summary>
@@ -21,29 +26,35 @@ namespace MsCrmTools.Translator.AppCode
         /// <param name="languages"></param>
         /// <param name="sheet"></param>
         /// <param name="service"></param>
+        /// <param name="settings"></param>
         public void Export(List<int> languages, ExcelWorksheet sheet, IOrganizationService service, ExportSettings settings)
         {
             var line = 0;
-            var cell = 0;
 
             AddHeader(sheet, languages);
 
             var request = new RetrieveAllOptionSetsRequest();
             var response = (RetrieveAllOptionSetsResponse)service.Execute(request);
-
-            foreach (var omd in response.OptionSetMetadata)
+            var omds = response.OptionSetMetadata;
+            if (settings.SolutionId != Guid.Empty)
             {
-                if (omd is OptionSetMetadata)
+                var oids = service.GetSolutionComponentObjectIds(settings.SolutionId, 9); // 9 = Global OptionSets
+                omds = omds.Where(o => oids.Contains(o.MetadataId ?? Guid.Empty)).ToArray();
+            }
+
+            foreach (var omd in omds)
+            {
+                int cell;
+                if (omd is OptionSetMetadata oomd)
                 {
-                    var oomd = (OptionSetMetadata)omd;
                     foreach (var option in oomd.Options.OrderBy(o => o.Value))
                     {
                         if (settings.ExportNames)
                         {
                             line++;
                             cell = 0;
-                            ZeroBasedSheet.Cell(sheet, line, cell++).Value = omd.MetadataId.Value.ToString("B");
-                            ZeroBasedSheet.Cell(sheet, line, cell++).Value = omd.Name;
+                            ZeroBasedSheet.Cell(sheet, line, cell++).Value = (oomd.MetadataId ?? Guid.Empty).ToString("B");
+                            ZeroBasedSheet.Cell(sheet, line, cell++).Value = oomd.Name;
                             ZeroBasedSheet.Cell(sheet, line, cell++).Value = option.Value;
                             ZeroBasedSheet.Cell(sheet, line, cell++).Value = "Label";
 
@@ -66,8 +77,8 @@ namespace MsCrmTools.Translator.AppCode
                         {
                             line++;
                             cell = 0;
-                            ZeroBasedSheet.Cell(sheet, line, cell++).Value = omd.MetadataId.Value.ToString("B");
-                            ZeroBasedSheet.Cell(sheet, line, cell++).Value = omd.Name;
+                            ZeroBasedSheet.Cell(sheet, line, cell++).Value = (oomd.MetadataId ?? Guid.Empty).ToString("B");
+                            ZeroBasedSheet.Cell(sheet, line, cell++).Value = oomd.Name;
                             ZeroBasedSheet.Cell(sheet, line, cell++).Value = option.Value;
                             ZeroBasedSheet.Cell(sheet, line, cell++).Value = "Description";
 
@@ -95,7 +106,7 @@ namespace MsCrmTools.Translator.AppCode
                     {
                         line++;
                         cell = 0;
-                        ZeroBasedSheet.Cell(sheet, line, cell++).Value = omd.MetadataId.Value.ToString("B");
+                        ZeroBasedSheet.Cell(sheet, line, cell++).Value = (omd.MetadataId ?? Guid.Empty).ToString("B");
                         ZeroBasedSheet.Cell(sheet, line, cell++).Value = omd.Name;
                         ZeroBasedSheet.Cell(sheet, line, cell++).Value = bomd.FalseOption.Value;
                         ZeroBasedSheet.Cell(sheet, line, cell++).Value = "Label";
@@ -123,7 +134,7 @@ namespace MsCrmTools.Translator.AppCode
                         line++;
                         cell = 0;
 
-                        ZeroBasedSheet.Cell(sheet, line, cell++).Value = omd.MetadataId.Value.ToString("B");
+                        ZeroBasedSheet.Cell(sheet, line, cell++).Value = (omd.MetadataId ?? Guid.Empty).ToString("B");
                         ZeroBasedSheet.Cell(sheet, line, cell++).Value = omd.Name;
                         ZeroBasedSheet.Cell(sheet, line, cell++).Value = bomd.FalseOption.Value;
                         ZeroBasedSheet.Cell(sheet, line, cell++).Value = "Description";
@@ -152,7 +163,7 @@ namespace MsCrmTools.Translator.AppCode
                         line++;
                         cell = 0;
 
-                        ZeroBasedSheet.Cell(sheet, line, cell++).Value = omd.MetadataId.Value.ToString("B");
+                        ZeroBasedSheet.Cell(sheet, line, cell++).Value = (omd.MetadataId ?? Guid.Empty).ToString("B");
                         ZeroBasedSheet.Cell(sheet, line, cell++).Value = omd.Name;
                         ZeroBasedSheet.Cell(sheet, line, cell++).Value = bomd.TrueOption.Value;
                         ZeroBasedSheet.Cell(sheet, line, cell++).Value = "Label";
@@ -180,7 +191,7 @@ namespace MsCrmTools.Translator.AppCode
                         line++;
                         cell = 0;
 
-                        ZeroBasedSheet.Cell(sheet, line, cell++).Value = omd.MetadataId.Value.ToString("B");
+                        ZeroBasedSheet.Cell(sheet, line, cell++).Value = (omd.MetadataId ?? Guid.Empty).ToString("B");
                         ZeroBasedSheet.Cell(sheet, line, cell++).Value = omd.Name;
                         ZeroBasedSheet.Cell(sheet, line, cell++).Value = bomd.TrueOption.Value;
                         ZeroBasedSheet.Cell(sheet, line, cell++).Value = "Description";
@@ -316,35 +327,13 @@ namespace MsCrmTools.Translator.AppCode
                 }
             }
 
-            int i = 0;
+            var arg = new TranslationProgressEventArgs { SheetName = sheet.Name };
             foreach (var request in requests)
             {
-                try
-                {
-                    service.Execute(request);
-
-                    OnResult(new TranslationResultEventArgs
-                    {
-                        Success = true,
-                        SheetName = sheet.Name
-                    });
-                }
-                catch (Exception error)
-                {
-                    OnResult(new TranslationResultEventArgs
-                    {
-                        Success = false,
-                        SheetName = sheet.Name,
-                        Message = $"{request.OptionSetName}: {error.Message}"
-                    });
-                }
-
-                i++;
-                worker.ReportProgressIfPossible(0, new ProgressInfo
-                {
-                    Item = i * 100 / requests.Count
-                });
+                AddRequest(request);
+                ExecuteMultiple(service, arg);
             }
+            ExecuteMultiple(service, arg, true);
         }
 
         private void AddHeader(ExcelWorksheet sheet, IEnumerable<int> languages)

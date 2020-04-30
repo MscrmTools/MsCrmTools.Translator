@@ -10,8 +10,13 @@ using System.Linq;
 
 namespace MsCrmTools.Translator.AppCode
 {
-    internal class RelationshipNnTranslation: BaseTranslation
+    internal class RelationshipNnTranslation : BaseTranslation
     {
+        public RelationshipNnTranslation()
+        {
+            name = "NN Relationships";
+        }
+
         public void Import(ExcelWorksheet sheet, List<EntityMetadata> emds, IOrganizationService service, BackgroundWorker worker)
         {
             var rmds = new List<ManyToManyRelationshipMetadata>();
@@ -44,10 +49,9 @@ namespace MsCrmTools.Translator.AppCode
 
                 if (rmd == null)
                 {
-                    OnResult(new TranslationResultEventArgs
+                    OnLog(new LogEventArgs
                     {
-                        Success = false,
-                        SheetName = sheet.Name,
+                        Type = LogType.Warning,
                         Message = $"Unable to find relationship '{ZeroBasedSheet.Cell(sheet, rowI, 2).Value}' for entity '{ZeroBasedSheet.Cell(sheet, rowI, 0).Value}"
                     });
                     continue;
@@ -91,50 +95,26 @@ namespace MsCrmTools.Translator.AppCode
                 }
                 else
                 {
-                    OnResult(new TranslationResultEventArgs
+                    OnLog(new LogEventArgs
                     {
-                        Success = false,
-                        SheetName = sheet.Name,
+                        Type = LogType.Warning,
                         Message = $"Unable to find entity '{ZeroBasedSheet.Cell(sheet, rowI, 0).Value}' in relationship '{ZeroBasedSheet.Cell(sheet, rowI, 2).Value}"
                     });
                 }
             }
 
-            int i = 0;
+            var arg = new TranslationProgressEventArgs { SheetName = sheet.Name };
             foreach (var rmd in rmds)
             {
-
                 var request = new UpdateRelationshipRequest
                 {
                     Relationship = rmd,
                 };
 
-                try
-                {
-                    service.Execute(request);
-
-                    OnResult(new TranslationResultEventArgs
-                    {
-                        Success = true,
-                        SheetName = sheet.Name
-                    });
-                }
-                catch (Exception error)
-                {
-                    OnResult(new TranslationResultEventArgs
-                    {
-                        Success = false,
-                        SheetName = sheet.Name,
-                        Message = $"{request.Relationship.SchemaName}: {error.Message}"
-                    });
-                }
-
-                i++;
-                worker.ReportProgressIfPossible(0, new ProgressInfo
-                {
-                    Item = i * 100 / rmds.Count
-                });
+                AddRequest(request);
+                ExecuteMultiple(service, arg);
             }
+            ExecuteMultiple(service, arg, true);
         }
 
         internal void Export(List<EntityMetadata> entities, List<int> languages, ExcelWorksheet sheet)
@@ -148,7 +128,7 @@ namespace MsCrmTools.Translator.AppCode
                 foreach (var rel in entity.ManyToManyRelationships.ToList())
                 {
                     var cell = 0;
-                    
+
                     var amc = rel.Entity1LogicalName == entity.LogicalName ? rel.Entity1AssociatedMenuConfiguration : rel.Entity2AssociatedMenuConfiguration;
 
                     if (!(amc.Behavior.HasValue && amc.Behavior.Value == AssociatedMenuBehavior.UseLabel))
@@ -157,7 +137,7 @@ namespace MsCrmTools.Translator.AppCode
                     ZeroBasedSheet.Cell(sheet, line, cell++).Value = entity.LogicalName;
                     ZeroBasedSheet.Cell(sheet, line, cell++).Value = rel.MetadataId.Value.ToString("B");
                     ZeroBasedSheet.Cell(sheet, line, cell++).Value = rel.IntersectEntityName;
-                
+
                     foreach (var lcid in languages)
                     {
                         var entity1Label = string.Empty;
@@ -174,7 +154,7 @@ namespace MsCrmTools.Translator.AppCode
 
                         ZeroBasedSheet.Cell(sheet, line, cell++).Value = entity1Label;
                     }
-                    
+
                     line++;
                 }
             }
@@ -201,7 +181,7 @@ namespace MsCrmTools.Translator.AppCode
             ZeroBasedSheet.Cell(sheet, 0, cell++).Value = "Entity";
             ZeroBasedSheet.Cell(sheet, 0, cell++).Value = "Relationship Id";
             ZeroBasedSheet.Cell(sheet, 0, cell++).Value = "Relationship Intersect Entity";
-            
+
             foreach (var lcid in languages)
             {
                 ZeroBasedSheet.Cell(sheet, 0, cell++).Value = lcid.ToString(CultureInfo.InvariantCulture);

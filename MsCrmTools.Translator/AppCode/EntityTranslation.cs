@@ -1,5 +1,4 @@
-﻿using System;
-using Microsoft.Xrm.Sdk;
+﻿using Microsoft.Xrm.Sdk;
 using Microsoft.Xrm.Sdk.Messages;
 using Microsoft.Xrm.Sdk.Metadata;
 using OfficeOpenXml;
@@ -12,6 +11,11 @@ namespace MsCrmTools.Translator.AppCode
 {
     public class EntityTranslation : BaseTranslation
     {
+        public EntityTranslation()
+        {
+            name = "Entities";
+        }
+
         /// <summary>
         ///
         /// </summary>
@@ -21,10 +25,11 @@ namespace MsCrmTools.Translator.AppCode
         /// <param name="entities"></param>
         /// <param name="languages"></param>
         /// <param name="sheet"></param>
+        /// <param name="settings"></param>
         public void Export(List<EntityMetadata> entities, List<int> languages, ExcelWorksheet sheet, ExportSettings settings)
         {
             var line = 0;
-            var cell = 0;
+            int cell;
 
             AddHeader(sheet, languages);
 
@@ -209,7 +214,8 @@ namespace MsCrmTools.Translator.AppCode
             }
 
             var entities = emds.Where(e => e.IsRenameable.Value).ToList();
-            int i = 0;
+
+            var arg = new TranslationProgressEventArgs { SheetName = sheet.Name };
             foreach (var emd in entities)
             {
                 var entityUpdate = new EntityMetadata();
@@ -218,34 +224,11 @@ namespace MsCrmTools.Translator.AppCode
                 entityUpdate.Description = emd.Description;
                 entityUpdate.DisplayCollectionName = emd.DisplayCollectionName;
 
-                try
-                {
-                    var request = new UpdateEntityRequest { Entity = entityUpdate };
-
-                    service.Execute(request);
-
-                    OnResult(new TranslationResultEventArgs
-                    {
-                        Success = true,
-                        SheetName = sheet.Name
-                    });
-                }
-                catch (Exception error)
-                {
-                    OnResult(new TranslationResultEventArgs
-                    {
-                        Success = false,
-                        SheetName = sheet.Name,
-                        Message = $"{emd.LogicalName}: {error.Message}"
-                    });
-                }
-
-                i++;
-                worker.ReportProgressIfPossible(0, new ProgressInfo
-                {
-                    Item = i * 100 / entities.Count
-                });
+                AddRequest(new UpdateEntityRequest { Entity = entityUpdate });
+                ExecuteMultiple(service, arg);
             }
+
+            ExecuteMultiple(service, arg, true);
         }
 
         private void AddHeader(ExcelWorksheet sheet, IEnumerable<int> languages)

@@ -10,8 +10,13 @@ using System.Linq;
 
 namespace MsCrmTools.Translator.AppCode
 {
-    internal class RelationshipTranslation: BaseTranslation
+    internal class RelationshipTranslation : BaseTranslation
     {
+        public RelationshipTranslation()
+        {
+            name = "Relationships";
+        }
+
         public void Import(ExcelWorksheet sheet, List<EntityMetadata> emds, IOrganizationService service, BackgroundWorker worker)
         {
             var rmds = new List<OneToManyRelationshipMetadata>();
@@ -68,7 +73,7 @@ namespace MsCrmTools.Translator.AppCode
                 }
             }
 
-            int i = 0;
+            var arg = new TranslationProgressEventArgs { SheetName = sheet.Name };
             foreach (var rmd in rmds)
             {
                 var request = new UpdateRelationshipRequest
@@ -76,32 +81,11 @@ namespace MsCrmTools.Translator.AppCode
                     Relationship = rmd,
                 };
 
-                try
-                {
-                    service.Execute(request);
-
-                    OnResult(new TranslationResultEventArgs
-                    {
-                        Success = true,
-                        SheetName = sheet.Name
-                    });
-                }
-                catch (Exception error)
-                {
-                    OnResult(new TranslationResultEventArgs
-                    {
-                        Success = false,
-                        SheetName = sheet.Name,
-                        Message = $"{request.Relationship.SchemaName}: {error.Message}"
-                    });
-                }
-
-                i++;
-                worker.ReportProgressIfPossible(0, new ProgressInfo
-                {
-                    Item = i * 100 / rmds.Count
-                });
+                AddRequest(request);
+                ExecuteMultiple(service, arg);
             }
+
+            ExecuteMultiple(service, arg, true);
         }
 
         internal void Export(List<EntityMetadata> entities, List<int> languages, ExcelWorksheet sheet)

@@ -1,4 +1,5 @@
 ﻿using Microsoft.Xrm.Sdk;
+using Microsoft.Xrm.Sdk.Messages;
 using Microsoft.Xrm.Sdk.Query;
 using OfficeOpenXml;
 using System;
@@ -9,9 +10,15 @@ using System.Xml;
 
 namespace MsCrmTools.Translator.AppCode
 {
-    public class SiteMapTranslation
+    public class SiteMapTranslation : BaseTranslation
     {
-        private Entity siteMap;
+        private EntityCollection siteMaps;
+        private List<Guid> siteMapsToTranslate = new List<Guid>();
+
+        public SiteMapTranslation()
+        {
+            name = "Sitemaps";
+        }
 
         /// <summary>
         ///
@@ -22,128 +29,149 @@ namespace MsCrmTools.Translator.AppCode
         /// <param name="languages"></param>
         /// <param name="file"></param>
         /// <param name="service"></param>
+        /// <param name="settings"></param>
         public void Export(List<int> languages, ExcelWorkbook file, IOrganizationService service, ExportSettings settings)
         {
             var line = 0;
-            var cell = 0;
+            int cell;
 
-            var siteMap = GetSiteMap(service);
-            var siteMapDoc = new XmlDocument();
-            siteMapDoc.LoadXml(siteMap["sitemapxml"].ToString());
+            siteMaps = GetSiteMaps(service);
+
+            var areaSheet = file.Worksheets.Add("SiteMap Areas");
+            var groupSheet = file.Worksheets.Add("SiteMap Groups");
+            var subAreaSheet = file.Worksheets.Add("SiteMap SubAreas");
+            AddAreaHeader(areaSheet, languages);
+            AddGroupHeader(groupSheet, languages);
+            AddSubAreaHeader(subAreaSheet, languages);
 
             var crmSiteMapAreas = new List<CrmSiteMapArea>();
             var crmSiteMapGroups = new List<CrmSiteMapGroup>();
             var crmSiteMapSubAreas = new List<CrmSiteMapSubArea>();
 
-            #region Export Area
-
-            var areaNodes = siteMapDoc.SelectNodes("SiteMap/Area");
-            foreach (XmlNode areaNode in areaNodes)
+            foreach (var siteMap in siteMaps.Entities)
             {
-                var area = new CrmSiteMapArea { Id = areaNode.Attributes["Id"].Value };
+                var siteMapDoc = new XmlDocument();
+                siteMapDoc.LoadXml(siteMap["sitemapxml"].ToString());
 
-                if (settings.ExportNames)
+                #region Export Area
+
+                var areaNodes = siteMapDoc.SelectNodes("SiteMap/Area");
+                foreach (XmlNode areaNode in areaNodes)
                 {
-                    foreach (XmlNode titleNode in areaNode.SelectNodes("Titles/Title"))
+                    var area = new CrmSiteMapArea
                     {
-                        area.Titles.Add(int.Parse(titleNode.Attributes["LCID"].Value),
-                            titleNode.Attributes["Title"].Value);
-                    }
-                }
-
-                if (settings.ExportDescriptions)
-                {
-                    foreach (XmlNode titleNode in areaNode.SelectNodes("Descriptions/Description"))
-                    {
-                        area.Descriptions.Add(int.Parse(titleNode.Attributes["LCID"].Value),
-                            titleNode.Attributes["Description"].Value);
-                    }
-                }
-
-                crmSiteMapAreas.Add(area);
-
-                #region Export Groups
-
-                var groupNodes = areaNode.SelectNodes("Group");
-                foreach (XmlNode groupNode in groupNodes)
-                {
-                    var group = new CrmSiteMapGroup
-                    {
-                        Id = groupNode.Attributes["Id"].Value,
-                        AreaId = areaNode.Attributes["Id"].Value
+                        Id = areaNode.Attributes["Id"].Value,
+                        SiteMapId = siteMap.Id,
+                        SiteMapName = siteMap.GetAttributeValue<string>("sitemapname")
                     };
 
                     if (settings.ExportNames)
                     {
-                        foreach (XmlNode titleNode in groupNode.SelectNodes("Titles/Title"))
+                        foreach (XmlNode titleNode in areaNode.SelectNodes("Titles/Title"))
                         {
-                            group.Titles.Add(int.Parse(titleNode.Attributes["LCID"].Value),
+                            area.Titles.Add(int.Parse(titleNode.Attributes["LCID"].Value),
                                 titleNode.Attributes["Title"].Value);
                         }
                     }
 
                     if (settings.ExportDescriptions)
                     {
-                        foreach (XmlNode titleNode in groupNode.SelectNodes("Descriptions/Description"))
+                        foreach (XmlNode titleNode in areaNode.SelectNodes("Descriptions/Description"))
                         {
-                            group.Descriptions.Add(int.Parse(titleNode.Attributes["LCID"].Value),
+                            area.Descriptions.Add(int.Parse(titleNode.Attributes["LCID"].Value),
                                 titleNode.Attributes["Description"].Value);
                         }
                     }
 
-                    crmSiteMapGroups.Add(group);
+                    crmSiteMapAreas.Add(area);
 
-                    #region Export SubArea
+                    #region Export Groups
 
-                    var subAreaNodes = groupNode.SelectNodes("SubArea");
-                    foreach (XmlNode subAreaNode in subAreaNodes)
+                    var groupNodes = areaNode.SelectNodes("Group");
+                    foreach (XmlNode groupNode in groupNodes)
                     {
-                        var subArea = new CrmSiteMapSubArea()
+                        var group = new CrmSiteMapGroup
                         {
-                            Id = subAreaNode.Attributes["Id"].Value,
-                            GroupId = groupNode.Attributes["Id"].Value,
-                            AreaId = areaNode.Attributes["Id"].Value
+                            Id = groupNode.Attributes["Id"].Value,
+                            AreaId = areaNode.Attributes["Id"].Value,
+                            SiteMapId = siteMap.Id,
+                            SiteMapName = siteMap.GetAttributeValue<string>("sitemapname")
                         };
 
                         if (settings.ExportNames)
                         {
-                            foreach (XmlNode titleNode in subAreaNode.SelectNodes("Titles/Title"))
+                            foreach (XmlNode titleNode in groupNode.SelectNodes("Titles/Title"))
                             {
-                                subArea.Titles.Add(int.Parse(titleNode.Attributes["LCID"].Value),
+                                group.Titles.Add(int.Parse(titleNode.Attributes["LCID"].Value),
                                     titleNode.Attributes["Title"].Value);
                             }
                         }
 
                         if (settings.ExportDescriptions)
                         {
-                            foreach (XmlNode titleNode in subAreaNode.SelectNodes("Descriptions/Description"))
+                            foreach (XmlNode titleNode in groupNode.SelectNodes("Descriptions/Description"))
                             {
-                                subArea.Descriptions.Add(int.Parse(titleNode.Attributes["LCID"].Value),
+                                group.Descriptions.Add(int.Parse(titleNode.Attributes["LCID"].Value),
                                     titleNode.Attributes["Description"].Value);
                             }
                         }
 
-                        crmSiteMapSubAreas.Add(subArea);
+                        crmSiteMapGroups.Add(group);
+
+                        #region Export SubArea
+
+                        var subAreaNodes = groupNode.SelectNodes("SubArea");
+                        foreach (XmlNode subAreaNode in subAreaNodes)
+                        {
+                            var subArea = new CrmSiteMapSubArea()
+                            {
+                                Id = subAreaNode.Attributes["Id"].Value,
+                                GroupId = groupNode.Attributes["Id"].Value,
+                                AreaId = areaNode.Attributes["Id"].Value,
+                                SiteMapId = siteMap.Id,
+                                SiteMapName = siteMap.GetAttributeValue<string>("sitemapname")
+                            };
+
+                            if (settings.ExportNames)
+                            {
+                                foreach (XmlNode titleNode in subAreaNode.SelectNodes("Titles/Title"))
+                                {
+                                    subArea.Titles.Add(int.Parse(titleNode.Attributes["LCID"].Value),
+                                        titleNode.Attributes["Title"].Value);
+                                }
+                            }
+
+                            if (settings.ExportDescriptions)
+                            {
+                                foreach (XmlNode titleNode in subAreaNode.SelectNodes("Descriptions/Description"))
+                                {
+                                    subArea.Descriptions.Add(int.Parse(titleNode.Attributes["LCID"].Value),
+                                        titleNode.Attributes["Description"].Value);
+                                }
+                            }
+
+                            crmSiteMapSubAreas.Add(subArea);
+                        }
+
+                        #endregion Export SubArea
                     }
 
-                    #endregion Export SubArea
+                    #endregion Export Groups
                 }
 
-                #endregion Export Groups
+                #endregion Export Area
             }
-
-            #endregion Export Area
 
             #region Area sheet
 
-            var areaSheet = file.Worksheets.Add("SiteMap Areas");
-            AddAreaHeader(areaSheet, languages);
             foreach (var crmArea in crmSiteMapAreas)
             {
                 if (settings.ExportNames)
                 {
                     line++;
                     cell = 0;
+                    ZeroBasedSheet.Cell(areaSheet, line, cell++).Value = crmArea.SiteMapName;
+                    ZeroBasedSheet.Cell(areaSheet, line, cell++).Value = crmArea.SiteMapId.ToString();
                     ZeroBasedSheet.Cell(areaSheet, line, cell++).Value = crmArea.Id;
                     ZeroBasedSheet.Cell(areaSheet, line, cell++).Value = "Title";
 
@@ -158,6 +186,8 @@ namespace MsCrmTools.Translator.AppCode
                 {
                     line++;
                     cell = 0;
+                    ZeroBasedSheet.Cell(areaSheet, line, cell++).Value = crmArea.SiteMapName;
+                    ZeroBasedSheet.Cell(areaSheet, line, cell++).Value = crmArea.SiteMapId.ToString();
                     ZeroBasedSheet.Cell(areaSheet, line, cell++).Value = crmArea.Id;
                     ZeroBasedSheet.Cell(areaSheet, line, cell++).Value = "Description";
 
@@ -174,14 +204,14 @@ namespace MsCrmTools.Translator.AppCode
             #region Group sheet
 
             line = 0;
-            var groupSheet = file.Worksheets.Add("SiteMap Groups");
-            AddGroupHeader(groupSheet, languages);
             foreach (var crmGroup in crmSiteMapGroups)
             {
                 if (settings.ExportNames)
                 {
                     line++;
                     cell = 0;
+                    ZeroBasedSheet.Cell(groupSheet, line, cell++).Value = crmGroup.SiteMapName;
+                    ZeroBasedSheet.Cell(groupSheet, line, cell++).Value = crmGroup.SiteMapId.ToString();
                     ZeroBasedSheet.Cell(groupSheet, line, cell++).Value = crmGroup.AreaId;
                     ZeroBasedSheet.Cell(groupSheet, line, cell++).Value = crmGroup.Id;
                     ZeroBasedSheet.Cell(groupSheet, line, cell++).Value = "Title";
@@ -197,6 +227,8 @@ namespace MsCrmTools.Translator.AppCode
                 {
                     line++;
                     cell = 0;
+                    ZeroBasedSheet.Cell(groupSheet, line, cell++).Value = crmGroup.SiteMapName;
+                    ZeroBasedSheet.Cell(groupSheet, line, cell++).Value = crmGroup.SiteMapId.ToString();
                     ZeroBasedSheet.Cell(groupSheet, line, cell++).Value = crmGroup.AreaId;
                     ZeroBasedSheet.Cell(groupSheet, line, cell++).Value = crmGroup.Id;
                     ZeroBasedSheet.Cell(groupSheet, line, cell++).Value = "Description";
@@ -214,14 +246,14 @@ namespace MsCrmTools.Translator.AppCode
             #region SubArea sheet
 
             line = 0;
-            var subAreaSheet = file.Worksheets.Add("SiteMap SubAreas");
-            AddSubAreaHeader(subAreaSheet, languages);
             foreach (var crmSubArea in crmSiteMapSubAreas)
             {
                 if (settings.ExportNames)
                 {
                     line++;
                     cell = 0;
+                    ZeroBasedSheet.Cell(subAreaSheet, line, cell++).Value = crmSubArea.SiteMapName;
+                    ZeroBasedSheet.Cell(subAreaSheet, line, cell++).Value = crmSubArea.SiteMapId.ToString();
                     ZeroBasedSheet.Cell(subAreaSheet, line, cell++).Value = crmSubArea.AreaId;
                     ZeroBasedSheet.Cell(subAreaSheet, line, cell++).Value = crmSubArea.GroupId;
                     ZeroBasedSheet.Cell(subAreaSheet, line, cell++).Value = crmSubArea.Id;
@@ -238,6 +270,8 @@ namespace MsCrmTools.Translator.AppCode
                 {
                     line++;
                     cell = 0;
+                    ZeroBasedSheet.Cell(subAreaSheet, line, cell++).Value = crmSubArea.SiteMapName;
+                    ZeroBasedSheet.Cell(subAreaSheet, line, cell++).Value = crmSubArea.SiteMapId.ToString();
                     ZeroBasedSheet.Cell(subAreaSheet, line, cell++).Value = crmSubArea.AreaId;
                     ZeroBasedSheet.Cell(subAreaSheet, line, cell++).Value = crmSubArea.GroupId;
                     ZeroBasedSheet.Cell(subAreaSheet, line, cell++).Value = crmSubArea.Id;
@@ -254,208 +288,278 @@ namespace MsCrmTools.Translator.AppCode
             #endregion SubArea sheet
 
             // Applying style to cells
-            for (int i = 0; i < (2 + languages.Count); i++)
+            for (int i = 0; i < 4 + languages.Count; i++)
             {
                 StyleMutator.TitleCell(ZeroBasedSheet.Cell(areaSheet, 0, i).Style);
             }
-            for (int i = 1; i <= line; i++)
+            for (int i = 1; i <= crmSiteMapAreas.Select(c => c.Titles).Count() + crmSiteMapAreas.Select(c => c.Descriptions).Count(); i++)
             {
-                for (int j = 0; j < 2; j++)
+                for (int j = 0; j < 4; j++)
                 {
                     StyleMutator.HighlightedCell(ZeroBasedSheet.Cell(areaSheet, i, j).Style);
                 }
             }
 
-            for (int i = 0; i < (3 + languages.Count); i++)
+            for (int i = 0; i < 5 + languages.Count; i++)
             {
                 StyleMutator.TitleCell(ZeroBasedSheet.Cell(groupSheet, 0, i).Style);
             }
 
-            for (int i = 1; i <= line; i++)
+            for (int i = 1; i <= crmSiteMapGroups.Select(c => c.Titles).Count() + crmSiteMapGroups.Select(c => c.Descriptions).Count(); i++)
             {
-                for (int j = 0; j < 3; j++)
+                for (int j = 0; j < 5; j++)
                 {
                     StyleMutator.HighlightedCell(ZeroBasedSheet.Cell(groupSheet, i, j).Style);
                 }
             }
 
-            for (int i = 0; i < (4 + languages.Count); i++)
+            for (int i = 0; i < 6 + languages.Count; i++)
             {
                 StyleMutator.TitleCell(ZeroBasedSheet.Cell(subAreaSheet, 0, i).Style);
             }
 
-            for (int i = 1; i <= line; i++)
+            for (int i = 1; i <= crmSiteMapSubAreas.Select(c => c.Titles).Count() + crmSiteMapSubAreas.Select(c => c.Descriptions).Count(); i++)
             {
-                for (int j = 0; j < 4; j++)
+                for (int j = 0; j < 6; j++)
                 {
                     StyleMutator.HighlightedCell(ZeroBasedSheet.Cell(subAreaSheet, i, j).Style);
                 }
             }
         }
 
-        public Entity GetSiteMap(IOrganizationService service)
+        public EntityCollection GetSiteMaps(IOrganizationService service)
         {
-            EntityCollection ec = service.RetrieveMultiple(new QueryExpression("sitemap") { ColumnSet = new ColumnSet(true) });
+            if (siteMaps != null) return siteMaps;
 
-            var siteMap = ec[0];
-            return siteMap;
+            var sitemapsIds = service.RetrieveMultiple(new QueryExpression("appmodulecomponent")
+            {
+                ColumnSet = new ColumnSet(true),
+                Criteria = new FilterExpression
+                {
+                    Conditions =
+                    {
+                        new ConditionExpression("componenttype", ConditionOperator.Equal, 62)
+                    }
+                }
+            });
+
+            var ec = new EntityCollection();
+
+            foreach (var siteMapId in sitemapsIds.Entities)
+            {
+                if (ec.Entities.Any(ent => ent.Id == siteMapId.GetAttributeValue<Guid>("objectid") ||
+                                           siteMapId.GetAttributeValue<EntityReference>("appmoduleidunique").Name == null))
+                {
+                    continue;
+                }
+
+                try
+                {
+                    var tmpSiteMap = service.Retrieve("sitemap",
+                        siteMapId.GetAttributeValue<Guid>("objectid"), new ColumnSet(true));
+
+                    if (tmpSiteMap.GetAttributeValue<OptionSetValue>("componentstate")?.Value != 0)
+                        continue;
+
+                    ec.Entities.Add(tmpSiteMap);
+                }
+                catch (Exception error)
+                { }
+            }
+
+            // Adding default sitemap
+            var qe = new QueryExpression("sitemap");
+            qe.ColumnSet = new ColumnSet(true);
+            EntityCollection ecDefault = service.RetrieveMultiple(qe);
+            ecDefault.Entities.First()["sitemapname"] = "Default";
+            ec.Entities.Add(ecDefault.Entities.First());
+
+            siteMaps = ec;
+
+            return siteMaps;
         }
 
         public void Import(IOrganizationService service)
         {
-            service.Update(siteMap);
+            var arg = new TranslationProgressEventArgs { SheetName = "SiteMaps" };
+
+            foreach (var siteMap in siteMaps.Entities)
+            {
+                if (siteMapsToTranslate.Contains(siteMap.Id))
+                {
+                    AddRequest(new UpdateRequest { Target = siteMap });
+                    ExecuteMultiple(service, arg);
+                }
+            }
+
+            ExecuteMultiple(service, arg, true);
         }
 
         public void PrepareAreas(ExcelWorksheet sheet, IOrganizationService service)
         {
-            if (siteMap == null)
+            GetSiteMaps(service);
+
+            foreach (var siteMap in siteMaps.Entities)
             {
-                siteMap = GetSiteMap(service);
-            }
+                var siteMapDoc = new XmlDocument();
+                siteMapDoc.LoadXml(siteMap["sitemapxml"].ToString());
 
-            var siteMapDoc = new XmlDocument();
-            siteMapDoc.LoadXml(siteMap["sitemapxml"].ToString());
-
-            var rowsCount = sheet.Dimension.Rows;
-            var cellsCount = sheet.Dimension.Columns;
-            for (var rowI = 1; rowI < rowsCount; rowI++)
-            {
-                if (ZeroBasedSheet.Cell(sheet, rowI, 0).Value == null) break;
-
-                var areaId = ZeroBasedSheet.Cell(sheet, rowI, 0).Value.ToString();
-                var areaNode = siteMapDoc.SelectSingleNode("SiteMap/Area[@Id='" + areaId + "']");
-                if (areaNode == null)
+                var rowsCount = sheet.Dimension.Rows;
+                var cellsCount = sheet.Dimension.Columns;
+                for (var rowI = 1; rowI < rowsCount; rowI++)
                 {
-                    throw new Exception("Unable to find area with id " + areaId);
-                }
+                    if (ZeroBasedSheet.Cell(sheet, rowI, 0).Value == null) break;
+                    if (ZeroBasedSheet.Cell(sheet, rowI, 1).Value.ToString() != siteMap.Id.ToString()) continue;
 
-                var columnIndex = 2;
-                while (columnIndex < cellsCount)
-                {
-                    if (ZeroBasedSheet.Cell(sheet, rowI, columnIndex).Value != null)
+                    if (!siteMapsToTranslate.Contains(siteMap.Id)) siteMapsToTranslate.Add(siteMap.Id);
+
+                    var areaId = ZeroBasedSheet.Cell(sheet, rowI, 2).Value.ToString();
+                    var areaNode = siteMapDoc.SelectSingleNode("SiteMap/Area[@Id='" + areaId + "']");
+                    if (areaNode == null)
                     {
-                        var lcid = ZeroBasedSheet.Cell(sheet, 0, columnIndex).Value.ToString();
-                        var label = ZeroBasedSheet.Cell(sheet, rowI, columnIndex).Value.ToString();
-
-                        if (ZeroBasedSheet.Cell(sheet, rowI, 1).Value.ToString() == "Title")
-                        {
-                            UpdateXmlNode(areaNode, "Titles", "Title", lcid, label);
-                        }
-                        else
-                        {
-                            UpdateXmlNode(areaNode, "Descriptions", "Description", lcid, label);
-                        }
+                        throw new Exception("Unable to find area with id " + areaId);
                     }
 
-                    columnIndex++;
-                }
-            }
+                    var columnIndex = 4;
+                    while (columnIndex < cellsCount)
+                    {
+                        if (ZeroBasedSheet.Cell(sheet, rowI, columnIndex).Value != null)
+                        {
+                            var lcid = ZeroBasedSheet.Cell(sheet, 0, columnIndex).Value.ToString();
+                            var label = ZeroBasedSheet.Cell(sheet, rowI, columnIndex).Value.ToString();
 
-            siteMap["sitemapxml"] = siteMapDoc.OuterXml;
+                            if (ZeroBasedSheet.Cell(sheet, rowI, 3).Value.ToString() == "Title")
+                            {
+                                UpdateXmlNode(areaNode, "Titles", "Title", lcid, label);
+                            }
+                            else
+                            {
+                                UpdateXmlNode(areaNode, "Descriptions", "Description", lcid, label);
+                            }
+                        }
+
+                        columnIndex++;
+                    }
+                }
+
+                siteMap["sitemapxml"] = siteMapDoc.OuterXml;
+            }
         }
 
         public void PrepareGroups(ExcelWorksheet sheet, IOrganizationService service)
         {
-            if (siteMap == null)
+            GetSiteMaps(service);
+
+            foreach (var siteMap in siteMaps.Entities)
             {
-                siteMap = GetSiteMap(service);
-            }
+                var siteMapDoc = new XmlDocument();
+                siteMapDoc.LoadXml(siteMap["sitemapxml"].ToString());
 
-            var siteMapDoc = new XmlDocument();
-            siteMapDoc.LoadXml(siteMap["sitemapxml"].ToString());
-
-            var rowsCount = sheet.Dimension.Rows;
-            var cellsCount = sheet.Dimension.Columns;
-            for (var rowI = 1; rowI < rowsCount; rowI++)
-            {
-                if (ZeroBasedSheet.Cell(sheet, rowI, 0).Value == null) break;
-
-                var areaId = ZeroBasedSheet.Cell(sheet, rowI, 0).Value.ToString();
-                var groupId = ZeroBasedSheet.Cell(sheet, rowI, 1).Value.ToString();
-                var groupNode = siteMapDoc.SelectSingleNode("SiteMap/Area[@Id='" + areaId + "']/Group[@Id='" + groupId + "']");
-                if (groupNode == null)
+                var rowsCount = sheet.Dimension.Rows;
+                var cellsCount = sheet.Dimension.Columns;
+                for (var rowI = 1; rowI < rowsCount; rowI++)
                 {
-                    throw new Exception("Unable to find group with id " + groupId + " in area " + areaId);
-                }
+                    if (ZeroBasedSheet.Cell(sheet, rowI, 0).Value == null) break;
+                    if (ZeroBasedSheet.Cell(sheet, rowI, 1).Value.ToString() != siteMap.Id.ToString()) continue;
 
-                var columnIndex = 3;
-                while (columnIndex < cellsCount)
-                {
-                    if (ZeroBasedSheet.Cell(sheet, rowI, columnIndex).Value != null)
+                    if (!siteMapsToTranslate.Contains(siteMap.Id)) siteMapsToTranslate.Add(siteMap.Id);
+
+                    var areaId = ZeroBasedSheet.Cell(sheet, rowI, 2).Value.ToString();
+                    var groupId = ZeroBasedSheet.Cell(sheet, rowI, 3).Value.ToString();
+                    var groupNode =
+                        siteMapDoc.SelectSingleNode("SiteMap/Area[@Id='" + areaId + "']/Group[@Id='" + groupId + "']");
+                    if (groupNode == null)
                     {
-                        var lcid = ZeroBasedSheet.Cell(sheet, 0, columnIndex).Value.ToString();
-                        var label = ZeroBasedSheet.Cell(sheet, rowI, columnIndex).Value.ToString();
-
-                        if (ZeroBasedSheet.Cell(sheet, rowI, 1).Value.ToString() == "Title")
-                        {
-                            UpdateXmlNode(groupNode, "Titles", "Title", lcid, label);
-                        }
-                        else
-                        {
-                            UpdateXmlNode(groupNode, "Descriptions", "Description", lcid, label);
-                        }
+                        throw new Exception("Unable to find group with id " + groupId + " in area " + areaId);
                     }
 
-                    columnIndex++;
-                }
-            }
+                    var columnIndex = 5;
+                    while (columnIndex < cellsCount)
+                    {
+                        if (ZeroBasedSheet.Cell(sheet, rowI, columnIndex).Value != null)
+                        {
+                            var lcid = ZeroBasedSheet.Cell(sheet, 0, columnIndex).Value.ToString();
+                            var label = ZeroBasedSheet.Cell(sheet, rowI, columnIndex).Value.ToString();
 
-            siteMap["sitemapxml"] = siteMapDoc.OuterXml;
+                            if (ZeroBasedSheet.Cell(sheet, rowI, 4).Value.ToString() == "Title")
+                            {
+                                UpdateXmlNode(groupNode, "Titles", "Title", lcid, label);
+                            }
+                            else
+                            {
+                                UpdateXmlNode(groupNode, "Descriptions", "Description", lcid, label);
+                            }
+                        }
+
+                        columnIndex++;
+                    }
+                }
+
+                siteMap["sitemapxml"] = siteMapDoc.OuterXml;
+            }
         }
 
         public void PrepareSubAreas(ExcelWorksheet sheet, IOrganizationService service)
         {
-            if (siteMap == null)
+            GetSiteMaps(service);
+
+            foreach (var siteMap in siteMaps.Entities)
             {
-                siteMap = GetSiteMap(service);
-            }
+                var siteMapDoc = new XmlDocument();
+                siteMapDoc.LoadXml(siteMap["sitemapxml"].ToString());
 
-            var siteMapDoc = new XmlDocument();
-            siteMapDoc.LoadXml(siteMap["sitemapxml"].ToString());
-
-            var rowsCount = sheet.Dimension.Rows;
-            var cellsCount = sheet.Dimension.Columns;
-            for (var rowI = 1; rowI < rowsCount; rowI++)
-            {
-                if (ZeroBasedSheet.Cell(sheet, rowI, 0).Value == null) break;
-
-                var areaId = ZeroBasedSheet.Cell(sheet, rowI, 0).Value.ToString();
-                var groupId = ZeroBasedSheet.Cell(sheet, rowI, 1).Value.ToString();
-                var subAreaId = ZeroBasedSheet.Cell(sheet, rowI, 2).Value.ToString();
-                var subAreaNode = siteMapDoc.SelectSingleNode("SiteMap/Area[@Id='" + areaId + "']/Group[@Id='" + groupId + "']/SubArea[@Id='" + subAreaId + "']");
-                if (subAreaNode == null)
+                var rowsCount = sheet.Dimension.Rows;
+                var cellsCount = sheet.Dimension.Columns;
+                for (var rowI = 1; rowI < rowsCount; rowI++)
                 {
-                    throw new Exception("Unable to find group with id " + groupId + " in area " + areaId);
-                }
+                    if (ZeroBasedSheet.Cell(sheet, rowI, 0).Value == null) break;
+                    if (ZeroBasedSheet.Cell(sheet, rowI, 1).Value.ToString() != siteMap.Id.ToString()) continue;
 
-                var columnIndex = 4;
-                while (columnIndex < cellsCount)
-                {
-                    if (ZeroBasedSheet.Cell(sheet, rowI, columnIndex).Value != null)
+                    if (!siteMapsToTranslate.Contains(siteMap.Id)) siteMapsToTranslate.Add(siteMap.Id);
+
+                    var areaId = ZeroBasedSheet.Cell(sheet, rowI, 2).Value.ToString();
+                    var groupId = ZeroBasedSheet.Cell(sheet, rowI, 3).Value.ToString();
+                    var subAreaId = ZeroBasedSheet.Cell(sheet, rowI, 4).Value.ToString();
+                    var subAreaNode = siteMapDoc.SelectSingleNode(
+                        "SiteMap/Area[@Id='" + areaId + "']/Group[@Id='" + groupId + "']/SubArea[@Id='" + subAreaId +
+                        "']");
+                    if (subAreaNode == null)
                     {
-                        var lcid = ZeroBasedSheet.Cell(sheet, 0, columnIndex).Value.ToString();
-                        var label = ZeroBasedSheet.Cell(sheet, rowI, columnIndex).Value.ToString();
-
-                        if (ZeroBasedSheet.Cell(sheet, rowI, 1).Value.ToString() == "Title")
-                        {
-                            UpdateXmlNode(subAreaNode, "Titles", "Title", lcid, label);
-                        }
-                        else
-                        {
-                            UpdateXmlNode(subAreaNode, "Descriptions", "Description", lcid, label);
-                        }
+                        throw new Exception("Unable to find group with id " + groupId + " in area " + areaId);
                     }
-                    columnIndex++;
-                }
-            }
 
-            siteMap["sitemapxml"] = siteMapDoc.OuterXml;
+                    var columnIndex = 6;
+                    while (columnIndex < cellsCount)
+                    {
+                        if (ZeroBasedSheet.Cell(sheet, rowI, columnIndex).Value != null)
+                        {
+                            var lcid = ZeroBasedSheet.Cell(sheet, 0, columnIndex).Value.ToString();
+                            var label = ZeroBasedSheet.Cell(sheet, rowI, columnIndex).Value.ToString();
+
+                            if (ZeroBasedSheet.Cell(sheet, rowI, 5).Value.ToString() == "Title")
+                            {
+                                UpdateXmlNode(subAreaNode, "Titles", "Title", lcid, label);
+                            }
+                            else
+                            {
+                                UpdateXmlNode(subAreaNode, "Descriptions", "Description", lcid, label);
+                            }
+                        }
+
+                        columnIndex++;
+                    }
+                }
+
+                siteMap["sitemapxml"] = siteMapDoc.OuterXml;
+            }
         }
 
         private void AddAreaHeader(ExcelWorksheet sheet, IEnumerable<int> languages)
         {
             var cell = 0;
 
+            ZeroBasedSheet.Cell(sheet, 0, cell++).Value = "SiteMap Name";
+            ZeroBasedSheet.Cell(sheet, 0, cell++).Value = "SiteMap Id";
             ZeroBasedSheet.Cell(sheet, 0, cell++).Value = "Area Id";
             ZeroBasedSheet.Cell(sheet, 0, cell++).Value = "Type";
 
@@ -469,6 +573,8 @@ namespace MsCrmTools.Translator.AppCode
         {
             var cell = 0;
 
+            ZeroBasedSheet.Cell(sheet, 0, cell++).Value = "SiteMap Name";
+            ZeroBasedSheet.Cell(sheet, 0, cell++).Value = "SiteMap Id";
             ZeroBasedSheet.Cell(sheet, 0, cell++).Value = "Area Id";
             ZeroBasedSheet.Cell(sheet, 0, cell++).Value = "Group Id";
             ZeroBasedSheet.Cell(sheet, 0, cell++).Value = "Type";
@@ -483,6 +589,8 @@ namespace MsCrmTools.Translator.AppCode
         {
             var cell = 0;
 
+            ZeroBasedSheet.Cell(sheet, 0, cell++).Value = "SiteMap Name";
+            ZeroBasedSheet.Cell(sheet, 0, cell++).Value = "SiteMap Id";
             ZeroBasedSheet.Cell(sheet, 0, cell++).Value = "Area Id";
             ZeroBasedSheet.Cell(sheet, 0, cell++).Value = "Group Id";
             ZeroBasedSheet.Cell(sheet, 0, cell++).Value = "SubArea Id";

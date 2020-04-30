@@ -1,5 +1,6 @@
 ﻿using Microsoft.Crm.Sdk.Messages;
 using Microsoft.Xrm.Sdk;
+using Microsoft.Xrm.Sdk.Messages;
 using Microsoft.Xrm.Sdk.Query;
 using OfficeOpenXml;
 using System;
@@ -16,6 +17,11 @@ namespace MsCrmTools.Translator.AppCode
     {
         private static ExportSettings settings;
 
+        public DashboardTranslation()
+        {
+            name = "Dashboards";
+        }
+
         public void Export(List<int> languages, ExcelWorkbook file, IOrganizationService service, ExportSettings esettings)
         {
             settings = esettings;
@@ -25,6 +31,12 @@ namespace MsCrmTools.Translator.AppCode
 
             var userSettingLcid = setting.GetAttributeValue<int>("uilanguageid");
             var currentSetting = userSettingLcid;
+
+            var ids = new List<Guid>();
+            if (settings.SolutionId != Guid.Empty)
+            {
+                ids = service.GetSolutionComponentObjectIds(settings.SolutionId, 60); // 60 = System forms
+            }
 
             var crmForms = new List<CrmForm>();
             var crmFormTabs = new List<CrmFormTab>();
@@ -42,7 +54,7 @@ namespace MsCrmTools.Translator.AppCode
                     currentSetting = lcid;
                 }
 
-                var forms = RetrieveDashboardList(service);
+                var forms = RetrieveDashboardList(ids, service);
 
                 foreach (var form in forms)
                 {
@@ -90,7 +102,7 @@ namespace MsCrmTools.Translator.AppCode
                 service.Update(setting);
             }
 
-            var forms2 = RetrieveDashboardList(service);
+            var forms2 = RetrieveDashboardList(ids, service);
 
             foreach (var form in forms2)
             {
@@ -271,68 +283,25 @@ namespace MsCrmTools.Translator.AppCode
                 requests.Add(request);
             }
 
-            int i = 0;
+            var arg = new TranslationProgressEventArgs { SheetName = sheet.Name };
             foreach (var request in requests)
             {
-                try
-                {
-                    service.Execute(request);
-
-                    OnResult(new TranslationResultEventArgs
-                    {
-                        Success = true,
-                        SheetName = sheet.Name
-                    });
-                }
-                catch (Exception error)
-                {
-                    OnResult(new TranslationResultEventArgs
-                    {
-                        Success = false,
-                        SheetName = sheet.Name,
-                        Message = $"{request.EntityMoniker.Id}/{request.AttributeName}: {error.Message}"
-                    });
-                }
-
-                i++;
-                worker.ReportProgressIfPossible(0, new ProgressInfo
-                {
-                    Item = i * 100 / requests.Count
-                });
+                AddRequest(request);
+                ExecuteMultiple(service, arg);
             }
+            ExecuteMultiple(service, arg, true);
         }
 
         public void ImportFormsContent(IOrganizationService service, List<Entity> forms, BackgroundWorker worker)
         {
-            int i = 0;
+            name = "Dashboards contents";
+            var arg = new TranslationProgressEventArgs { SheetName = "Forms" };
             foreach (var form in forms)
             {
-                try
-                {
-                    service.Update(form);
-
-                    OnResult(new TranslationResultEventArgs
-                    {
-                        Success = true,
-                        SheetName = "*Dashboard"
-                    });
-                }
-                catch (Exception error)
-                {
-                    OnResult(new TranslationResultEventArgs
-                    {
-                        Success = false,
-                        SheetName = "*Dashboard",
-                        Message = $"{form.GetAttributeValue<string>("objecttypecode")}/{form.GetAttributeValue<string>("name")}: {error.Message}"
-                    });
-                }
-
-                i++;
-                worker.ReportProgressIfPossible(0, new ProgressInfo
-                {
-                    Item = i * 100 / forms.Count
-                });
+                AddRequest(new UpdateRequest { Target = form });
+                ExecuteMultiple(service, arg);
             }
+            ExecuteMultiple(service, arg, true);
         }
 
         public void PrepareFormLabels(ExcelWorksheet sheet, IOrganizationService service, List<Entity> forms)
@@ -790,7 +759,7 @@ namespace MsCrmTools.Translator.AppCode
             return settings[0];
         }
 
-        private List<Entity> RetrieveDashboardList(IOrganizationService service)
+        private List<Entity> RetrieveDashboardList(List<Guid> ids, IOrganizationService service)
         {
             var qe = new QueryExpression("systemform")
             {
@@ -803,6 +772,16 @@ namespace MsCrmTools.Translator.AppCode
                     }
                 }
             };
+
+            if (ids.Count != 0)
+            {
+                var fe = qe.Criteria.AddFilter(LogicalOperator.Or);
+
+                foreach (var id in ids)
+                {
+                    fe.AddCondition("formid", ConditionOperator.Equal, id);
+                }
+            }
 
             var ec = service.RetrieveMultiple(qe);
 

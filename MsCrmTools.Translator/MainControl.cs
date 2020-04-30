@@ -1,9 +1,12 @@
 ﻿using Microsoft.Xrm.Sdk.Metadata;
 using MsCrmTools.Translator.AppCode;
+using MsCrmTools.Translator.Controls;
 using MsCrmTools.Translator.Forms;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Drawing;
+using System.IO;
 using System.Linq;
 using System.Windows.Forms;
 using XrmToolBox.Extensibility;
@@ -16,6 +19,7 @@ namespace MsCrmTools.Translator
     {
         #region variables
 
+        private Guid _solutionId = Guid.Empty;
         private int numberOferrors = 0;
 
         #endregion variables
@@ -41,6 +45,7 @@ namespace MsCrmTools.Translator
 
         #endregion Methods
 
+        private ProgressControl currentControl;
         public string HelpUrl => "https://github.com/MscrmTools/MsCrmTools.Translator/wiki";
 
         public string RepositoryName => "MscrmTools.Translator";
@@ -104,8 +109,11 @@ namespace MsCrmTools.Translator
                         FilePath = sfd.FileName,
                         Entities = entities,
                         ExportNames = rdbBoth.Checked || rdbNameOnly.Checked,
-                        ExportDescriptions = rdbBoth.Checked || rdbDescOnly.Checked
+                        ExportDescriptions = rdbBoth.Checked || rdbDescOnly.Checked,
+                        SolutionId = _solutionId
                     };
+
+                    pnlNewProgress.Controls.Clear();
 
                     SetState(true);
 
@@ -125,7 +133,14 @@ namespace MsCrmTools.Translator
                             if (evt.Error != null)
                             {
                                 string errorMessage = CrmExceptionHelper.GetErrorMessage(evt.Error, true);
-                                MessageBox.Show(this, errorMessage, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                                MessageBox.Show(this, errorMessage, @"Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                            }
+                            else
+                            {
+                                if (DialogResult.Yes == MessageBox.Show(this, @"Do you want to open generated document?", @"Question", MessageBoxButtons.YesNo, MessageBoxIcon.Question))
+                                {
+                                    Process.Start(settings.FilePath);
+                                }
                             }
                         },
                         ProgressChanged = evt => { SetWorkingMessage(evt.UserState.ToString()); }
@@ -152,12 +167,19 @@ namespace MsCrmTools.Translator
 
         private void ImportTranslations()
         {
+            var lm = new LogManager(GetType());
+            if (File.Exists(lm.FilePath))
+            {
+                if (MessageBox.Show(this, @"A log file already exists. Would you like to create a new log file?", @"Question", MessageBoxButtons.YesNo, MessageBoxIcon.Question) == DialogResult.Yes)
+                {
+                    File.Copy(lm.FilePath, $"{lm.FilePath.Substring(0, lm.FilePath.Length - 4)}-{DateTime.Now:yyyyMMdd_HHmmss}.txt", true);
+                    File.Delete(lm.FilePath);
+                }
+            }
+
             numberOferrors = 0;
             pbOverall.ForeColor = SystemColors.Highlight;
-            pbItem.ForeColor = SystemColors.Highlight;
             SetState(true);
-
-            gbProgress.Visible = true;
 
             WorkAsync(new WorkAsyncInfo
             {
@@ -168,12 +190,46 @@ namespace MsCrmTools.Translator
                     var engine = new Engine();
                     engine.OnLog += (sender, evt) =>
                     {
-                        if (!evt.Success)
+                        if (evt.Type == LogType.Error)
                         {
-                            numberOferrors++;
-                            LogError("{0}\t{1}", evt.SheetName, evt.Message);
+                            LogError(evt.Message);
+                        }
+                        else if (evt.Type == LogType.Warning)
+                        {
+                            LogWarning(evt.Message);
+                        }
+                        else
+                        {
+                            LogInfo(evt.Message);
                         }
                     };
+                    engine.OnProgress += (sender, evt) =>
+                    {
+                        Invoke(new Action(() =>
+                        {
+                            if (string.IsNullOrEmpty(evt.SheetName))
+                            {
+                                currentControl?.End(currentControl.Error == 0);
+                                return;
+                            }
+
+                            if (currentControl == null || currentControl.SheetName != evt.SheetName)
+                            {
+                                currentControl?.End(currentControl.Error == 0);
+                                currentControl = new ProgressControl(evt.SheetName);
+                                currentControl.Dock = DockStyle.Top;
+
+                                pnlNewProgress.Controls.Add(currentControl);
+                                pnlNewProgress.Controls.SetChildIndex(currentControl, 0);
+                                pnlNewProgress.ScrollControlIntoView(currentControl);
+                            }
+
+                            currentControl.Count = evt.TotalItems;
+                            currentControl.Error = evt.FailureCount;
+                            currentControl.Success = evt.SuccessCount;
+                        }));
+                    };
+
                     engine.Import(e.Argument.ToString(), Service, bw);
                 },
                 PostWorkCallBack = e =>
@@ -185,43 +241,30 @@ namespace MsCrmTools.Translator
                     }
 
                     SetState(false);
-                    //gbProgress.Visible = false;
+
+                    lblProgress.Text = "";
+
+                    if (File.Exists(lm.FilePath))
+                    {
+                        llOpenLog.Visible = true;
+                    }
                 },
                 ProgressChanged = e =>
                 {
-                    var pInfo = e.UserState as ProgressInfo;
-                    //MessageBox.Show($"{pInfo?.Overall}/{pInfo?.Item}/{pInfo?.Message}");
-                    if (pInfo != null)
+                    if (e.UserState is ProgressInfo pInfo)
                     {
-                        if (pInfo.Item == 1)
-                        {
-                            pbItem.ForeColor = SystemColors.Highlight;
-                        }
-
+                        lblProgress.Text = pInfo.Message;
                         if (numberOferrors > 0)
                         {
                             pbOverall.ForeColor = Color.Red;
-                            pbItem.ForeColor = Color.Red;
                             pbOverall.Invalidate();
-                            pbItem.Invalidate();
 
                             llOpenLog.Visible = true;
-                            lblErrors.Text = string.Format(lblErrors.Tag.ToString(), numberOferrors);
                         }
 
                         if (pInfo.Overall != 0)
                         {
                             pbOverall.Value = pInfo.Overall > pbOverall.Maximum ? pbOverall.Maximum : pInfo.Overall;
-                        }
-
-                        if (pInfo.Item != 0)
-                        {
-                            pbItem.Value = pInfo.Item > pbItem.Maximum ? pbItem.Maximum : pInfo.Item;
-                        }
-
-                        if (pInfo.Message != null)
-                        {
-                            lblProgress.Text = pInfo.Message;
                         }
                     }
                     else
@@ -287,7 +330,8 @@ namespace MsCrmTools.Translator
 
         private void LoadEntities(bool allEntities)
         {
-            Guid solutionId = Guid.Empty;
+            _solutionId = Guid.Empty;
+            pnlSelectedSolution.Visible = false;
 
             if (!allEntities)
             {
@@ -297,7 +341,12 @@ namespace MsCrmTools.Translator
                     return;
                 }
 
-                solutionId = sPicker.SelectedSolution.First().Id;
+                _solutionId = sPicker.SelectedSolution.First().Id;
+
+                lblSelectedSolution.Text = string.Format(lblSelectedSolution.Tag.ToString(),
+                    string.Join(", ",
+                        sPicker.SelectedSolution.Select(s => s.GetAttributeValue<string>("friendlyname"))));
+                pnlSelectedSolution.Visible = true;
             }
 
             lvEntities.Items.Clear();
@@ -307,7 +356,7 @@ namespace MsCrmTools.Translator
                 Message = "Loading entities...",
                 Work = (bw, e) =>
                 {
-                    List<EntityMetadata> entities = MetadataHelper.RetrieveEntities(Service, solutionId);
+                    List<EntityMetadata> entities = MetadataHelper.RetrieveEntities(Service, _solutionId);
                     e.Result = entities;
                 },
                 PostWorkCallBack = e =>
@@ -344,11 +393,8 @@ namespace MsCrmTools.Translator
             tsbExportTranslations.Enabled = !isRunning;
             tsbImportTranslations.Enabled = !isRunning;
             tsddbLoadEntities.Enabled = !isRunning;
-        }
-
-        private void TsbLoadEntitiesClick(object sender, EventArgs e)
-        {
-            ExecuteMethod(LoadEntities, true);
+            pbOverall.Visible = isRunning;
+            lblProgress.Visible = isRunning;
         }
 
         private void tsddbLoadEntities_DropDownItemClicked(object sender, ToolStripItemClickedEventArgs e)

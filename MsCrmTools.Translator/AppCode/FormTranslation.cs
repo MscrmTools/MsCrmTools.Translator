@@ -1,5 +1,6 @@
 ﻿using Microsoft.Crm.Sdk.Messages;
 using Microsoft.Xrm.Sdk;
+using Microsoft.Xrm.Sdk.Messages;
 using Microsoft.Xrm.Sdk.Metadata;
 using Microsoft.Xrm.Sdk.Query;
 using OfficeOpenXml;
@@ -17,6 +18,11 @@ namespace MsCrmTools.Translator.AppCode
     public class FormTranslation : BaseTranslation
     {
         private static ExportSettings settings;
+
+        public FormTranslation()
+        {
+            name = "Forms";
+        }
 
         public void Export(List<EntityMetadata> entities, List<int> languages, ExcelWorkbook file, IOrganizationService service, FormExportOption options, ExportSettings esettings)
         {
@@ -329,68 +335,25 @@ namespace MsCrmTools.Translator.AppCode
                 requests.Add(request);
             }
 
-            int i = 0;
+            var arg = new TranslationProgressEventArgs { SheetName = sheet.Name };
             foreach (var request in requests)
             {
-                try
-                {
-                    service.Execute(request);
-
-                    OnResult(new TranslationResultEventArgs
-                    {
-                        Success = true,
-                        SheetName = sheet.Name
-                    });
-                }
-                catch (Exception error)
-                {
-                    OnResult(new TranslationResultEventArgs
-                    {
-                        Success = false,
-                        SheetName = sheet.Name,
-                        Message = $"{request.EntityMoniker.Id}/{request.AttributeName}: {error.Message}"
-                    });
-                }
-
-                i++;
-                worker.ReportProgressIfPossible(0, new ProgressInfo
-                {
-                    Item = i * 100 / requests.Count
-                });
+                AddRequest(request);
+                ExecuteMultiple(service, arg);
             }
+            ExecuteMultiple(service, arg, true);
         }
 
         public void ImportFormsContent(IOrganizationService service, List<Entity> forms, BackgroundWorker worker)
         {
-            int i = 0;
+            name = "Forms Contents";
+            var arg = new TranslationProgressEventArgs();
             foreach (var form in forms)
             {
-                try
-                {
-                    service.Update(form);
-
-                    OnResult(new TranslationResultEventArgs
-                    {
-                        Success = true,
-                        SheetName = "*Forms"
-                    });
-                }
-                catch (Exception error)
-                {
-                    OnResult(new TranslationResultEventArgs
-                    {
-                        Success = false,
-                        SheetName = "*Forms",
-                        Message = $"{form.GetAttributeValue<string>("objecttypecode")}/{form.GetAttributeValue<string>("name")}: {error.Message}"
-                    });
-                }
-
-                i++;
-                worker.ReportProgressIfPossible(0, new ProgressInfo
-                {
-                    Item = i * 100 / forms.Count
-                });
+                AddRequest(new UpdateRequest { Target = form });
+                ExecuteMultiple(service, arg);
             }
+            ExecuteMultiple(service, arg, true);
         }
 
         public void PrepareFormLabels(ExcelWorksheet sheet, IOrganizationService service, List<Entity> forms)
@@ -412,12 +375,7 @@ namespace MsCrmTools.Translator.AppCode
                     }
                     catch (Exception error) //lets not fail if the form is no more available in CRM
                     {
-                        OnResult(new TranslationResultEventArgs
-                        {
-                            Success = false,
-                            SheetName = sheet.Name,
-                            Message = $"{formId}: {error.Message}"
-                        });
+                        OnLog(new LogEventArgs($"{sheet.Name}: {formId}: {error.Message}"));
 
                         continue;   //form is not found so no need to process further.
                     }
@@ -467,16 +425,15 @@ namespace MsCrmTools.Translator.AppCode
                 {
                     try
                     {
-                        form = service.Retrieve("systemform", formId, new ColumnSet(new[] { "formxml" }));
+                        form = service.Retrieve("systemform", formId, new ColumnSet("formxml"));
                         forms.Add(form);
                     }
                     catch (Exception error) //lets not fail if the form is no more available in CRM
                     {
-                        OnResult(new TranslationResultEventArgs
+                        OnLog(new LogEventArgs
                         {
-                            Success = false,
-                            SheetName = sheet.Name,
-                            Message = $"{formId}: {error.Message}"
+                            Type = LogType.Warning,
+                            Message = $"Cannot find form {formId}: {error.Message}"
                         });
 
                         continue;   //form is not found so no need to process further.
@@ -531,12 +488,7 @@ namespace MsCrmTools.Translator.AppCode
                     }
                     catch (Exception error) //lets not fail if the form is no more available in CRM
                     {
-                        OnResult(new TranslationResultEventArgs
-                        {
-                            Success = false,
-                            SheetName = sheet.Name,
-                            Message = $"{formId}: {error.Message}"
-                        });
+                        OnLog(new LogEventArgs($"{sheet.Name}: {formId}: {error.Message}"));
 
                         continue;   //form is not found so no need to process further.
                     }

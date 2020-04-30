@@ -72,22 +72,26 @@ namespace MsCrmTools.Translator
             this.lvEntities = new System.Windows.Forms.ListView();
             this.columnHeader4 = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.columnHeader7 = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
+            this.pnlSelectedSolution = new System.Windows.Forms.Panel();
+            this.lblSelectedSolution = new System.Windows.Forms.Label();
             this.tabPage2 = new System.Windows.Forms.TabPage();
-            this.gbProgress = new System.Windows.Forms.GroupBox();
+            this.pnlImportMain = new System.Windows.Forms.Panel();
+            this.panel3 = new System.Windows.Forms.Panel();
             this.llOpenLog = new System.Windows.Forms.LinkLabel();
-            this.lblErrors = new System.Windows.Forms.Label();
-            this.lblProgress = new System.Windows.Forms.Label();
-            this.pbItem = new MsCrmTools.Translator.ColoredProgressBar();
-            this.pbOverall = new MsCrmTools.Translator.ColoredProgressBar();
             this.panel2 = new System.Windows.Forms.Panel();
             this.label3 = new System.Windows.Forms.Label();
             this.pictureBox2 = new System.Windows.Forms.PictureBox();
             this.panel1 = new System.Windows.Forms.Panel();
             this.label2 = new System.Windows.Forms.Label();
             this.pictureBox1 = new System.Windows.Forms.PictureBox();
-            this.btnBrowseImportFile = new System.Windows.Forms.Button();
+            this.gbNewProgress = new System.Windows.Forms.GroupBox();
+            this.pnlImportBrowse = new System.Windows.Forms.Panel();
             this.txtFilePath = new System.Windows.Forms.TextBox();
+            this.btnBrowseImportFile = new System.Windows.Forms.Button();
             this.label1 = new System.Windows.Forms.Label();
+            this.lblProgress = new System.Windows.Forms.Label();
+            this.pbOverall = new MsCrmTools.Translator.ColoredProgressBar();
+            this.pnlNewProgress = new System.Windows.Forms.Panel();
             this.toolStripMenu.SuspendLayout();
             this.tabControl1.SuspendLayout();
             this.tabPage1.SuspendLayout();
@@ -95,12 +99,16 @@ namespace MsCrmTools.Translator
             this.gbLabelExportOptions.SuspendLayout();
             this.gbEntitiesOptions.SuspendLayout();
             this.gbGlobalOptions.SuspendLayout();
+            this.pnlSelectedSolution.SuspendLayout();
             this.tabPage2.SuspendLayout();
-            this.gbProgress.SuspendLayout();
+            this.pnlImportMain.SuspendLayout();
+            this.panel3.SuspendLayout();
             this.panel2.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.pictureBox2)).BeginInit();
             this.panel1.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.pictureBox1)).BeginInit();
+            this.gbNewProgress.SuspendLayout();
+            this.pnlImportBrowse.SuspendLayout();
             this.SuspendLayout();
             // 
             // toolStripMenu
@@ -118,7 +126,7 @@ namespace MsCrmTools.Translator
             this.toolStripMenu.Padding = new System.Windows.Forms.Padding(0, 0, 3, 0);
             this.toolStripMenu.Size = new System.Drawing.Size(1821, 39);
             this.toolStripMenu.TabIndex = 2;
-            this.toolStripMenu.Text = "toolStrip1";
+            this.toolStripMenu.Text = "tsMain";
             // 
             // tsbClose
             // 
@@ -126,7 +134,7 @@ namespace MsCrmTools.Translator
             this.tsbClose.Image = ((System.Drawing.Image)(resources.GetObject("tsbClose.Image")));
             this.tsbClose.ImageTransparentColor = System.Drawing.Color.Magenta;
             this.tsbClose.Name = "tsbClose";
-            this.tsbClose.Size = new System.Drawing.Size(36, 36);
+            this.tsbClose.Size = new System.Drawing.Size(23, 36);
             this.tsbClose.Text = "Close this tool";
             this.tsbClose.Click += new System.EventHandler(this.TsbCloseClick);
             // 
@@ -143,7 +151,7 @@ namespace MsCrmTools.Translator
             this.tsddbLoadEntities.Image = global::MsCrmTools.Translator.Properties.Resources.Dynamics16;
             this.tsddbLoadEntities.ImageTransparentColor = System.Drawing.Color.Magenta;
             this.tsddbLoadEntities.Name = "tsddbLoadEntities";
-            this.tsddbLoadEntities.Size = new System.Drawing.Size(204, 36);
+            this.tsddbLoadEntities.Size = new System.Drawing.Size(188, 36);
             this.tsddbLoadEntities.Text = "Load Entities";
             this.tsddbLoadEntities.DropDownItemClicked += new System.Windows.Forms.ToolStripItemClickedEventHandler(this.tsddbLoadEntities_DropDownItemClicked);
             // 
@@ -169,7 +177,7 @@ namespace MsCrmTools.Translator
             this.tsbExportTranslations.Image = ((System.Drawing.Image)(resources.GetObject("tsbExportTranslations.Image")));
             this.tsbExportTranslations.ImageTransparentColor = System.Drawing.Color.Magenta;
             this.tsbExportTranslations.Name = "tsbExportTranslations";
-            this.tsbExportTranslations.Size = new System.Drawing.Size(247, 36);
+            this.tsbExportTranslations.Size = new System.Drawing.Size(231, 36);
             this.tsbExportTranslations.Text = "Export translations";
             this.tsbExportTranslations.Click += new System.EventHandler(this.BtnExportTranslationsClick);
             // 
@@ -183,7 +191,7 @@ namespace MsCrmTools.Translator
             this.tsbImportTranslations.Image = ((System.Drawing.Image)(resources.GetObject("tsbImportTranslations.Image")));
             this.tsbImportTranslations.ImageTransparentColor = System.Drawing.Color.Magenta;
             this.tsbImportTranslations.Name = "tsbImportTranslations";
-            this.tsbImportTranslations.Size = new System.Drawing.Size(251, 36);
+            this.tsbImportTranslations.Size = new System.Drawing.Size(235, 36);
             this.tsbImportTranslations.Text = "Import translations";
             this.tsbImportTranslations.Click += new System.EventHandler(this.BtnImportTranslationsClick);
             // 
@@ -204,6 +212,7 @@ namespace MsCrmTools.Translator
             // tabPage1
             // 
             this.tabPage1.Controls.Add(this.groupBox2);
+            this.tabPage1.Controls.Add(this.pnlSelectedSolution);
             this.tabPage1.Location = new System.Drawing.Point(8, 39);
             this.tabPage1.Margin = new System.Windows.Forms.Padding(5, 6, 5, 6);
             this.tabPage1.Name = "tabPage1";
@@ -215,20 +224,18 @@ namespace MsCrmTools.Translator
             // 
             // groupBox2
             // 
-            this.groupBox2.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
-            | System.Windows.Forms.AnchorStyles.Left) 
-            | System.Windows.Forms.AnchorStyles.Right)));
             this.groupBox2.Controls.Add(this.gbLabelExportOptions);
             this.groupBox2.Controls.Add(this.btnCheckAll);
             this.groupBox2.Controls.Add(this.btnClearAll);
             this.groupBox2.Controls.Add(this.gbEntitiesOptions);
             this.groupBox2.Controls.Add(this.gbGlobalOptions);
             this.groupBox2.Controls.Add(this.lvEntities);
-            this.groupBox2.Location = new System.Drawing.Point(5, 11);
+            this.groupBox2.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.groupBox2.Location = new System.Drawing.Point(5, 65);
             this.groupBox2.Margin = new System.Windows.Forms.Padding(5, 6, 5, 6);
             this.groupBox2.Name = "groupBox2";
             this.groupBox2.Padding = new System.Windows.Forms.Padding(5, 6, 5, 6);
-            this.groupBox2.Size = new System.Drawing.Size(1776, 1021);
+            this.groupBox2.Size = new System.Drawing.Size(1785, 976);
             this.groupBox2.TabIndex = 6;
             this.groupBox2.TabStop = false;
             this.groupBox2.Text = "Entities options";
@@ -240,9 +247,9 @@ namespace MsCrmTools.Translator
             this.gbLabelExportOptions.Controls.Add(this.rdbBoth);
             this.gbLabelExportOptions.Controls.Add(this.lblExportLabel);
             this.gbLabelExportOptions.Location = new System.Drawing.Point(653, 864);
-            this.gbLabelExportOptions.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
+            this.gbLabelExportOptions.Margin = new System.Windows.Forms.Padding(4);
             this.gbLabelExportOptions.Name = "gbLabelExportOptions";
-            this.gbLabelExportOptions.Padding = new System.Windows.Forms.Padding(4, 4, 4, 4);
+            this.gbLabelExportOptions.Padding = new System.Windows.Forms.Padding(4);
             this.gbLabelExportOptions.Size = new System.Drawing.Size(1109, 125);
             this.gbLabelExportOptions.TabIndex = 96;
             this.gbLabelExportOptions.TabStop = false;
@@ -252,7 +259,7 @@ namespace MsCrmTools.Translator
             // 
             this.rdbDescOnly.AutoSize = true;
             this.rdbDescOnly.Location = new System.Drawing.Point(577, 28);
-            this.rdbDescOnly.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
+            this.rdbDescOnly.Margin = new System.Windows.Forms.Padding(4);
             this.rdbDescOnly.Name = "rdbDescOnly";
             this.rdbDescOnly.Size = new System.Drawing.Size(212, 29);
             this.rdbDescOnly.TabIndex = 3;
@@ -264,7 +271,7 @@ namespace MsCrmTools.Translator
             // 
             this.rdbNameOnly.AutoSize = true;
             this.rdbNameOnly.Location = new System.Drawing.Point(411, 28);
-            this.rdbNameOnly.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
+            this.rdbNameOnly.Margin = new System.Windows.Forms.Padding(4);
             this.rdbNameOnly.Name = "rdbNameOnly";
             this.rdbNameOnly.Size = new System.Drawing.Size(160, 29);
             this.rdbNameOnly.TabIndex = 2;
@@ -277,7 +284,7 @@ namespace MsCrmTools.Translator
             this.rdbBoth.AutoSize = true;
             this.rdbBoth.Checked = true;
             this.rdbBoth.Location = new System.Drawing.Point(312, 28);
-            this.rdbBoth.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
+            this.rdbBoth.Margin = new System.Windows.Forms.Padding(4);
             this.rdbBoth.Name = "rdbBoth";
             this.rdbBoth.Size = new System.Drawing.Size(87, 29);
             this.rdbBoth.TabIndex = 1;
@@ -338,7 +345,7 @@ namespace MsCrmTools.Translator
             this.gbEntitiesOptions.MinimumSize = new System.Drawing.Size(501, 478);
             this.gbEntitiesOptions.Name = "gbEntitiesOptions";
             this.gbEntitiesOptions.Padding = new System.Windows.Forms.Padding(5, 6, 5, 6);
-            this.gbEntitiesOptions.Size = new System.Drawing.Size(1109, 604);
+            this.gbEntitiesOptions.Size = new System.Drawing.Size(1118, 604);
             this.gbEntitiesOptions.TabIndex = 93;
             this.gbEntitiesOptions.TabStop = false;
             this.gbEntitiesOptions.Text = "Entity related options";
@@ -347,7 +354,7 @@ namespace MsCrmTools.Translator
             // 
             this.llRelatedSelector.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
             this.llRelatedSelector.AutoSize = true;
-            this.llRelatedSelector.Location = new System.Drawing.Point(1004, 31);
+            this.llRelatedSelector.Location = new System.Drawing.Point(1013, 31);
             this.llRelatedSelector.Margin = new System.Windows.Forms.Padding(5, 0, 5, 0);
             this.llRelatedSelector.Name = "llRelatedSelector";
             this.llRelatedSelector.Size = new System.Drawing.Size(91, 25);
@@ -512,7 +519,7 @@ namespace MsCrmTools.Translator
             this.gbGlobalOptions.MinimumSize = new System.Drawing.Size(501, 135);
             this.gbGlobalOptions.Name = "gbGlobalOptions";
             this.gbGlobalOptions.Padding = new System.Windows.Forms.Padding(5, 6, 5, 6);
-            this.gbGlobalOptions.Size = new System.Drawing.Size(1109, 189);
+            this.gbGlobalOptions.Size = new System.Drawing.Size(1118, 189);
             this.gbGlobalOptions.TabIndex = 92;
             this.gbGlobalOptions.TabStop = false;
             this.gbGlobalOptions.Text = "Global Options";
@@ -521,7 +528,7 @@ namespace MsCrmTools.Translator
             // 
             this.llGlobalSelector.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
             this.llGlobalSelector.AutoSize = true;
-            this.llGlobalSelector.Location = new System.Drawing.Point(1004, 19);
+            this.llGlobalSelector.Location = new System.Drawing.Point(1013, 19);
             this.llGlobalSelector.Margin = new System.Windows.Forms.Padding(5, 0, 5, 0);
             this.llGlobalSelector.Name = "llGlobalSelector";
             this.llGlobalSelector.Size = new System.Drawing.Size(91, 25);
@@ -582,7 +589,7 @@ namespace MsCrmTools.Translator
             this.lvEntities.Location = new System.Drawing.Point(13, 92);
             this.lvEntities.Margin = new System.Windows.Forms.Padding(5, 6, 5, 6);
             this.lvEntities.Name = "lvEntities";
-            this.lvEntities.Size = new System.Drawing.Size(624, 914);
+            this.lvEntities.Size = new System.Drawing.Size(624, 869);
             this.lvEntities.Sorting = System.Windows.Forms.SortOrder.Ascending;
             this.lvEntities.TabIndex = 80;
             this.lvEntities.UseCompatibleStateImageBehavior = false;
@@ -599,14 +606,36 @@ namespace MsCrmTools.Translator
             this.columnHeader7.Text = "Schema name";
             this.columnHeader7.Width = 130;
             // 
+            // pnlSelectedSolution
+            // 
+            this.pnlSelectedSolution.Controls.Add(this.lblSelectedSolution);
+            this.pnlSelectedSolution.Dock = System.Windows.Forms.DockStyle.Top;
+            this.pnlSelectedSolution.Location = new System.Drawing.Point(5, 6);
+            this.pnlSelectedSolution.Name = "pnlSelectedSolution";
+            this.pnlSelectedSolution.Padding = new System.Windows.Forms.Padding(10);
+            this.pnlSelectedSolution.Size = new System.Drawing.Size(1785, 59);
+            this.pnlSelectedSolution.TabIndex = 7;
+            this.pnlSelectedSolution.Visible = false;
+            // 
+            // lblSelectedSolution
+            // 
+            this.lblSelectedSolution.BackColor = System.Drawing.SystemColors.Info;
+            this.lblSelectedSolution.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
+            this.lblSelectedSolution.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.lblSelectedSolution.Font = new System.Drawing.Font("Microsoft Sans Serif", 8F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.lblSelectedSolution.Location = new System.Drawing.Point(10, 10);
+            this.lblSelectedSolution.Name = "lblSelectedSolution";
+            this.lblSelectedSolution.Size = new System.Drawing.Size(1765, 39);
+            this.lblSelectedSolution.TabIndex = 0;
+            this.lblSelectedSolution.Tag = "Selected solution : {0}. Global OptionSets, SiteMap and Dashboards will be export" +
+    "ed for this solution only";
+            this.lblSelectedSolution.Text = "Selected solution : {0}";
+            this.lblSelectedSolution.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
+            // 
             // tabPage2
             // 
-            this.tabPage2.Controls.Add(this.gbProgress);
-            this.tabPage2.Controls.Add(this.panel2);
-            this.tabPage2.Controls.Add(this.panel1);
-            this.tabPage2.Controls.Add(this.btnBrowseImportFile);
-            this.tabPage2.Controls.Add(this.txtFilePath);
-            this.tabPage2.Controls.Add(this.label1);
+            this.tabPage2.Controls.Add(this.pnlImportMain);
+            this.tabPage2.Controls.Add(this.pnlImportBrowse);
             this.tabPage2.Location = new System.Drawing.Point(8, 39);
             this.tabPage2.Margin = new System.Windows.Forms.Padding(5, 6, 5, 6);
             this.tabPage2.Name = "tabPage2";
@@ -616,92 +645,52 @@ namespace MsCrmTools.Translator
             this.tabPage2.Text = "Import translations";
             this.tabPage2.UseVisualStyleBackColor = true;
             // 
-            // gbProgress
+            // pnlImportMain
             // 
-            this.gbProgress.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
-            | System.Windows.Forms.AnchorStyles.Left) 
-            | System.Windows.Forms.AnchorStyles.Right)));
-            this.gbProgress.Controls.Add(this.llOpenLog);
-            this.gbProgress.Controls.Add(this.lblErrors);
-            this.gbProgress.Controls.Add(this.lblProgress);
-            this.gbProgress.Controls.Add(this.pbItem);
-            this.gbProgress.Controls.Add(this.pbOverall);
-            this.gbProgress.Location = new System.Drawing.Point(19, 481);
-            this.gbProgress.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
-            this.gbProgress.Name = "gbProgress";
-            this.gbProgress.Padding = new System.Windows.Forms.Padding(4, 4, 4, 4);
-            this.gbProgress.Size = new System.Drawing.Size(1764, 561);
-            this.gbProgress.TabIndex = 5;
-            this.gbProgress.TabStop = false;
-            this.gbProgress.Text = "Progress";
+            this.pnlImportMain.Controls.Add(this.panel3);
+            this.pnlImportMain.Controls.Add(this.gbNewProgress);
+            this.pnlImportMain.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.pnlImportMain.Location = new System.Drawing.Point(5, 75);
+            this.pnlImportMain.Name = "pnlImportMain";
+            this.pnlImportMain.Size = new System.Drawing.Size(1785, 966);
+            this.pnlImportMain.TabIndex = 10;
+            // 
+            // panel3
+            // 
+            this.panel3.Controls.Add(this.panel2);
+            this.panel3.Controls.Add(this.panel1);
+            this.panel3.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.panel3.Location = new System.Drawing.Point(0, 0);
+            this.panel3.Name = "panel3";
+            this.panel3.Padding = new System.Windows.Forms.Padding(10);
+            this.panel3.Size = new System.Drawing.Size(1214, 966);
+            this.panel3.TabIndex = 9;
             // 
             // llOpenLog
             // 
-            this.llOpenLog.AutoSize = true;
-            this.llOpenLog.Location = new System.Drawing.Point(8, 202);
+            this.llOpenLog.Dock = System.Windows.Forms.DockStyle.Top;
+            this.llOpenLog.Location = new System.Drawing.Point(3, 101);
             this.llOpenLog.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
             this.llOpenLog.Name = "llOpenLog";
-            this.llOpenLog.Size = new System.Drawing.Size(133, 25);
+            this.llOpenLog.Size = new System.Drawing.Size(565, 44);
             this.llOpenLog.TabIndex = 6;
             this.llOpenLog.TabStop = true;
             this.llOpenLog.Text = "Open log file";
+            this.llOpenLog.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
             this.llOpenLog.Visible = false;
             this.llOpenLog.LinkClicked += new System.Windows.Forms.LinkLabelLinkClickedEventHandler(this.llOpenLog_LinkClicked);
             // 
-            // lblErrors
-            // 
-            this.lblErrors.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
-            | System.Windows.Forms.AnchorStyles.Right)));
-            this.lblErrors.Location = new System.Drawing.Point(8, 154);
-            this.lblErrors.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
-            this.lblErrors.Name = "lblErrors";
-            this.lblErrors.Size = new System.Drawing.Size(1756, 29);
-            this.lblErrors.TabIndex = 5;
-            this.lblErrors.Tag = "Number of errors : {0}";
-            // 
-            // lblProgress
-            // 
-            this.lblProgress.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
-            | System.Windows.Forms.AnchorStyles.Right)));
-            this.lblProgress.Location = new System.Drawing.Point(8, 125);
-            this.lblProgress.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
-            this.lblProgress.Name = "lblProgress";
-            this.lblProgress.Size = new System.Drawing.Size(1748, 29);
-            this.lblProgress.TabIndex = 4;
-            this.lblProgress.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
-            // 
-            // pbItem
-            // 
-            this.pbItem.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
-            | System.Windows.Forms.AnchorStyles.Right)));
-            this.pbItem.Location = new System.Drawing.Point(8, 75);
-            this.pbItem.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
-            this.pbItem.Name = "pbItem";
-            this.pbItem.Size = new System.Drawing.Size(1748, 29);
-            this.pbItem.TabIndex = 3;
-            // 
-            // pbOverall
-            // 
-            this.pbOverall.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
-            | System.Windows.Forms.AnchorStyles.Right)));
-            this.pbOverall.Location = new System.Drawing.Point(8, 31);
-            this.pbOverall.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
-            this.pbOverall.Name = "pbOverall";
-            this.pbOverall.Size = new System.Drawing.Size(1748, 29);
-            this.pbOverall.TabIndex = 0;
-            // 
             // panel2
             // 
-            this.panel2.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
-            | System.Windows.Forms.AnchorStyles.Right)));
             this.panel2.BackColor = System.Drawing.Color.LightYellow;
             this.panel2.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
             this.panel2.Controls.Add(this.label3);
             this.panel2.Controls.Add(this.pictureBox2);
-            this.panel2.Location = new System.Drawing.Point(19, 344);
+            this.panel2.Dock = System.Windows.Forms.DockStyle.Top;
+            this.panel2.Location = new System.Drawing.Point(10, 276);
             this.panel2.Margin = new System.Windows.Forms.Padding(5, 6, 5, 6);
             this.panel2.Name = "panel2";
-            this.panel2.Size = new System.Drawing.Size(1762, 127);
+            this.panel2.Size = new System.Drawing.Size(1194, 127);
             this.panel2.TabIndex = 4;
             // 
             // label3
@@ -731,16 +720,15 @@ namespace MsCrmTools.Translator
             // 
             // panel1
             // 
-            this.panel1.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
-            | System.Windows.Forms.AnchorStyles.Right)));
             this.panel1.BackColor = System.Drawing.Color.LightYellow;
             this.panel1.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
             this.panel1.Controls.Add(this.label2);
             this.panel1.Controls.Add(this.pictureBox1);
-            this.panel1.Location = new System.Drawing.Point(19, 65);
+            this.panel1.Dock = System.Windows.Forms.DockStyle.Top;
+            this.panel1.Location = new System.Drawing.Point(10, 10);
             this.panel1.Margin = new System.Windows.Forms.Padding(5, 6, 5, 6);
             this.panel1.Name = "panel1";
-            this.panel1.Size = new System.Drawing.Size(1762, 266);
+            this.panel1.Size = new System.Drawing.Size(1194, 266);
             this.panel1.TabIndex = 3;
             // 
             // label2
@@ -752,7 +740,7 @@ namespace MsCrmTools.Translator
             this.label2.Margin = new System.Windows.Forms.Padding(5, 0, 5, 0);
             this.label2.MinimumSize = new System.Drawing.Size(980, 235);
             this.label2.Name = "label2";
-            this.label2.Size = new System.Drawing.Size(1149, 235);
+            this.label2.Size = new System.Drawing.Size(980, 235);
             this.label2.TabIndex = 1;
             this.label2.Text = resources.GetString("label2.Text");
             // 
@@ -766,38 +754,92 @@ namespace MsCrmTools.Translator
             this.pictureBox1.TabIndex = 0;
             this.pictureBox1.TabStop = false;
             // 
+            // gbNewProgress
+            // 
+            this.gbNewProgress.Controls.Add(this.pnlNewProgress);
+            this.gbNewProgress.Controls.Add(this.llOpenLog);
+            this.gbNewProgress.Controls.Add(this.lblProgress);
+            this.gbNewProgress.Controls.Add(this.pbOverall);
+            this.gbNewProgress.Dock = System.Windows.Forms.DockStyle.Right;
+            this.gbNewProgress.Location = new System.Drawing.Point(1214, 0);
+            this.gbNewProgress.Name = "gbNewProgress";
+            this.gbNewProgress.Size = new System.Drawing.Size(571, 966);
+            this.gbNewProgress.TabIndex = 8;
+            this.gbNewProgress.TabStop = false;
+            this.gbNewProgress.Text = "Progress";
+            // 
+            // pnlImportBrowse
+            // 
+            this.pnlImportBrowse.Controls.Add(this.txtFilePath);
+            this.pnlImportBrowse.Controls.Add(this.btnBrowseImportFile);
+            this.pnlImportBrowse.Controls.Add(this.label1);
+            this.pnlImportBrowse.Dock = System.Windows.Forms.DockStyle.Top;
+            this.pnlImportBrowse.Location = new System.Drawing.Point(5, 6);
+            this.pnlImportBrowse.Name = "pnlImportBrowse";
+            this.pnlImportBrowse.Padding = new System.Windows.Forms.Padding(10);
+            this.pnlImportBrowse.Size = new System.Drawing.Size(1785, 69);
+            this.pnlImportBrowse.TabIndex = 9;
+            // 
+            // txtFilePath
+            // 
+            this.txtFilePath.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Left | System.Windows.Forms.AnchorStyles.Right)));
+            this.txtFilePath.Location = new System.Drawing.Point(195, 20);
+            this.txtFilePath.Margin = new System.Windows.Forms.Padding(5, 6, 5, 6);
+            this.txtFilePath.Name = "txtFilePath";
+            this.txtFilePath.ReadOnly = true;
+            this.txtFilePath.Size = new System.Drawing.Size(1421, 31);
+            this.txtFilePath.TabIndex = 3;
+            // 
             // btnBrowseImportFile
             // 
-            this.btnBrowseImportFile.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.btnBrowseImportFile.Location = new System.Drawing.Point(1632, 11);
+            this.btnBrowseImportFile.Dock = System.Windows.Forms.DockStyle.Right;
+            this.btnBrowseImportFile.Location = new System.Drawing.Point(1626, 10);
             this.btnBrowseImportFile.Margin = new System.Windows.Forms.Padding(5, 6, 5, 6);
             this.btnBrowseImportFile.Name = "btnBrowseImportFile";
-            this.btnBrowseImportFile.Size = new System.Drawing.Size(149, 44);
+            this.btnBrowseImportFile.Size = new System.Drawing.Size(149, 49);
             this.btnBrowseImportFile.TabIndex = 2;
             this.btnBrowseImportFile.Text = "...";
             this.btnBrowseImportFile.UseVisualStyleBackColor = true;
             this.btnBrowseImportFile.Click += new System.EventHandler(this.BtnBrowseImportFileClick);
             // 
-            // txtFilePath
-            // 
-            this.txtFilePath.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
-            | System.Windows.Forms.AnchorStyles.Right)));
-            this.txtFilePath.Location = new System.Drawing.Point(227, 15);
-            this.txtFilePath.Margin = new System.Windows.Forms.Padding(5, 6, 5, 6);
-            this.txtFilePath.Name = "txtFilePath";
-            this.txtFilePath.ReadOnly = true;
-            this.txtFilePath.Size = new System.Drawing.Size(1391, 31);
-            this.txtFilePath.TabIndex = 1;
-            // 
             // label1
             // 
-            this.label1.AutoSize = true;
-            this.label1.Location = new System.Drawing.Point(12, 21);
+            this.label1.Dock = System.Windows.Forms.DockStyle.Left;
+            this.label1.Location = new System.Drawing.Point(10, 10);
             this.label1.Margin = new System.Windows.Forms.Padding(5, 0, 5, 0);
             this.label1.Name = "label1";
-            this.label1.Size = new System.Drawing.Size(153, 25);
+            this.label1.Size = new System.Drawing.Size(185, 49);
             this.label1.TabIndex = 0;
             this.label1.Text = "Translation file";
+            this.label1.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
+            // 
+            // lblProgress
+            // 
+            this.lblProgress.Dock = System.Windows.Forms.DockStyle.Top;
+            this.lblProgress.Location = new System.Drawing.Point(3, 56);
+            this.lblProgress.Name = "lblProgress";
+            this.lblProgress.Size = new System.Drawing.Size(565, 45);
+            this.lblProgress.TabIndex = 14;
+            this.lblProgress.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
+            // 
+            // pbOverall
+            // 
+            this.pbOverall.Dock = System.Windows.Forms.DockStyle.Top;
+            this.pbOverall.Location = new System.Drawing.Point(3, 27);
+            this.pbOverall.Margin = new System.Windows.Forms.Padding(4);
+            this.pbOverall.Name = "pbOverall";
+            this.pbOverall.Size = new System.Drawing.Size(565, 29);
+            this.pbOverall.TabIndex = 12;
+            this.pbOverall.Visible = false;
+            // 
+            // pnlNewProgress
+            // 
+            this.pnlNewProgress.AutoScroll = true;
+            this.pnlNewProgress.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.pnlNewProgress.Location = new System.Drawing.Point(3, 145);
+            this.pnlNewProgress.Name = "pnlNewProgress";
+            this.pnlNewProgress.Size = new System.Drawing.Size(565, 818);
+            this.pnlNewProgress.TabIndex = 16;
             // 
             // MainControl
             // 
@@ -819,14 +861,17 @@ namespace MsCrmTools.Translator
             this.gbEntitiesOptions.PerformLayout();
             this.gbGlobalOptions.ResumeLayout(false);
             this.gbGlobalOptions.PerformLayout();
+            this.pnlSelectedSolution.ResumeLayout(false);
             this.tabPage2.ResumeLayout(false);
-            this.tabPage2.PerformLayout();
-            this.gbProgress.ResumeLayout(false);
-            this.gbProgress.PerformLayout();
+            this.pnlImportMain.ResumeLayout(false);
+            this.panel3.ResumeLayout(false);
             this.panel2.ResumeLayout(false);
             ((System.ComponentModel.ISupportInitialize)(this.pictureBox2)).EndInit();
             this.panel1.ResumeLayout(false);
             ((System.ComponentModel.ISupportInitialize)(this.pictureBox1)).EndInit();
+            this.gbNewProgress.ResumeLayout(false);
+            this.pnlImportBrowse.ResumeLayout(false);
+            this.pnlImportBrowse.PerformLayout();
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -854,19 +899,12 @@ namespace MsCrmTools.Translator
         private System.Windows.Forms.CheckBox chkExportEntity;
         private System.Windows.Forms.ToolStripSeparator toolStripSeparator1;
         private System.Windows.Forms.Button btnBrowseImportFile;
-        private System.Windows.Forms.TextBox txtFilePath;
         private System.Windows.Forms.Label label1;
         private System.Windows.Forms.CheckBox chkExportGlobalOptSet;
         private System.Windows.Forms.ToolStripSeparator toolStripSeparator2;
         private System.Windows.Forms.ToolStripButton tsbExportTranslations;
         private System.Windows.Forms.ToolStripSeparator toolStripSeparator3;
         private System.Windows.Forms.ToolStripButton tsbImportTranslations;
-        private System.Windows.Forms.Panel panel2;
-        private System.Windows.Forms.Label label3;
-        private System.Windows.Forms.PictureBox pictureBox2;
-        private System.Windows.Forms.Panel panel1;
-        private System.Windows.Forms.Label label2;
-        private System.Windows.Forms.PictureBox pictureBox1;
         private System.Windows.Forms.GroupBox gbEntitiesOptions;
         private System.Windows.Forms.GroupBox gbGlobalOptions;
         private System.Windows.Forms.Button btnCheckAll;
@@ -875,12 +913,6 @@ namespace MsCrmTools.Translator
         private System.Windows.Forms.CheckBox chkExportCustomizedRelationships;
         private System.Windows.Forms.CheckBox chkExportDashboards;
         private System.Windows.Forms.CheckBox chkExportCharts;
-        private System.Windows.Forms.GroupBox gbProgress;
-        private ColoredProgressBar pbOverall;
-        private ColoredProgressBar pbItem;
-        private System.Windows.Forms.Label lblProgress;
-        private System.Windows.Forms.Label lblErrors;
-        private System.Windows.Forms.LinkLabel llOpenLog;
         private System.Windows.Forms.LinkLabel llRelatedSelector;
         private System.Windows.Forms.LinkLabel llGlobalSelector;
         private System.Windows.Forms.GroupBox gbLabelExportOptions;
@@ -891,5 +923,22 @@ namespace MsCrmTools.Translator
         private System.Windows.Forms.ToolStripDropDownButton tsddbLoadEntities;
         private System.Windows.Forms.ToolStripMenuItem tsmiAllEntities;
         private System.Windows.Forms.ToolStripMenuItem tsmiEntitiesFromASolution;
+        private System.Windows.Forms.GroupBox gbNewProgress;
+        private System.Windows.Forms.Panel pnlImportMain;
+        private System.Windows.Forms.Panel pnlImportBrowse;
+        private System.Windows.Forms.TextBox txtFilePath;
+        private System.Windows.Forms.Panel panel3;
+        private System.Windows.Forms.LinkLabel llOpenLog;
+        private System.Windows.Forms.Panel panel2;
+        private System.Windows.Forms.Label label3;
+        private System.Windows.Forms.PictureBox pictureBox2;
+        private System.Windows.Forms.Panel panel1;
+        private System.Windows.Forms.Label label2;
+        private System.Windows.Forms.PictureBox pictureBox1;
+        private ColoredProgressBar pbOverall;
+        private System.Windows.Forms.Panel pnlSelectedSolution;
+        private System.Windows.Forms.Label lblSelectedSolution;
+        private System.Windows.Forms.Label lblProgress;
+        private System.Windows.Forms.Panel pnlNewProgress;
     }
 }
