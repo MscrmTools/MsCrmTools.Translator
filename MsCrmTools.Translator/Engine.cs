@@ -243,6 +243,7 @@ namespace MsCrmTools.Translator
                 var emds = new List<EntityMetadata>();
 
                 var forms = new List<Entity>();
+                var dashboards = new List<Entity>();
                 var ft = new FormTranslation();
                 ft.Log += Engine_Log;
                 ft.Result += Engine_OnResult;
@@ -453,17 +454,17 @@ namespace MsCrmTools.Translator
                                 break;
 
                             case "Dashboards Tabs":
-                                db.PrepareFormTabs(sheet, service, forms);
+                                db.PrepareFormTabs(sheet, service, dashboards);
                                 hasDashboardContent = true;
                                 break;
 
                             case "Dashboards Sections":
-                                db.PrepareFormSections(sheet, service, forms);
+                                db.PrepareFormSections(sheet, service, dashboards);
                                 hasDashboardContent = true;
                                 break;
 
                             case "Dashboards Fields":
-                                db.PrepareFormLabels(sheet, service, forms);
+                                db.PrepareFormLabels(sheet, service, dashboards);
                                 hasDashboardContent = true;
                                 break;
 
@@ -520,7 +521,7 @@ namespace MsCrmTools.Translator
                         Overall = overallProgress == 0 ? 1 : overallProgress * 100 / count
                     });
 
-                    db.ImportFormsContent(service, forms, worker);
+                    db.ImportFormsContent(service, dashboards, worker);
                 }
 
                 if (hasSiteMapContent)
