@@ -1,4 +1,5 @@
-﻿using Microsoft.Xrm.Sdk.Metadata;
+﻿using Microsoft.Crm.Sdk.Messages;
+using Microsoft.Xrm.Sdk.Metadata;
 using MsCrmTools.Translator.AppCode;
 using MsCrmTools.Translator.Controls;
 using MsCrmTools.Translator.Forms;
@@ -6,6 +7,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Drawing;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Windows.Forms;
@@ -20,6 +22,7 @@ namespace MsCrmTools.Translator
         #region variables
 
         private Guid _solutionId = Guid.Empty;
+        private List<int> lcids;
         private int numberOferrors = 0;
 
         #endregion variables
@@ -110,7 +113,8 @@ namespace MsCrmTools.Translator
                         Entities = entities,
                         ExportNames = rdbBoth.Checked || rdbNameOnly.Checked,
                         ExportDescriptions = rdbBoth.Checked || rdbDescOnly.Checked,
-                        SolutionId = _solutionId
+                        SolutionId = _solutionId,
+                        LanguageToExport = rdbExportSpecificLanguage.Checked ? ((Language)ccbLanguageToExport.SelectedItem).Lcid : -1
                     };
 
                     pnlNewProgress.Controls.Clear();
@@ -356,6 +360,10 @@ namespace MsCrmTools.Translator
                 Message = "Loading entities...",
                 Work = (bw, e) =>
                 {
+                    var lcidRequest = new RetrieveProvisionedLanguagesRequest();
+                    var lcidResponse = (RetrieveProvisionedLanguagesResponse)Service.Execute(lcidRequest);
+                    lcids = lcidResponse.RetrieveProvisionedLanguages.ToList();
+
                     List<EntityMetadata> entities = MetadataHelper.RetrieveEntities(Service, _solutionId);
                     e.Result = entities;
                 },
@@ -368,6 +376,14 @@ namespace MsCrmTools.Translator
                     }
                     else
                     {
+                        ccbLanguageToExport.Items.Clear();
+                        foreach (var lcid in lcids)
+                        {
+                            ccbLanguageToExport.Items.Add(new Language(lcid, new CultureInfo(lcid).EnglishName));
+                        }
+
+                        ccbLanguageToExport.SelectedIndex = 0;
+
                         foreach (EntityMetadata emd in (List<EntityMetadata>)e.Result)
                         {
                             var item = new ListViewItem { Text = emd.DisplayName?.UserLocalizedLabel?.Label ?? "N/A", Tag = emd };
@@ -383,6 +399,11 @@ namespace MsCrmTools.Translator
         {
             lvEntities.Sorting = lvEntities.Sorting == SortOrder.Ascending ? SortOrder.Descending : SortOrder.Ascending;
             lvEntities.ListViewItemSorter = new ListViewItemComparer(e.Column, lvEntities.Sorting);
+        }
+
+        private void rdbExportSpecificLanguage_CheckedChanged(object sender, EventArgs e)
+        {
+            ccbLanguageToExport.Enabled = rdbExportSpecificLanguage.Checked;
         }
 
         private void SetState(bool isRunning)

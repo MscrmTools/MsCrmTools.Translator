@@ -2,6 +2,7 @@
 using Microsoft.Xrm.Sdk;
 using Microsoft.Xrm.Sdk.Messages;
 using Microsoft.Xrm.Sdk.Metadata;
+using Microsoft.Xrm.Sdk.Query;
 using MsCrmTools.Translator.AppCode;
 using OfficeOpenXml;
 using System;
@@ -20,14 +21,31 @@ namespace MsCrmTools.Translator
 
         public void Export(ExportSettings settings, IOrganizationService service, BackgroundWorker worker = null)
         {
-            // Loading available languages
-            if (worker != null && worker.WorkerReportsProgress)
+            List<int> lcids;
+            if (settings.LanguageToExport != -1)
             {
-                worker.ReportProgress(0, "Loading provisioned languages...");
+                if (worker != null && worker.WorkerReportsProgress)
+                {
+                    worker.ReportProgress(0, "Loading environment base language...");
+                }
+                var baseLanguageCode = service.RetrieveMultiple(new QueryExpression("organization")
+                {
+                    ColumnSet = new ColumnSet("languagecode")
+                }).Entities.First().GetAttributeValue<int>("languagecode");
+
+                lcids = new List<int> { baseLanguageCode, settings.LanguageToExport }.Distinct().ToList();
             }
-            var lcidRequest = new RetrieveProvisionedLanguagesRequest();
-            var lcidResponse = (RetrieveProvisionedLanguagesResponse)service.Execute(lcidRequest);
-            var lcids = lcidResponse.RetrieveProvisionedLanguages.Select(lcid => lcid).ToList();
+            else
+            {
+                // Loading available languages
+                if (worker != null && worker.WorkerReportsProgress)
+                {
+                    worker.ReportProgress(0, "Loading provisioned languages...");
+                }
+                var lcidRequest = new RetrieveProvisionedLanguagesRequest();
+                var lcidResponse = (RetrieveProvisionedLanguagesResponse)service.Execute(lcidRequest);
+                lcids = lcidResponse.RetrieveProvisionedLanguages.Select(lcid => lcid).ToList();
+            }
 
             // Loading entities
             var emds = new List<EntityMetadata>();

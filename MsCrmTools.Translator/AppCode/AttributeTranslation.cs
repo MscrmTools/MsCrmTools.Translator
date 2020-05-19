@@ -240,7 +240,8 @@ namespace MsCrmTools.Translator.AppCode
                 AddRequest(new UpdateAttributeRequest
                 {
                     Attribute = amd.Amd,
-                    EntityName = amd.Amd.EntityLogicalName
+                    EntityName = amd.Amd.EntityLogicalName,
+                    MergeLabels = true
                 });
 
                 ExecuteMultiple(service, arg);

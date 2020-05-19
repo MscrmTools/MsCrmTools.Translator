@@ -24,6 +24,7 @@ namespace MsCrmTools.Translator
         public bool ExportSiteMap { get; set; }
         public bool ExportViews { get; set; }
         public string FilePath { get; set; }
+        public int LanguageToExport { get; set; }
         public Guid SolutionId { get; set; }
     }
 }

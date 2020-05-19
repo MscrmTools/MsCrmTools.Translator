@@ -192,6 +192,7 @@
     <Compile Include="AppCode\CrmView.cs" />
     <Compile Include="AppCode\FormExportOption.cs" />
     <Compile Include="AppCode\FormTranslation.cs" />
+    <Compile Include="AppCode\Language.cs" />
     <Compile Include="AppCode\MasterAttribute.cs" />
     <Compile Include="AppCode\ProgressInfo.cs" />
     <Compile Include="AppCode\RibbonTranslation.cs" />
@@ -295,7 +296,7 @@ IF $(ConfigurationName) == Debug copy /Y $(TargetPath) $(TargetDir)Plugins\$(Tar
   </PropertyGroup>
   <ProjectExtensions>
     <VisualStudio>
-      <UserProperties BuildVersion_BuildVersioningStyle="None.YearStamp.MonthStamp.DayStamp" BuildVersion_UpdateAssemblyVersion="True" BuildVersion_UpdateFileVersion="True" BuildVersion_ConfigurationName="Release" />
+      <UserProperties BuildVersion_ConfigurationName="Release" BuildVersion_UpdateFileVersion="True" BuildVersion_UpdateAssemblyVersion="True" BuildVersion_BuildVersioningStyle="None.YearStamp.MonthStamp.DayStamp" />
     </VisualStudio>
   </ProjectExtensions>
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">

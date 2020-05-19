@@ -44,6 +44,10 @@ namespace MsCrmTools.Translator
             this.tabControl1 = new System.Windows.Forms.TabControl();
             this.tabPage1 = new System.Windows.Forms.TabPage();
             this.groupBox2 = new System.Windows.Forms.GroupBox();
+            this.gbLangages = new System.Windows.Forms.GroupBox();
+            this.ccbLanguageToExport = new System.Windows.Forms.ComboBox();
+            this.rdbExportSpecificLanguage = new System.Windows.Forms.RadioButton();
+            this.rdbExportAllLanguages = new System.Windows.Forms.RadioButton();
             this.gbLabelExportOptions = new System.Windows.Forms.GroupBox();
             this.rdbDescOnly = new System.Windows.Forms.RadioButton();
             this.rdbNameOnly = new System.Windows.Forms.RadioButton();
@@ -77,7 +81,6 @@ namespace MsCrmTools.Translator
             this.tabPage2 = new System.Windows.Forms.TabPage();
             this.pnlImportMain = new System.Windows.Forms.Panel();
             this.panel3 = new System.Windows.Forms.Panel();
-            this.llOpenLog = new System.Windows.Forms.LinkLabel();
             this.panel2 = new System.Windows.Forms.Panel();
             this.label3 = new System.Windows.Forms.Label();
             this.pictureBox2 = new System.Windows.Forms.PictureBox();
@@ -85,17 +88,19 @@ namespace MsCrmTools.Translator
             this.label2 = new System.Windows.Forms.Label();
             this.pictureBox1 = new System.Windows.Forms.PictureBox();
             this.gbNewProgress = new System.Windows.Forms.GroupBox();
+            this.pnlNewProgress = new System.Windows.Forms.Panel();
+            this.llOpenLog = new System.Windows.Forms.LinkLabel();
+            this.lblProgress = new System.Windows.Forms.Label();
+            this.pbOverall = new MsCrmTools.Translator.ColoredProgressBar();
             this.pnlImportBrowse = new System.Windows.Forms.Panel();
             this.txtFilePath = new System.Windows.Forms.TextBox();
             this.btnBrowseImportFile = new System.Windows.Forms.Button();
             this.label1 = new System.Windows.Forms.Label();
-            this.lblProgress = new System.Windows.Forms.Label();
-            this.pbOverall = new MsCrmTools.Translator.ColoredProgressBar();
-            this.pnlNewProgress = new System.Windows.Forms.Panel();
             this.toolStripMenu.SuspendLayout();
             this.tabControl1.SuspendLayout();
             this.tabPage1.SuspendLayout();
             this.groupBox2.SuspendLayout();
+            this.gbLangages.SuspendLayout();
             this.gbLabelExportOptions.SuspendLayout();
             this.gbEntitiesOptions.SuspendLayout();
             this.gbGlobalOptions.SuspendLayout();
@@ -134,7 +139,7 @@ namespace MsCrmTools.Translator
             this.tsbClose.Image = ((System.Drawing.Image)(resources.GetObject("tsbClose.Image")));
             this.tsbClose.ImageTransparentColor = System.Drawing.Color.Magenta;
             this.tsbClose.Name = "tsbClose";
-            this.tsbClose.Size = new System.Drawing.Size(23, 36);
+            this.tsbClose.Size = new System.Drawing.Size(36, 36);
             this.tsbClose.Text = "Close this tool";
             this.tsbClose.Click += new System.EventHandler(this.TsbCloseClick);
             // 
@@ -151,20 +156,20 @@ namespace MsCrmTools.Translator
             this.tsddbLoadEntities.Image = global::MsCrmTools.Translator.Properties.Resources.Dynamics16;
             this.tsddbLoadEntities.ImageTransparentColor = System.Drawing.Color.Magenta;
             this.tsddbLoadEntities.Name = "tsddbLoadEntities";
-            this.tsddbLoadEntities.Size = new System.Drawing.Size(188, 36);
+            this.tsddbLoadEntities.Size = new System.Drawing.Size(204, 36);
             this.tsddbLoadEntities.Text = "Load Entities";
             this.tsddbLoadEntities.DropDownItemClicked += new System.Windows.Forms.ToolStripItemClickedEventHandler(this.tsddbLoadEntities_DropDownItemClicked);
             // 
             // tsmiAllEntities
             // 
             this.tsmiAllEntities.Name = "tsmiAllEntities";
-            this.tsmiAllEntities.Size = new System.Drawing.Size(281, 38);
+            this.tsmiAllEntities.Size = new System.Drawing.Size(324, 38);
             this.tsmiAllEntities.Text = "All entities";
             // 
             // tsmiEntitiesFromASolution
             // 
             this.tsmiEntitiesFromASolution.Name = "tsmiEntitiesFromASolution";
-            this.tsmiEntitiesFromASolution.Size = new System.Drawing.Size(281, 38);
+            this.tsmiEntitiesFromASolution.Size = new System.Drawing.Size(324, 38);
             this.tsmiEntitiesFromASolution.Text = "From a solution";
             // 
             // toolStripSeparator2
@@ -177,7 +182,7 @@ namespace MsCrmTools.Translator
             this.tsbExportTranslations.Image = ((System.Drawing.Image)(resources.GetObject("tsbExportTranslations.Image")));
             this.tsbExportTranslations.ImageTransparentColor = System.Drawing.Color.Magenta;
             this.tsbExportTranslations.Name = "tsbExportTranslations";
-            this.tsbExportTranslations.Size = new System.Drawing.Size(231, 36);
+            this.tsbExportTranslations.Size = new System.Drawing.Size(247, 36);
             this.tsbExportTranslations.Text = "Export translations";
             this.tsbExportTranslations.Click += new System.EventHandler(this.BtnExportTranslationsClick);
             // 
@@ -191,7 +196,7 @@ namespace MsCrmTools.Translator
             this.tsbImportTranslations.Image = ((System.Drawing.Image)(resources.GetObject("tsbImportTranslations.Image")));
             this.tsbImportTranslations.ImageTransparentColor = System.Drawing.Color.Magenta;
             this.tsbImportTranslations.Name = "tsbImportTranslations";
-            this.tsbImportTranslations.Size = new System.Drawing.Size(235, 36);
+            this.tsbImportTranslations.Size = new System.Drawing.Size(251, 36);
             this.tsbImportTranslations.Text = "Import translations";
             this.tsbImportTranslations.Click += new System.EventHandler(this.BtnImportTranslationsClick);
             // 
@@ -224,6 +229,7 @@ namespace MsCrmTools.Translator
             // 
             // groupBox2
             // 
+            this.groupBox2.Controls.Add(this.gbLangages);
             this.groupBox2.Controls.Add(this.gbLabelExportOptions);
             this.groupBox2.Controls.Add(this.btnCheckAll);
             this.groupBox2.Controls.Add(this.btnClearAll);
@@ -239,6 +245,52 @@ namespace MsCrmTools.Translator
             this.groupBox2.TabIndex = 6;
             this.groupBox2.TabStop = false;
             this.groupBox2.Text = "Entities options";
+            // 
+            // gbLangages
+            // 
+            this.gbLangages.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+            this.gbLangages.Controls.Add(this.ccbLanguageToExport);
+            this.gbLangages.Controls.Add(this.rdbExportSpecificLanguage);
+            this.gbLangages.Controls.Add(this.rdbExportAllLanguages);
+            this.gbLangages.Location = new System.Drawing.Point(1321, 36);
+            this.gbLangages.Name = "gbLangages";
+            this.gbLangages.Size = new System.Drawing.Size(450, 189);
+            this.gbLangages.TabIndex = 97;
+            this.gbLangages.TabStop = false;
+            this.gbLangages.Text = "Langages";
+            // 
+            // ccbLanguageToExport
+            // 
+            this.ccbLanguageToExport.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+            this.ccbLanguageToExport.Enabled = false;
+            this.ccbLanguageToExport.FormattingEnabled = true;
+            this.ccbLanguageToExport.Location = new System.Drawing.Point(163, 79);
+            this.ccbLanguageToExport.Name = "ccbLanguageToExport";
+            this.ccbLanguageToExport.Size = new System.Drawing.Size(273, 33);
+            this.ccbLanguageToExport.TabIndex = 2;
+            // 
+            // rdbExportSpecificLanguage
+            // 
+            this.rdbExportSpecificLanguage.AutoSize = true;
+            this.rdbExportSpecificLanguage.Location = new System.Drawing.Point(6, 79);
+            this.rdbExportSpecificLanguage.Name = "rdbExportSpecificLanguage";
+            this.rdbExportSpecificLanguage.Size = new System.Drawing.Size(151, 29);
+            this.rdbExportSpecificLanguage.TabIndex = 1;
+            this.rdbExportSpecificLanguage.Text = "Export only";
+            this.rdbExportSpecificLanguage.UseVisualStyleBackColor = true;
+            this.rdbExportSpecificLanguage.CheckedChanged += new System.EventHandler(this.rdbExportSpecificLanguage_CheckedChanged);
+            // 
+            // rdbExportAllLanguages
+            // 
+            this.rdbExportAllLanguages.AutoSize = true;
+            this.rdbExportAllLanguages.Checked = true;
+            this.rdbExportAllLanguages.Location = new System.Drawing.Point(6, 36);
+            this.rdbExportAllLanguages.Name = "rdbExportAllLanguages";
+            this.rdbExportAllLanguages.Size = new System.Drawing.Size(133, 29);
+            this.rdbExportAllLanguages.TabIndex = 0;
+            this.rdbExportAllLanguages.TabStop = true;
+            this.rdbExportAllLanguages.Text = "Export all";
+            this.rdbExportAllLanguages.UseVisualStyleBackColor = true;
             // 
             // gbLabelExportOptions
             // 
@@ -519,7 +571,7 @@ namespace MsCrmTools.Translator
             this.gbGlobalOptions.MinimumSize = new System.Drawing.Size(501, 135);
             this.gbGlobalOptions.Name = "gbGlobalOptions";
             this.gbGlobalOptions.Padding = new System.Windows.Forms.Padding(5, 6, 5, 6);
-            this.gbGlobalOptions.Size = new System.Drawing.Size(1118, 189);
+            this.gbGlobalOptions.Size = new System.Drawing.Size(660, 189);
             this.gbGlobalOptions.TabIndex = 92;
             this.gbGlobalOptions.TabStop = false;
             this.gbGlobalOptions.Text = "Global Options";
@@ -528,7 +580,7 @@ namespace MsCrmTools.Translator
             // 
             this.llGlobalSelector.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
             this.llGlobalSelector.AutoSize = true;
-            this.llGlobalSelector.Location = new System.Drawing.Point(1013, 19);
+            this.llGlobalSelector.Location = new System.Drawing.Point(555, 19);
             this.llGlobalSelector.Margin = new System.Windows.Forms.Padding(5, 0, 5, 0);
             this.llGlobalSelector.Name = "llGlobalSelector";
             this.llGlobalSelector.Size = new System.Drawing.Size(91, 25);
@@ -666,20 +718,6 @@ namespace MsCrmTools.Translator
             this.panel3.Size = new System.Drawing.Size(1214, 966);
             this.panel3.TabIndex = 9;
             // 
-            // llOpenLog
-            // 
-            this.llOpenLog.Dock = System.Windows.Forms.DockStyle.Top;
-            this.llOpenLog.Location = new System.Drawing.Point(3, 101);
-            this.llOpenLog.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
-            this.llOpenLog.Name = "llOpenLog";
-            this.llOpenLog.Size = new System.Drawing.Size(565, 44);
-            this.llOpenLog.TabIndex = 6;
-            this.llOpenLog.TabStop = true;
-            this.llOpenLog.Text = "Open log file";
-            this.llOpenLog.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
-            this.llOpenLog.Visible = false;
-            this.llOpenLog.LinkClicked += new System.Windows.Forms.LinkLabelLinkClickedEventHandler(this.llOpenLog_LinkClicked);
-            // 
             // panel2
             // 
             this.panel2.BackColor = System.Drawing.Color.LightYellow;
@@ -768,6 +806,48 @@ namespace MsCrmTools.Translator
             this.gbNewProgress.TabStop = false;
             this.gbNewProgress.Text = "Progress";
             // 
+            // pnlNewProgress
+            // 
+            this.pnlNewProgress.AutoScroll = true;
+            this.pnlNewProgress.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.pnlNewProgress.Location = new System.Drawing.Point(3, 145);
+            this.pnlNewProgress.Name = "pnlNewProgress";
+            this.pnlNewProgress.Size = new System.Drawing.Size(565, 818);
+            this.pnlNewProgress.TabIndex = 16;
+            // 
+            // llOpenLog
+            // 
+            this.llOpenLog.Dock = System.Windows.Forms.DockStyle.Top;
+            this.llOpenLog.Location = new System.Drawing.Point(3, 101);
+            this.llOpenLog.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
+            this.llOpenLog.Name = "llOpenLog";
+            this.llOpenLog.Size = new System.Drawing.Size(565, 44);
+            this.llOpenLog.TabIndex = 6;
+            this.llOpenLog.TabStop = true;
+            this.llOpenLog.Text = "Open log file";
+            this.llOpenLog.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
+            this.llOpenLog.Visible = false;
+            this.llOpenLog.LinkClicked += new System.Windows.Forms.LinkLabelLinkClickedEventHandler(this.llOpenLog_LinkClicked);
+            // 
+            // lblProgress
+            // 
+            this.lblProgress.Dock = System.Windows.Forms.DockStyle.Top;
+            this.lblProgress.Location = new System.Drawing.Point(3, 56);
+            this.lblProgress.Name = "lblProgress";
+            this.lblProgress.Size = new System.Drawing.Size(565, 45);
+            this.lblProgress.TabIndex = 14;
+            this.lblProgress.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
+            // 
+            // pbOverall
+            // 
+            this.pbOverall.Dock = System.Windows.Forms.DockStyle.Top;
+            this.pbOverall.Location = new System.Drawing.Point(3, 27);
+            this.pbOverall.Margin = new System.Windows.Forms.Padding(4);
+            this.pbOverall.Name = "pbOverall";
+            this.pbOverall.Size = new System.Drawing.Size(565, 29);
+            this.pbOverall.TabIndex = 12;
+            this.pbOverall.Visible = false;
+            // 
             // pnlImportBrowse
             // 
             this.pnlImportBrowse.Controls.Add(this.txtFilePath);
@@ -813,34 +893,6 @@ namespace MsCrmTools.Translator
             this.label1.Text = "Translation file";
             this.label1.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
             // 
-            // lblProgress
-            // 
-            this.lblProgress.Dock = System.Windows.Forms.DockStyle.Top;
-            this.lblProgress.Location = new System.Drawing.Point(3, 56);
-            this.lblProgress.Name = "lblProgress";
-            this.lblProgress.Size = new System.Drawing.Size(565, 45);
-            this.lblProgress.TabIndex = 14;
-            this.lblProgress.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
-            // 
-            // pbOverall
-            // 
-            this.pbOverall.Dock = System.Windows.Forms.DockStyle.Top;
-            this.pbOverall.Location = new System.Drawing.Point(3, 27);
-            this.pbOverall.Margin = new System.Windows.Forms.Padding(4);
-            this.pbOverall.Name = "pbOverall";
-            this.pbOverall.Size = new System.Drawing.Size(565, 29);
-            this.pbOverall.TabIndex = 12;
-            this.pbOverall.Visible = false;
-            // 
-            // pnlNewProgress
-            // 
-            this.pnlNewProgress.AutoScroll = true;
-            this.pnlNewProgress.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.pnlNewProgress.Location = new System.Drawing.Point(3, 145);
-            this.pnlNewProgress.Name = "pnlNewProgress";
-            this.pnlNewProgress.Size = new System.Drawing.Size(565, 818);
-            this.pnlNewProgress.TabIndex = 16;
-            // 
             // MainControl
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(12F, 25F);
@@ -855,6 +907,8 @@ namespace MsCrmTools.Translator
             this.tabControl1.ResumeLayout(false);
             this.tabPage1.ResumeLayout(false);
             this.groupBox2.ResumeLayout(false);
+            this.gbLangages.ResumeLayout(false);
+            this.gbLangages.PerformLayout();
             this.gbLabelExportOptions.ResumeLayout(false);
             this.gbLabelExportOptions.PerformLayout();
             this.gbEntitiesOptions.ResumeLayout(false);
@@ -940,5 +994,9 @@ namespace MsCrmTools.Translator
         private System.Windows.Forms.Label lblSelectedSolution;
         private System.Windows.Forms.Label lblProgress;
         private System.Windows.Forms.Panel pnlNewProgress;
+        private System.Windows.Forms.GroupBox gbLangages;
+        private System.Windows.Forms.ComboBox ccbLanguageToExport;
+        private System.Windows.Forms.RadioButton rdbExportSpecificLanguage;
+        private System.Windows.Forms.RadioButton rdbExportAllLanguages;
     }
 }

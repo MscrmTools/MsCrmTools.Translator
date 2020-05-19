@@ -224,7 +224,7 @@ namespace MsCrmTools.Translator.AppCode
                 entityUpdate.Description = emd.Description;
                 entityUpdate.DisplayCollectionName = emd.DisplayCollectionName;
 
-                AddRequest(new UpdateEntityRequest { Entity = entityUpdate });
+                AddRequest(new UpdateEntityRequest { Entity = entityUpdate, MergeLabels = true });
                 ExecuteMultiple(service, arg);
             }
 

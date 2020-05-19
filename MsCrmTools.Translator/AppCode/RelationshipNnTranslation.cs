@@ -17,6 +17,63 @@ namespace MsCrmTools.Translator.AppCode
             name = "NN Relationships";
         }
 
+        public void Export(List<EntityMetadata> entities, List<int> languages, ExcelWorksheet sheet)
+        {
+            var line = 1;
+
+            AddHeader(sheet, languages);
+
+            foreach (var entity in entities.OrderBy(e => e.LogicalName))
+            {
+                foreach (var rel in entity.ManyToManyRelationships.ToList())
+                {
+                    var cell = 0;
+
+                    var amc = rel.Entity1LogicalName == entity.LogicalName ? rel.Entity1AssociatedMenuConfiguration : rel.Entity2AssociatedMenuConfiguration;
+
+                    if (!(amc.Behavior.HasValue && amc.Behavior.Value == AssociatedMenuBehavior.UseLabel))
+                        continue;
+
+                    ZeroBasedSheet.Cell(sheet, line, cell++).Value = entity.LogicalName;
+                    ZeroBasedSheet.Cell(sheet, line, cell++).Value = rel.MetadataId.Value.ToString("B");
+                    ZeroBasedSheet.Cell(sheet, line, cell++).Value = rel.IntersectEntityName;
+
+                    foreach (var lcid in languages)
+                    {
+                        var entity1Label = string.Empty;
+
+                        if (amc.Label != null)
+                        {
+                            var displayNameLabel =
+                                amc.Label.LocalizedLabels.FirstOrDefault(l => l.LanguageCode == lcid);
+                            if (displayNameLabel != null)
+                            {
+                                entity1Label = displayNameLabel.Label;
+                            }
+                        }
+
+                        ZeroBasedSheet.Cell(sheet, line, cell++).Value = entity1Label;
+                    }
+
+                    line++;
+                }
+            }
+
+            // Applying style to cells
+            for (int i = 0; i < (3 + languages.Count); i++)
+            {
+                StyleMutator.TitleCell(ZeroBasedSheet.Cell(sheet, 0, i).Style);
+            }
+
+            for (int i = 1; i < line; i++)
+            {
+                for (int j = 0; j < 3; j++)
+                {
+                    StyleMutator.HighlightedCell(ZeroBasedSheet.Cell(sheet, i, j).Style);
+                }
+            }
+        }
+
         public void Import(ExcelWorksheet sheet, List<EntityMetadata> emds, IOrganizationService service, BackgroundWorker worker)
         {
             var rmds = new List<ManyToManyRelationshipMetadata>();
@@ -109,69 +166,13 @@ namespace MsCrmTools.Translator.AppCode
                 var request = new UpdateRelationshipRequest
                 {
                     Relationship = rmd,
+                    MergeLabels = true
                 };
 
                 AddRequest(request);
                 ExecuteMultiple(service, arg);
             }
             ExecuteMultiple(service, arg, true);
-        }
-
-        internal void Export(List<EntityMetadata> entities, List<int> languages, ExcelWorksheet sheet)
-        {
-            var line = 1;
-
-            AddHeader(sheet, languages);
-
-            foreach (var entity in entities.OrderBy(e => e.LogicalName))
-            {
-                foreach (var rel in entity.ManyToManyRelationships.ToList())
-                {
-                    var cell = 0;
-
-                    var amc = rel.Entity1LogicalName == entity.LogicalName ? rel.Entity1AssociatedMenuConfiguration : rel.Entity2AssociatedMenuConfiguration;
-
-                    if (!(amc.Behavior.HasValue && amc.Behavior.Value == AssociatedMenuBehavior.UseLabel))
-                        continue;
-
-                    ZeroBasedSheet.Cell(sheet, line, cell++).Value = entity.LogicalName;
-                    ZeroBasedSheet.Cell(sheet, line, cell++).Value = rel.MetadataId.Value.ToString("B");
-                    ZeroBasedSheet.Cell(sheet, line, cell++).Value = rel.IntersectEntityName;
-
-                    foreach (var lcid in languages)
-                    {
-                        var entity1Label = string.Empty;
-
-                        if (amc.Label != null)
-                        {
-                            var displayNameLabel =
-                                amc.Label.LocalizedLabels.FirstOrDefault(l => l.LanguageCode == lcid);
-                            if (displayNameLabel != null)
-                            {
-                                entity1Label = displayNameLabel.Label;
-                            }
-                        }
-
-                        ZeroBasedSheet.Cell(sheet, line, cell++).Value = entity1Label;
-                    }
-
-                    line++;
-                }
-            }
-
-            // Applying style to cells
-            for (int i = 0; i < (3 + languages.Count); i++)
-            {
-                StyleMutator.TitleCell(ZeroBasedSheet.Cell(sheet, 0, i).Style);
-            }
-
-            for (int i = 1; i < line; i++)
-            {
-                for (int j = 0; j < 3; j++)
-                {
-                    StyleMutator.HighlightedCell(ZeroBasedSheet.Cell(sheet, i, j).Style);
-                }
-            }
         }
 
         private void AddHeader(ExcelWorksheet sheet, IEnumerable<int> languages)

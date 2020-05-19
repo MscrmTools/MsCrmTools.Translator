@@ -17,78 +17,7 @@ namespace MsCrmTools.Translator.AppCode
             name = "Relationships";
         }
 
-        public void Import(ExcelWorksheet sheet, List<EntityMetadata> emds, IOrganizationService service, BackgroundWorker worker)
-        {
-            var rmds = new List<OneToManyRelationshipMetadata>();
-
-            var rowsCount = sheet.Dimension.Rows;
-            var cellsCount = sheet.Dimension.Columns;
-            for (var rowI = 1; rowI < rowsCount; rowI++)
-            {
-                var rmd = rmds.FirstOrDefault(r => ZeroBasedSheet.Cell(sheet, rowI, 1).Value != null && r.MetadataId == new Guid(ZeroBasedSheet.Cell(sheet, rowI, 1).Value.ToString()));
-                if (rmd == null)
-                {
-                    var currentEntity = emds.FirstOrDefault(e => e.LogicalName == ZeroBasedSheet.Cell(sheet, rowI, 0).Value?.ToString());
-                    if (currentEntity == null)
-                    {
-                        var request = new RetrieveEntityRequest
-                        {
-                            LogicalName = ZeroBasedSheet.Cell(sheet, rowI, 0).Value.ToString(),
-                            EntityFilters = EntityFilters.Entity | EntityFilters.Attributes | EntityFilters.Relationships
-                        };
-
-                        var response = (RetrieveEntityResponse)service.Execute(request);
-                        currentEntity = response.EntityMetadata;
-
-                        emds.Add(currentEntity);
-                    }
-                    rmd =
-                        currentEntity.OneToManyRelationships.FirstOrDefault(
-                            r => r.SchemaName == ZeroBasedSheet.Cell(sheet, rowI, 2).Value?.ToString());
-                    if (rmd == null)
-                    {
-                        rmd =
-                            currentEntity.ManyToOneRelationships.FirstOrDefault(
-                                r => r.SchemaName == ZeroBasedSheet.Cell(sheet, rowI, 2).Value?.ToString());
-                    }
-
-                    rmds.Add(rmd);
-                }
-
-                int columnIndex = 4;
-
-                rmd.AssociatedMenuConfiguration.Label = new Label();
-
-                while (columnIndex < cellsCount)
-                {
-                    if (ZeroBasedSheet.Cell(sheet, rowI, columnIndex).Value != null)
-                    {
-                        var lcid = int.Parse(ZeroBasedSheet.Cell(sheet, 0, columnIndex).Value.ToString());
-                        var label = ZeroBasedSheet.Cell(sheet, rowI, columnIndex).Value.ToString();
-
-                        rmd.AssociatedMenuConfiguration.Label.LocalizedLabels.Add(new LocalizedLabel(label, lcid));
-                    }
-
-                    columnIndex++;
-                }
-            }
-
-            var arg = new TranslationProgressEventArgs { SheetName = sheet.Name };
-            foreach (var rmd in rmds)
-            {
-                var request = new UpdateRelationshipRequest
-                {
-                    Relationship = rmd,
-                };
-
-                AddRequest(request);
-                ExecuteMultiple(service, arg);
-            }
-
-            ExecuteMultiple(service, arg, true);
-        }
-
-        internal void Export(List<EntityMetadata> entities, List<int> languages, ExcelWorksheet sheet)
+        public void Export(List<EntityMetadata> entities, List<int> languages, ExcelWorksheet sheet)
         {
             var line = 1;
 
@@ -156,6 +85,78 @@ namespace MsCrmTools.Translator.AppCode
                     StyleMutator.HighlightedCell(ZeroBasedSheet.Cell(sheet, i, j).Style);
                 }
             }
+        }
+
+        public void Import(ExcelWorksheet sheet, List<EntityMetadata> emds, IOrganizationService service, BackgroundWorker worker)
+        {
+            var rmds = new List<OneToManyRelationshipMetadata>();
+
+            var rowsCount = sheet.Dimension.Rows;
+            var cellsCount = sheet.Dimension.Columns;
+            for (var rowI = 1; rowI < rowsCount; rowI++)
+            {
+                var rmd = rmds.FirstOrDefault(r => ZeroBasedSheet.Cell(sheet, rowI, 1).Value != null && r.MetadataId == new Guid(ZeroBasedSheet.Cell(sheet, rowI, 1).Value.ToString()));
+                if (rmd == null)
+                {
+                    var currentEntity = emds.FirstOrDefault(e => e.LogicalName == ZeroBasedSheet.Cell(sheet, rowI, 0).Value?.ToString());
+                    if (currentEntity == null)
+                    {
+                        var request = new RetrieveEntityRequest
+                        {
+                            LogicalName = ZeroBasedSheet.Cell(sheet, rowI, 0).Value.ToString(),
+                            EntityFilters = EntityFilters.Entity | EntityFilters.Attributes | EntityFilters.Relationships
+                        };
+
+                        var response = (RetrieveEntityResponse)service.Execute(request);
+                        currentEntity = response.EntityMetadata;
+
+                        emds.Add(currentEntity);
+                    }
+                    rmd =
+                        currentEntity.OneToManyRelationships.FirstOrDefault(
+                            r => r.SchemaName == ZeroBasedSheet.Cell(sheet, rowI, 2).Value?.ToString());
+                    if (rmd == null)
+                    {
+                        rmd =
+                            currentEntity.ManyToOneRelationships.FirstOrDefault(
+                                r => r.SchemaName == ZeroBasedSheet.Cell(sheet, rowI, 2).Value?.ToString());
+                    }
+
+                    rmds.Add(rmd);
+                }
+
+                int columnIndex = 4;
+
+                rmd.AssociatedMenuConfiguration.Label = new Label();
+
+                while (columnIndex < cellsCount)
+                {
+                    if (ZeroBasedSheet.Cell(sheet, rowI, columnIndex).Value != null)
+                    {
+                        var lcid = int.Parse(ZeroBasedSheet.Cell(sheet, 0, columnIndex).Value.ToString());
+                        var label = ZeroBasedSheet.Cell(sheet, rowI, columnIndex).Value.ToString();
+
+                        rmd.AssociatedMenuConfiguration.Label.LocalizedLabels.Add(new LocalizedLabel(label, lcid));
+                    }
+
+                    columnIndex++;
+                }
+            }
+
+            var arg = new TranslationProgressEventArgs { SheetName = sheet.Name };
+            foreach (var rmd in rmds)
+            {
+                var request = new UpdateRelationshipRequest
+                {
+                    Relationship = rmd,
+                    MergeLabels = true
+                };
+
+                AddRequest(request);
+                ExecuteMultiple(service, arg);
+            }
+
+            ExecuteMultiple(service, arg, true);
         }
 
         private void AddHeader(ExcelWorksheet sheet, IEnumerable<int> languages)
