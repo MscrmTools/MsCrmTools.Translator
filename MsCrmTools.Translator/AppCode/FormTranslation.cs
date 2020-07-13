@@ -41,7 +41,7 @@ namespace MsCrmTools.Translator.AppCode
 
             foreach (var lcid in languages)
             {
-                if (userSettingLcid != lcid)
+                if (currentSetting != lcid)
                 {
                     setting["localeid"] = lcid;
                     setting["uilanguageid"] = lcid;
