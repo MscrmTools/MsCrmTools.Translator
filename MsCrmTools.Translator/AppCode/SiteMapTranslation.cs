@@ -381,6 +381,8 @@ namespace MsCrmTools.Translator.AppCode
 
         public void Import(IOrganizationService service)
         {
+            OnLog(new LogEventArgs("Importing SiteMap translations"));
+
             var arg = new TranslationProgressEventArgs { SheetName = "SiteMaps" };
 
             foreach (var siteMap in siteMaps.Entities)
@@ -388,15 +390,17 @@ namespace MsCrmTools.Translator.AppCode
                 if (siteMapsToTranslate.Contains(siteMap.Id))
                 {
                     AddRequest(new UpdateRequest { Target = siteMap });
-                    ExecuteMultiple(service, arg);
+                    ExecuteMultiple(service, arg, siteMaps.Entities.Count);
                 }
             }
 
-            ExecuteMultiple(service, arg, true);
+            ExecuteMultiple(service, arg, siteMaps.Entities.Count, true);
         }
 
         public void PrepareAreas(ExcelWorksheet sheet, IOrganizationService service)
         {
+            OnLog(new LogEventArgs($"Reading {sheet.Name}"));
+
             GetSiteMaps(service);
 
             foreach (var siteMap in siteMaps.Entities)
@@ -448,6 +452,8 @@ namespace MsCrmTools.Translator.AppCode
 
         public void PrepareGroups(ExcelWorksheet sheet, IOrganizationService service)
         {
+            OnLog(new LogEventArgs($"Reading {sheet.Name}"));
+
             GetSiteMaps(service);
 
             foreach (var siteMap in siteMaps.Entities)
@@ -501,6 +507,8 @@ namespace MsCrmTools.Translator.AppCode
 
         public void PrepareSubAreas(ExcelWorksheet sheet, IOrganizationService service)
         {
+            OnLog(new LogEventArgs($"Reading {sheet.Name}"));
+
             GetSiteMaps(service);
 
             foreach (var siteMap in siteMaps.Entities)

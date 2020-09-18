@@ -15,6 +15,7 @@ namespace MsCrmTools.Translator.AppCode
 
     public class BaseTranslation
     {
+        public static int BulkCount;
         protected string name;
         private ExecuteMultipleRequest request;
 
@@ -39,13 +40,14 @@ namespace MsCrmTools.Translator.AppCode
             request.Requests.Add(or);
         }
 
-        protected void ExecuteMultiple(IOrganizationService service, TranslationProgressEventArgs e, bool forceUpdate = false)
+        protected void ExecuteMultiple(IOrganizationService service, TranslationProgressEventArgs e, int total, bool forceUpdate = false)
         {
             if (request == null) return;
-            if (request.Requests.Count % 1000 != 0 && forceUpdate == false) return;
+            if (request.Requests.Count % BulkCount != 0 && forceUpdate == false) return;
 
             e.SheetName = name;
-            e.TotalItems += request.Requests.Count;
+            //e.TotalItems += request.Requests.Count;
+            e.TotalItems += total;
 
             OnResult(e);
 

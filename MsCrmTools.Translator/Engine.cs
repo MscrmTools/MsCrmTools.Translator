@@ -484,15 +484,10 @@ namespace MsCrmTools.Translator
                                 break;
                         }
                     }
-                    catch (Exception error)
+                    catch (TimeoutException)
                     {
-                        // TODO handle this
-                        //Engine_OnResult(this, new TranslationResultEventArgs
-                        //{
-                        //    Success = false,
-                        //    SheetName = sheet.Name,
-                        //    Message = error.Message
-                        //});
+                        Engine_Log(this, new LogEventArgs { Message = "Timeout! Please reduce batch size or increase your connection timeout", Type = LogType.Error });
+                        throw;
                     }
                     finally
                     {

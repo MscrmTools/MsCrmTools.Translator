@@ -150,6 +150,8 @@ namespace MsCrmTools.Translator.AppCode
 
         public void Import(ExcelWorksheet sheet, List<EntityMetadata> emds, IOrganizationService service, BackgroundWorker worker)
         {
+            OnLog(new LogEventArgs($"Reading {sheet.Name}"));
+
             var amds = new List<MasterAttribute>();
 
             var rowsCount = sheet.Dimension.Rows;
@@ -228,6 +230,9 @@ namespace MsCrmTools.Translator.AppCode
             }
 
             int i = 0;
+
+            OnLog(new LogEventArgs($"Importing {sheet.Name} translations"));
+
             var arg = new TranslationProgressEventArgs();
             foreach (var amd in amds)
             {
@@ -244,9 +249,9 @@ namespace MsCrmTools.Translator.AppCode
                     MergeLabels = true
                 });
 
-                ExecuteMultiple(service, arg);
+                ExecuteMultiple(service, arg, amds.Count);
             }
-            ExecuteMultiple(service, arg, true);
+            ExecuteMultiple(service, arg, amds.Count, true);
         }
 
         private void AddHeader(ExcelWorksheet sheet, IEnumerable<int> languages)

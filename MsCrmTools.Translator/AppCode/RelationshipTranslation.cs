@@ -89,6 +89,8 @@ namespace MsCrmTools.Translator.AppCode
 
         public void Import(ExcelWorksheet sheet, List<EntityMetadata> emds, IOrganizationService service, BackgroundWorker worker)
         {
+            OnLog(new LogEventArgs($"Reading {sheet.Name}"));
+
             var rmds = new List<OneToManyRelationshipMetadata>();
 
             var rowsCount = sheet.Dimension.Rows;
@@ -143,6 +145,8 @@ namespace MsCrmTools.Translator.AppCode
                 }
             }
 
+            OnLog(new LogEventArgs($"Importing {sheet.Name} translations"));
+
             var arg = new TranslationProgressEventArgs { SheetName = sheet.Name };
             foreach (var rmd in rmds)
             {
@@ -153,10 +157,10 @@ namespace MsCrmTools.Translator.AppCode
                 };
 
                 AddRequest(request);
-                ExecuteMultiple(service, arg);
+                ExecuteMultiple(service, arg, rmds.Count);
             }
 
-            ExecuteMultiple(service, arg, true);
+            ExecuteMultiple(service, arg, rmds.Count, true);
         }
 
         private void AddHeader(ExcelWorksheet sheet, IEnumerable<int> languages)

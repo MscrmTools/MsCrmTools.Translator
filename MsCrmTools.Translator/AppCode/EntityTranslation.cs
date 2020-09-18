@@ -137,6 +137,8 @@ namespace MsCrmTools.Translator.AppCode
 
         public void Import(ExcelWorksheet sheet, List<EntityMetadata> emds, IOrganizationService service, BackgroundWorker worker)
         {
+            OnLog(new LogEventArgs($"Reading {sheet.Name}"));
+
             var rowsCount = sheet.Dimension.Rows;
             var cellsCount = sheet.Dimension.Columns;
 
@@ -215,6 +217,8 @@ namespace MsCrmTools.Translator.AppCode
 
             var entities = emds.Where(e => e.IsRenameable.Value).ToList();
 
+            OnLog(new LogEventArgs($"Importing {sheet.Name} translations"));
+
             var arg = new TranslationProgressEventArgs { SheetName = sheet.Name };
             foreach (var emd in entities)
             {
@@ -225,10 +229,10 @@ namespace MsCrmTools.Translator.AppCode
                 entityUpdate.DisplayCollectionName = emd.DisplayCollectionName;
 
                 AddRequest(new UpdateEntityRequest { Entity = entityUpdate, MergeLabels = true });
-                ExecuteMultiple(service, arg);
+                ExecuteMultiple(service, arg, entities.Count);
             }
 
-            ExecuteMultiple(service, arg, true);
+            ExecuteMultiple(service, arg, entities.Count, true);
         }
 
         private void AddHeader(ExcelWorksheet sheet, IEnumerable<int> languages)

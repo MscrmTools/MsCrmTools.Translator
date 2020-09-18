@@ -250,6 +250,8 @@ namespace MsCrmTools.Translator.AppCode
 
         public void ImportFormName(ExcelWorksheet sheet, IOrganizationService service, BackgroundWorker worker)
         {
+            OnLog(new LogEventArgs($"Reading {sheet.Name}"));
+
             var rowsCount = sheet.Dimension.Rows;
             var cellsCount = sheet.Dimension.Columns;
             var requests = new List<SetLocLabelsRequest>();
@@ -283,29 +285,36 @@ namespace MsCrmTools.Translator.AppCode
                 requests.Add(request);
             }
 
+            OnLog(new LogEventArgs($"Importing {sheet.Name} translations"));
+
             var arg = new TranslationProgressEventArgs { SheetName = sheet.Name };
             foreach (var request in requests)
             {
                 AddRequest(request);
-                ExecuteMultiple(service, arg);
+                ExecuteMultiple(service, arg, requests.Count);
             }
-            ExecuteMultiple(service, arg, true);
+            ExecuteMultiple(service, arg, requests.Count, true);
         }
 
         public void ImportFormsContent(IOrganizationService service, List<Entity> forms, BackgroundWorker worker)
         {
             name = "Dashboards contents";
+
+            OnLog(new LogEventArgs($"Importing {name} translations"));
+
             var arg = new TranslationProgressEventArgs { SheetName = "Forms" };
             foreach (var form in forms)
             {
                 AddRequest(new UpdateRequest { Target = form });
-                ExecuteMultiple(service, arg);
+                ExecuteMultiple(service, arg, forms.Count);
             }
-            ExecuteMultiple(service, arg, true);
+            ExecuteMultiple(service, arg, forms.Count, true);
         }
 
         public void PrepareFormLabels(ExcelWorksheet sheet, IOrganizationService service, List<Entity> forms)
         {
+            OnLog(new LogEventArgs($"Reading {sheet.Name}"));
+
             var rowsCount = sheet.Dimension.Rows;
             var cellsCount = sheet.Dimension.Columns;
             for (var rowI = 1; rowI < rowsCount; rowI++)
@@ -351,6 +360,8 @@ namespace MsCrmTools.Translator.AppCode
 
         public void PrepareFormSections(ExcelWorksheet sheet, IOrganizationService service, List<Entity> forms)
         {
+            OnLog(new LogEventArgs($"Reading {sheet.Name}"));
+
             var rowsCount = sheet.Dimension.Rows;
             var cellsCount = sheet.Dimension.Columns;
             for (var rowI = 1; rowI < rowsCount; rowI++)
@@ -396,6 +407,8 @@ namespace MsCrmTools.Translator.AppCode
 
         public void PrepareFormTabs(ExcelWorksheet sheet, IOrganizationService service, List<Entity> forms)
         {
+            OnLog(new LogEventArgs($"Reading {sheet.Name}"));
+
             var rowsCount = sheet.Dimension.Rows;
             var cellsCount = sheet.Dimension.Columns;
             for (var rowI = 1; rowI < rowsCount; rowI++)

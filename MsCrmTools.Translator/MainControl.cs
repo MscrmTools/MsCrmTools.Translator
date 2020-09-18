@@ -185,6 +185,8 @@ namespace MsCrmTools.Translator
             pbOverall.ForeColor = SystemColors.Highlight;
             SetState(true);
 
+            BaseTranslation.BulkCount = (int)nudBatchCount.Value;
+
             WorkAsync(new WorkAsyncInfo
             {
                 Message = "",

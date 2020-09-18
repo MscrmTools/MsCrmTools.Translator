@@ -180,6 +180,8 @@ namespace MsCrmTools.Translator.AppCode
 
         public void Import(ExcelWorksheet sheet, IOrganizationService service, BackgroundWorker worker)
         {
+            OnLog(new LogEventArgs($"Reading {sheet.Name}"));
+
             var rowsCount = sheet.Dimension.Rows;
             var cellsCount = sheet.Dimension.Columns;
             var requests = new List<SetLocLabelsRequest>();
@@ -213,13 +215,15 @@ namespace MsCrmTools.Translator.AppCode
                 requests.Add(request);
             }
 
+            OnLog(new LogEventArgs($"Importing {sheet.Name} translations"));
+
             var arg = new TranslationProgressEventArgs { SheetName = sheet.Name };
             foreach (var request in requests)
             {
                 AddRequest(request);
-                ExecuteMultiple(service, arg);
+                ExecuteMultiple(service, arg, requests.Count);
             }
-            ExecuteMultiple(service, arg, true);
+            ExecuteMultiple(service, arg, requests.Count, true);
         }
 
         private void AddHeader(ExcelWorksheet sheet, IEnumerable<int> languages)
