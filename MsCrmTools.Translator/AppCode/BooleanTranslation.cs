@@ -194,7 +194,10 @@ namespace MsCrmTools.Translator.AppCode
             var cellsCount = sheet.Dimension.Columns;
             for (var rowI = 1; rowI < rowsCount; rowI++)
             {
-                UpdateOptionValueRequest request = requests.FirstOrDefault(r => r.OptionSetName == ZeroBasedSheet.Cell(sheet, rowI, 1).Value.ToString());
+                UpdateOptionValueRequest request = requests.FirstOrDefault(r => r.EntityLogicalName == ZeroBasedSheet.Cell(sheet, rowI, 1).Value.ToString()
+                && r.AttributeLogicalName == ZeroBasedSheet.Cell(sheet, rowI, 2).Value.ToString()
+                && r.Value == int.Parse(ZeroBasedSheet.Cell(sheet, rowI, 3).Value.ToString())
+                );
                 if (request == null)
                 {
                     request = new UpdateOptionValueRequest
