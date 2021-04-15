@@ -5,6 +5,8 @@ namespace MsCrmTools.Translator.Controls
 {
     public partial class ProgressControl : UserControl
     {
+        private ToolTip tooltip = new ToolTip();
+
         public ProgressControl(string sheetName)
         {
             InitializeComponent();
@@ -16,12 +18,17 @@ namespace MsCrmTools.Translator.Controls
             SheetName = sheetName;
             lblTitle.Text = sheetName;
 
-            pictureBox4.Image = Resources.control_play_blue;
+            pbProgress.Image = Resources.control_play_blue;
         }
 
         public int Count
         {
-            set => lblCount.Text = value.ToString();
+            set
+            {
+                lblCount.Text = value.ToString();
+                tooltip.SetToolTip(lblCount, $"Number of labels to be translated : {lblCount.Text}\n\n(Might be different from the number of attributes, views, etc. Attributes, optionset values, etc. have label and description)");
+                tooltip.SetToolTip(pbTotal, $"Number of labels to be translated : {lblCount.Text}\n\n(Might be different from the number of attributes, views, etc. Attributes, optionset values, etc. have label and description)");
+            }
         }
 
         public int Error
@@ -39,7 +46,7 @@ namespace MsCrmTools.Translator.Controls
 
         public void End(bool succeeded)
         {
-            pictureBox4.Image = succeeded ? Resources.tick : Resources.cancel;
+            pbProgress.Image = succeeded ? Resources.tick : Resources.cancel;
         }
     }
 }
