@@ -43,11 +43,10 @@ namespace MsCrmTools.Translator.AppCode
         protected void ExecuteMultiple(IOrganizationService service, TranslationProgressEventArgs e, int total, bool forceUpdate = false)
         {
             if (request == null) return;
-            if (request.Requests.Count % BulkCount != 0 && forceUpdate == false) return;
+            if (request.Requests.Count % BulkCount != 0 && !forceUpdate) return;
 
             e.SheetName = name;
-            //e.TotalItems += request.Requests.Count;
-            e.TotalItems += total;
+            e.TotalItems = total;
 
             OnResult(e);
 
