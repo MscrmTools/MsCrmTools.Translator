@@ -319,8 +319,10 @@ namespace MsCrmTools.Translator.AppCode
             var cellsCount = sheet.Dimension.Columns;
             for (var rowI = 1; rowI < rowsCount; rowI++)
             {
-                var labelId = ZeroBasedSheet.Cell(sheet, rowI, 0).Value.ToString();
-                var formId = new Guid(ZeroBasedSheet.Cell(sheet, rowI, 3).Value.ToString());
+                var labelId = ZeroBasedSheet.Cell(sheet, rowI, 0).Value?.ToString();
+                var formId = new Guid(ZeroBasedSheet.Cell(sheet, rowI, 3).Value?.ToString() ?? Guid.Empty.ToString());
+
+                if (labelId == null || formId == null) continue;
 
                 var form = forms.FirstOrDefault(f => f.Id == formId);
                 if (form == null)
@@ -366,8 +368,10 @@ namespace MsCrmTools.Translator.AppCode
             var cellsCount = sheet.Dimension.Columns;
             for (var rowI = 1; rowI < rowsCount; rowI++)
             {
-                var sectionId = ZeroBasedSheet.Cell(sheet, rowI, 0).Value.ToString();
-                var formId = new Guid(ZeroBasedSheet.Cell(sheet, rowI, 3).Value.ToString());
+                var sectionId = ZeroBasedSheet.Cell(sheet, rowI, 0).Value?.ToString();
+                var formId = new Guid(ZeroBasedSheet.Cell(sheet, rowI, 3).Value?.ToString() ?? Guid.Empty.ToString());
+
+                if (sectionId == null || formId == Guid.Empty) continue;
 
                 var form = forms.FirstOrDefault(f => f.Id == formId);
                 if (form == null)
@@ -413,8 +417,10 @@ namespace MsCrmTools.Translator.AppCode
             var cellsCount = sheet.Dimension.Columns;
             for (var rowI = 1; rowI < rowsCount; rowI++)
             {
-                var tabId = ZeroBasedSheet.Cell(sheet, rowI, 0).Value.ToString();
-                var formId = new Guid(ZeroBasedSheet.Cell(sheet, rowI, 3).Value.ToString());
+                var tabId = ZeroBasedSheet.Cell(sheet, rowI, 0).Value?.ToString();
+                var formId = new Guid(ZeroBasedSheet.Cell(sheet, rowI, 3).Value?.ToString() ?? Guid.Empty.ToString());
+
+                if (tabId == null || formId == null) continue;
 
                 var form = forms.FirstOrDefault(f => f.Id == formId);
                 if (form == null)
