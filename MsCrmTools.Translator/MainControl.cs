@@ -128,7 +128,7 @@ namespace MsCrmTools.Translator
                         Work = (bw, evt) =>
                         {
                             var engine = new Engine();
-                            engine.Export((ExportSettings)evt.Argument, Service, bw);
+                            engine.Export((ExportSettings)evt.Argument, Service, ConnectionDetail, bw);
                         },
                         PostWorkCallBack = evt =>
                         {
@@ -236,7 +236,7 @@ namespace MsCrmTools.Translator
                         }));
                     };
 
-                    engine.Import(e.Argument.ToString(), Service, bw);
+                    engine.Import(e.Argument.ToString(), Service, ConnectionDetail, bw);
                 },
                 PostWorkCallBack = e =>
                 {

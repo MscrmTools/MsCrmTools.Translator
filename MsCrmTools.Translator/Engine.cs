@@ -1,4 +1,5 @@
-﻿using Microsoft.Crm.Sdk.Messages;
+﻿using McTools.Xrm.Connection;
+using Microsoft.Crm.Sdk.Messages;
 using Microsoft.Xrm.Sdk;
 using Microsoft.Xrm.Sdk.Messages;
 using Microsoft.Xrm.Sdk.Metadata;
@@ -19,7 +20,7 @@ namespace MsCrmTools.Translator
 
         public event EventHandler<TranslationProgressEventArgs> OnProgress;
 
-        public void Export(ExportSettings settings, IOrganizationService service, BackgroundWorker worker = null)
+        public void Export(ExportSettings settings, IOrganizationService service, ConnectionDetail detail, BackgroundWorker worker = null)
         {
             List<int> lcids;
             if (settings.LanguageToExport != -1)
@@ -216,7 +217,7 @@ namespace MsCrmTools.Translator
 
                 var st = new SiteMapTranslation();
 
-                st.Export(lcids, file.Workbook, service, settings);
+                st.Export(lcids, file.Workbook, service, settings, detail);
             }
 
             if (settings.ExportDashboards)
@@ -234,7 +235,7 @@ namespace MsCrmTools.Translator
             file.Save();
         }
 
-        public void Import(string filePath, IOrganizationService service, BackgroundWorker worker = null)
+        public void Import(string filePath, IOrganizationService service, ConnectionDetail detail, BackgroundWorker worker = null)
         {
             using (var stream = new FileStream(filePath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
             {
@@ -469,17 +470,17 @@ namespace MsCrmTools.Translator
                                 break;
 
                             case "SiteMap Areas":
-                                st.PrepareAreas(sheet, service);
+                                st.PrepareAreas(sheet, service, detail);
                                 hasSiteMapContent = true;
                                 break;
 
                             case "SiteMap Groups":
-                                st.PrepareGroups(sheet, service);
+                                st.PrepareGroups(sheet, service, detail);
                                 hasSiteMapContent = true;
                                 break;
 
                             case "SiteMap SubAreas":
-                                st.PrepareSubAreas(sheet, service);
+                                st.PrepareSubAreas(sheet, service, detail);
                                 hasSiteMapContent = true;
                                 break;
                         }

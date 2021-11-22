@@ -31,12 +31,12 @@ namespace MsCrmTools.Translator.AppCode
         /// <param name="file"></param>
         /// <param name="service"></param>
         /// <param name="settings"></param>
-        public void Export(List<int> languages, ExcelWorkbook file, IOrganizationService service, ExportSettings settings)
+        public void Export(List<int> languages, ExcelWorkbook file, IOrganizationService service, ExportSettings settings, ConnectionDetail detail)
         {
             var line = 0;
             int cell;
 
-            siteMaps = GetSiteMaps(service);
+            siteMaps = GetSiteMaps(service, detail);
 
             var areaSheet = file.Worksheets.Add("SiteMap Areas");
             var groupSheet = file.Worksheets.Add("SiteMap Groups");
@@ -401,11 +401,11 @@ namespace MsCrmTools.Translator.AppCode
             ExecuteMultiple(service, arg, siteMaps.Entities.Count, true);
         }
 
-        public void PrepareAreas(ExcelWorksheet sheet, IOrganizationService service)
+        public void PrepareAreas(ExcelWorksheet sheet, IOrganizationService service, ConnectionDetail detail)
         {
             OnLog(new LogEventArgs($"Reading {sheet.Name}"));
 
-            GetSiteMaps(service);
+            GetSiteMaps(service, detail);
 
             foreach (var siteMap in siteMaps.Entities)
             {
@@ -454,11 +454,11 @@ namespace MsCrmTools.Translator.AppCode
             }
         }
 
-        public void PrepareGroups(ExcelWorksheet sheet, IOrganizationService service)
+        public void PrepareGroups(ExcelWorksheet sheet, IOrganizationService service, ConnectionDetail detail)
         {
             OnLog(new LogEventArgs($"Reading {sheet.Name}"));
 
-            GetSiteMaps(service);
+            GetSiteMaps(service, detail);
 
             foreach (var siteMap in siteMaps.Entities)
             {
@@ -509,11 +509,11 @@ namespace MsCrmTools.Translator.AppCode
             }
         }
 
-        public void PrepareSubAreas(ExcelWorksheet sheet, IOrganizationService service)
+        public void PrepareSubAreas(ExcelWorksheet sheet, IOrganizationService service, ConnectionDetail detail)
         {
             OnLog(new LogEventArgs($"Reading {sheet.Name}"));
 
-            GetSiteMaps(service);
+            GetSiteMaps(service, detail);
 
             foreach (var siteMap in siteMaps.Entities)
             {
