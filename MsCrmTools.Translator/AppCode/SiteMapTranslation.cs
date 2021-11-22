@@ -1,4 +1,5 @@
-﻿using Microsoft.Xrm.Sdk;
+﻿using McTools.Xrm.Connection;
+using Microsoft.Xrm.Sdk;
 using Microsoft.Xrm.Sdk.Messages;
 using Microsoft.Xrm.Sdk.Query;
 using OfficeOpenXml;
@@ -327,44 +328,47 @@ namespace MsCrmTools.Translator.AppCode
             }
         }
 
-        public EntityCollection GetSiteMaps(IOrganizationService service)
+        public EntityCollection GetSiteMaps(IOrganizationService service, ConnectionDetail detail)
         {
             if (siteMaps != null) return siteMaps;
 
-            var sitemapsIds = service.RetrieveMultiple(new QueryExpression("appmodulecomponent")
+            var ec = new EntityCollection();
+
+            if (detail.OrganizationMajorVersion >= 8 && detail.OrganizationMinorVersion >= 2)
             {
-                ColumnSet = new ColumnSet(true),
-                Criteria = new FilterExpression
+                var sitemapsIds = service.RetrieveMultiple(new QueryExpression("appmodulecomponent")
                 {
-                    Conditions =
+                    ColumnSet = new ColumnSet(true),
+                    Criteria = new FilterExpression
+                    {
+                        Conditions =
                     {
                         new ConditionExpression("componenttype", ConditionOperator.Equal, 62)
                     }
-                }
-            });
+                    }
+                });
 
-            var ec = new EntityCollection();
-
-            foreach (var siteMapId in sitemapsIds.Entities)
-            {
-                if (ec.Entities.Any(ent => ent.Id == siteMapId.GetAttributeValue<Guid>("objectid") ||
-                                           siteMapId.GetAttributeValue<EntityReference>("appmoduleidunique").Name == null))
+                foreach (var siteMapId in sitemapsIds.Entities)
                 {
-                    continue;
-                }
-
-                try
-                {
-                    var tmpSiteMap = service.Retrieve("sitemap",
-                        siteMapId.GetAttributeValue<Guid>("objectid"), new ColumnSet(true));
-
-                    if (tmpSiteMap.GetAttributeValue<OptionSetValue>("componentstate")?.Value != 0)
+                    if (ec.Entities.Any(ent => ent.Id == siteMapId.GetAttributeValue<Guid>("objectid") ||
+                                               siteMapId.GetAttributeValue<EntityReference>("appmoduleidunique").Name == null))
+                    {
                         continue;
+                    }
 
-                    ec.Entities.Add(tmpSiteMap);
+                    try
+                    {
+                        var tmpSiteMap = service.Retrieve("sitemap",
+                            siteMapId.GetAttributeValue<Guid>("objectid"), new ColumnSet(true));
+
+                        if (tmpSiteMap.GetAttributeValue<OptionSetValue>("componentstate")?.Value != 0)
+                            continue;
+
+                        ec.Entities.Add(tmpSiteMap);
+                    }
+                    catch (Exception error)
+                    { }
                 }
-                catch (Exception error)
-                { }
             }
 
             // Adding default sitemap
