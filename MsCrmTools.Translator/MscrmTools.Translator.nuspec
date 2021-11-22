@@ -1,0 +1,23 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<package xmlns="http://schemas.microsoft.com/packaging/2011/08/nuspec.xsd">
+  <metadata>
+    <id>MsCrmTools.Translator</id>
+    <version>1.2021.4.15</version>
+    <title>Easy Translator for XrmToolBox</title>
+    <authors>MscrmTools</authors>
+    <owners>MscrmTools</owners>
+    <requireLicenseAcceptance>false</requireLicenseAcceptance>
+    <projectUrl>https://github.com/MscrmTools/MsCrmTools.Translator</projectUrl>
+    <iconUrl>https://raw.githubusercontent.com/wiki/MscrmTools/XrmToolBox/Images/logo_0100.png</iconUrl>
+    <description>Exports and Imports translations with contextual information</description>
+    <summary>Exports and Imports translations with contextual information</summary>
+    <releaseNotes>Fixed using Easy Translator in Microsoft Dynamics CRM 8.1 and below for sitemaps</releaseNotes>
+    <tags>XrmToolBox Plugin Translator</tags>
+    <dependencies>
+      <dependency id="XrmToolBox" version="1.2018.3.21" />
+    </dependencies>
+  </metadata>
+  <files>
+    <file src="bin\Release\Plugins\MsCrmTools.Translator.dll" target="lib\net452\Plugins" />
+  </files>
+</package>
