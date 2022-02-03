@@ -120,7 +120,7 @@ namespace MsCrmTools.Translator.AppCode
 
                 if (rmd.Entity1LogicalName == ZeroBasedSheet.Cell(sheet, rowI, 0).Value.ToString())
                 {
-                    rmd.Entity1AssociatedMenuConfiguration.Label = new Label();
+                    if (rmd.Entity1AssociatedMenuConfiguration.Label == null) rmd.Entity1AssociatedMenuConfiguration.Label = new Label();
 
                     while (columnIndex < cellsCount)
                     {
@@ -129,7 +129,16 @@ namespace MsCrmTools.Translator.AppCode
                             var lcid = int.Parse(ZeroBasedSheet.Cell(sheet, 0, columnIndex).Value.ToString());
                             var label = ZeroBasedSheet.Cell(sheet, rowI, columnIndex).Value.ToString();
 
-                            rmd.Entity1AssociatedMenuConfiguration.Label.LocalizedLabels.Add(new LocalizedLabel(label, lcid));
+                            var translatedLabel = rmd.Entity1AssociatedMenuConfiguration.Label.LocalizedLabels.FirstOrDefault(x => x.LanguageCode == lcid);
+                            if (translatedLabel == null)
+                            {
+                                translatedLabel = new LocalizedLabel(label, lcid);
+                                rmd.Entity1AssociatedMenuConfiguration.Label.LocalizedLabels.Add(translatedLabel);
+                            }
+                            else
+                            {
+                                translatedLabel.Label = label;
+                            }
                         }
 
                         columnIndex++;
@@ -137,7 +146,7 @@ namespace MsCrmTools.Translator.AppCode
                 }
                 else if (rmd.Entity2LogicalName == ZeroBasedSheet.Cell(sheet, rowI, 0).Value.ToString())
                 {
-                    rmd.Entity2AssociatedMenuConfiguration.Label = new Label();
+                    if (rmd.Entity2AssociatedMenuConfiguration.Label == null) rmd.Entity2AssociatedMenuConfiguration.Label = new Label();
 
                     while (columnIndex < cellsCount)
                     {
@@ -146,8 +155,16 @@ namespace MsCrmTools.Translator.AppCode
                             var lcid = int.Parse(ZeroBasedSheet.Cell(sheet, 0, columnIndex).Value.ToString());
                             var label = ZeroBasedSheet.Cell(sheet, rowI, columnIndex).Value.ToString();
 
-                            rmd.Entity2AssociatedMenuConfiguration.Label.LocalizedLabels.Add(new LocalizedLabel(label,
-                                lcid));
+                            var translatedLabel = rmd.Entity2AssociatedMenuConfiguration.Label.LocalizedLabels.FirstOrDefault(x => x.LanguageCode == lcid);
+                            if (translatedLabel == null)
+                            {
+                                translatedLabel = new LocalizedLabel(label, lcid);
+                                rmd.Entity2AssociatedMenuConfiguration.Label.LocalizedLabels.Add(translatedLabel);
+                            }
+                            else
+                            {
+                                translatedLabel.Label = label;
+                            }
                         }
                         columnIndex++;
                     }

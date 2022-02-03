@@ -188,13 +188,21 @@ namespace MsCrmTools.Translator.AppCode
             for (var rowI = 1; rowI < rowsCount; rowI++)
             {
                 var currentViewId = new Guid(ZeroBasedSheet.Cell(sheet, rowI, 0).Value.ToString());
-                var request = new SetLocLabelsRequest
+
+                var locLabel = ((RetrieveLocLabelsResponse)service.Execute(new RetrieveLocLabelsRequest
                 {
                     EntityMoniker = new EntityReference("savedquery", currentViewId),
                     AttributeName = ZeroBasedSheet.Cell(sheet, rowI, 3).Value.ToString() == "Name" ? "name" : "description"
-                };
+                })).Label;
 
-                var labels = new List<LocalizedLabel>();
+                var labels = locLabel.LocalizedLabels.ToList();
+
+                var request = new SetLocLabelsRequest
+                {
+                    EntityMoniker = new EntityReference("savedquery", currentViewId),
+                    AttributeName = ZeroBasedSheet.Cell(sheet, rowI, 3).Value.ToString() == "Name" ? "name" : "description",
+                    Labels = locLabel.LocalizedLabels.ToArray()
+                };
 
                 var columnIndex = 4;
                 while (columnIndex < cellsCount)
@@ -204,13 +212,22 @@ namespace MsCrmTools.Translator.AppCode
                         var lcid = int.Parse(ZeroBasedSheet.Cell(sheet, 0, columnIndex).Value.ToString());
                         var label = ZeroBasedSheet.Cell(sheet, rowI, columnIndex).Value.ToString();
 
-                        labels.Add(new LocalizedLabel(label, lcid));
+                        var translatedLabel = labels.FirstOrDefault(x => x.LanguageCode == lcid);
+                        if (translatedLabel == null)
+                        {
+                            translatedLabel = new LocalizedLabel(label, lcid);
+                            labels.Add(translatedLabel);
+                        }
+                        else
+                        {
+                            translatedLabel.Label = label;
+                        }
                     }
+
+                    request.Labels = labels.ToArray();
 
                     columnIndex++;
                 }
-
-                request.Labels = labels.ToArray();
 
                 requests.Add(request);
             }

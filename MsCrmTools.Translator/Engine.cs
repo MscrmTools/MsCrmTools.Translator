@@ -372,7 +372,7 @@ namespace MsCrmTools.Translator
                                 var ot = new OptionSetTranslation();
                                 ot.Result += Engine_OnResult;
                                 ot.Log += Engine_Log;
-                                ot.Import(sheet, service, worker);
+                                ot.Import(sheet, emds, service, worker);
                                 break;
 
                             case "Booleans":
@@ -386,7 +386,7 @@ namespace MsCrmTools.Translator
                                 var bt = new BooleanTranslation();
                                 bt.Result += Engine_OnResult;
                                 bt.Log += Engine_Log;
-                                bt.Import(sheet, service, worker);
+                                bt.Import(sheet, emds, service, worker);
                                 break;
 
                             case "Views":

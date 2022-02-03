@@ -165,13 +165,20 @@ namespace MsCrmTools.Translator.AppCode
             for (var rowI = 1; rowI < rowsCount; rowI++)
             {
                 var currentVisualizationId = new Guid(ZeroBasedSheet.Cell(sheet, rowI, 0).Value.ToString());
+
+                var locLabel = ((RetrieveLocLabelsResponse)service.Execute(new RetrieveLocLabelsRequest
+                {
+                    EntityMoniker = new EntityReference("savedqueryvisualization", currentVisualizationId),
+                    AttributeName = ZeroBasedSheet.Cell(sheet, rowI, 3).Value.ToString() == "Name" ? "name" : "description"
+                })).Label;
+
                 var request = new SetLocLabelsRequest
                 {
                     EntityMoniker = new EntityReference("savedqueryvisualization", currentVisualizationId),
                     AttributeName = ZeroBasedSheet.Cell(sheet, rowI, 2).Value.ToString() == "Name" ? "name" : "description"
                 };
 
-                var labels = new List<LocalizedLabel>();
+                var labels = locLabel.LocalizedLabels.ToList();
 
                 var columnIndex = 3;
                 while (columnIndex < cellsCount)
@@ -181,7 +188,16 @@ namespace MsCrmTools.Translator.AppCode
                         var lcid = int.Parse(ZeroBasedSheet.Cell(sheet, 0, columnIndex).Value.ToString());
                         var label = ZeroBasedSheet.Cell(sheet, rowI, columnIndex).Value.ToString();
 
-                        labels.Add(new LocalizedLabel(label, lcid));
+                        var translatedLabel = labels.FirstOrDefault(x => x.LanguageCode == lcid);
+                        if (translatedLabel == null)
+                        {
+                            translatedLabel = new LocalizedLabel(label, lcid);
+                            labels.Add(translatedLabel);
+                        }
+                        else
+                        {
+                            translatedLabel.Label = label;
+                        }
                     }
 
                     columnIndex++;

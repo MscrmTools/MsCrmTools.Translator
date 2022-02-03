@@ -11,7 +11,7 @@
     <iconUrl>https://raw.githubusercontent.com/wiki/MscrmTools/XrmToolBox/Images/logo_0100.png</iconUrl>
     <description>Exports and Imports translations with contextual information</description>
     <summary>Exports and Imports translations with contextual information</summary>
-    <releaseNotes>Fixed using Easy Translator in Microsoft Dynamics CRM 8.1 and below for sitemaps</releaseNotes>
+    <releaseNotes>Retrieve existing translations before updating them from import file to avoid scenario where user keeps only one language column. Before that base language translations would have been replaced by localized content</releaseNotes>
     <tags>XrmToolBox Plugin Translator</tags>
     <dependencies>
       <dependency id="XrmToolBox" version="1.2018.3.21" />

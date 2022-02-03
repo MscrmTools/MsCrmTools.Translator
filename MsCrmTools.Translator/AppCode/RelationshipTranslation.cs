@@ -129,7 +129,7 @@ namespace MsCrmTools.Translator.AppCode
 
                 int columnIndex = 4;
 
-                rmd.AssociatedMenuConfiguration.Label = new Label();
+                if (rmd.AssociatedMenuConfiguration.Label == null) rmd.AssociatedMenuConfiguration.Label = new Label();
 
                 while (columnIndex < cellsCount)
                 {
@@ -138,7 +138,16 @@ namespace MsCrmTools.Translator.AppCode
                         var lcid = int.Parse(ZeroBasedSheet.Cell(sheet, 0, columnIndex).Value.ToString());
                         var label = ZeroBasedSheet.Cell(sheet, rowI, columnIndex).Value.ToString();
 
-                        rmd.AssociatedMenuConfiguration.Label.LocalizedLabels.Add(new LocalizedLabel(label, lcid));
+                        var translatedLabel = rmd.AssociatedMenuConfiguration.Label.LocalizedLabels.FirstOrDefault(x => x.LanguageCode == lcid);
+                        if (translatedLabel == null)
+                        {
+                            translatedLabel = new LocalizedLabel(label, lcid);
+                            rmd.AssociatedMenuConfiguration.Label.LocalizedLabels.Add(translatedLabel);
+                        }
+                        else
+                        {
+                            translatedLabel.Label = label;
+                        }
                     }
 
                     columnIndex++;

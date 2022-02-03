@@ -184,7 +184,7 @@ namespace MsCrmTools.Translator.AppCode
             }
         }
 
-        public void Import(ExcelWorksheet sheet, IOrganizationService service, BackgroundWorker worker)
+        public void Import(ExcelWorksheet sheet, List<EntityMetadata> emds, IOrganizationService service, BackgroundWorker worker)
         {
             OnLog(new LogEventArgs($"Reading {sheet.Name}"));
 
@@ -194,86 +194,92 @@ namespace MsCrmTools.Translator.AppCode
             var cellsCount = sheet.Dimension.Columns;
             for (var rowI = 1; rowI < rowsCount; rowI++)
             {
+                var value = int.Parse(ZeroBasedSheet.Cell(sheet, rowI, 3).Value.ToString());
+
                 UpdateOptionValueRequest request = requests.FirstOrDefault(r => r.EntityLogicalName == ZeroBasedSheet.Cell(sheet, rowI, 1).Value.ToString()
                 && r.AttributeLogicalName == ZeroBasedSheet.Cell(sheet, rowI, 2).Value.ToString()
-                && r.Value == int.Parse(ZeroBasedSheet.Cell(sheet, rowI, 3).Value.ToString())
-                );
+                && r.Value == value);
+
                 if (request == null)
                 {
+                    var emd = emds.FirstOrDefault(e => e.LogicalName == ZeroBasedSheet.Cell(sheet, rowI, 1).Value.ToString());
+                    if (emd == null)
+                    {
+                        var mdRequest = new RetrieveEntityRequest
+                        {
+                            LogicalName = ZeroBasedSheet.Cell(sheet, rowI, 1).Value.ToString(),
+                            EntityFilters = EntityFilters.Entity | EntityFilters.Attributes | EntityFilters.Relationships
+                        };
+
+                        var response = ((RetrieveEntityResponse)service.Execute(mdRequest));
+                        emd = response.EntityMetadata;
+
+                        emds.Add(emd);
+                    }
+
+                    var amd = (BooleanAttributeMetadata)emd.Attributes.FirstOrDefault(a => a.LogicalName == ZeroBasedSheet.Cell(sheet, rowI, 2).Value.ToString());
+                    var dLabel = (value == 0 ? amd?.OptionSet.FalseOption.Label : amd?.OptionSet.TrueOption.Label) ?? new Label();
+                    var descLabel = (value == 0 ? amd?.OptionSet.FalseOption.Description : amd?.OptionSet.TrueOption.Description) ?? new Label();
+
                     request = new UpdateOptionValueRequest
                     {
                         AttributeLogicalName = ZeroBasedSheet.Cell(sheet, rowI, 2).Value.ToString(),
                         EntityLogicalName = ZeroBasedSheet.Cell(sheet, rowI, 1).Value.ToString(),
                         Value = int.Parse(ZeroBasedSheet.Cell(sheet, rowI, 3).Value.ToString()),
-                        Label = new Label(),
-                        Description = new Label(),
+                        Label = dLabel,
+                        Description = descLabel,
                         MergeLabels = true
                     };
 
-                    int columnIndex = 5;
-
-                    if (ZeroBasedSheet.Cell(sheet, rowI, 4).Value.ToString() == "Label")
-                    {
-                        while (columnIndex < cellsCount)
-                        {
-                            if (ZeroBasedSheet.Cell(sheet, rowI, columnIndex).Value != null)
-                            {
-                                var lcid = int.Parse(ZeroBasedSheet.Cell(sheet, 0, columnIndex).Value.ToString());
-                                var label = ZeroBasedSheet.Cell(sheet, rowI, columnIndex).Value.ToString();
-                                request.Label.LocalizedLabels.Add(new LocalizedLabel(label, lcid));
-                            }
-
-                            columnIndex++;
-                        }
-                    }
-                    else if (ZeroBasedSheet.Cell(sheet, rowI, 4).Value.ToString() == "Description")
-                    {
-                        while (columnIndex < cellsCount)
-                        {
-                            if (ZeroBasedSheet.Cell(sheet, rowI, columnIndex).Value != null)
-                            {
-                                var lcid = int.Parse(ZeroBasedSheet.Cell(sheet, 0, columnIndex).Value.ToString());
-                                var label = ZeroBasedSheet.Cell(sheet, rowI, columnIndex).Value.ToString();
-                                request.Description.LocalizedLabels.Add(new LocalizedLabel(label, lcid));
-                            }
-
-                            columnIndex++;
-                        }
-                    }
-
                     requests.Add(request);
                 }
-                else
+
+                int columnIndex = 5;
+
+                if (ZeroBasedSheet.Cell(sheet, rowI, 4).Value.ToString() == "Label")
                 {
-                    int columnIndex = 5;
-
-                    if (ZeroBasedSheet.Cell(sheet, rowI, 4).Value.ToString() == "Label")
+                    while (columnIndex < cellsCount)
                     {
-                        while (columnIndex < cellsCount)
-                        {
-                            var sLcid = ZeroBasedSheet.Cell(sheet, 0, columnIndex).Value.ToString();
-                            var sLabel = ZeroBasedSheet.Cell(sheet, rowI, columnIndex).Value.ToString();
+                        var lcid = int.Parse(ZeroBasedSheet.Cell(sheet, 0, columnIndex).Value.ToString());
+                        var label = ZeroBasedSheet.Cell(sheet, rowI, columnIndex).Value.ToString();
 
-                            if (sLcid.Length > 0 && sLabel.Length > 0)
+                        if (label.Length > 0)
+                        {
+                            var translatedLabel = request.Label.LocalizedLabels.FirstOrDefault(x => x.LanguageCode == lcid);
+                            if (translatedLabel == null)
                             {
-                                request.Label.LocalizedLabels.Add(new LocalizedLabel(sLabel, int.Parse(sLcid)));
+                                translatedLabel = new LocalizedLabel(label, lcid);
+                                request.Label.LocalizedLabels.Add(translatedLabel);
                             }
-                            columnIndex++;
+                            else
+                            {
+                                translatedLabel.Label = label;
+                            }
                         }
+                        columnIndex++;
                     }
-                    else if (ZeroBasedSheet.Cell(sheet, rowI, 4).Value.ToString() == "Description")
+                }
+                else if (ZeroBasedSheet.Cell(sheet, rowI, 4).Value.ToString() == "Description")
+                {
+                    while (columnIndex < cellsCount)
                     {
-                        while (columnIndex < cellsCount)
-                        {
-                            var sLcid = ZeroBasedSheet.Cell(sheet, 0, columnIndex).Value.ToString();
-                            var sLabel = ZeroBasedSheet.Cell(sheet, rowI, columnIndex).Value.ToString();
+                        var lcid = int.Parse(ZeroBasedSheet.Cell(sheet, 0, columnIndex).Value.ToString());
+                        var label = ZeroBasedSheet.Cell(sheet, rowI, columnIndex).Value.ToString();
 
-                            if (sLcid.Length > 0 && sLabel.Length > 0)
+                        if (label.Length > 0)
+                        {
+                            var translatedLabel = request.Description.LocalizedLabels.FirstOrDefault(x => x.LanguageCode == lcid);
+                            if (translatedLabel == null)
                             {
-                                request.Description.LocalizedLabels.Add(new LocalizedLabel(sLabel, int.Parse(sLcid)));
+                                translatedLabel = new LocalizedLabel(label, lcid);
+                                request.Description.LocalizedLabels.Add(translatedLabel);
                             }
-                            columnIndex++;
+                            else
+                            {
+                                translatedLabel.Label = label;
+                            }
                         }
+                        columnIndex++;
                     }
                 }
             }

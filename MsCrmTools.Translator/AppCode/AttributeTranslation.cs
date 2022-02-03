@@ -198,7 +198,7 @@ namespace MsCrmTools.Translator.AppCode
 
                 if (ZeroBasedSheet.Cell(sheet, rowI, 3).Value.ToString() == "DisplayName")
                 {
-                    amd.Amd.DisplayName = new Label();
+                    if (amd.Amd.DisplayName == null) amd.Amd.DisplayName = new Label();
 
                     while (columnIndex < cellsCount)
                     {
@@ -206,7 +206,17 @@ namespace MsCrmTools.Translator.AppCode
                         {
                             var lcid = int.Parse(ZeroBasedSheet.Cell(sheet, 0, columnIndex).Value.ToString());
                             var label = ZeroBasedSheet.Cell(sheet, rowI, columnIndex).Value.ToString();
-                            amd.Amd.DisplayName.LocalizedLabels.Add(new LocalizedLabel(label, lcid));
+
+                            var translatedLabel = amd.Amd.DisplayName.LocalizedLabels.FirstOrDefault(x => x.LanguageCode == lcid);
+                            if (translatedLabel == null)
+                            {
+                                translatedLabel = new LocalizedLabel(label, lcid);
+                                amd.Amd.DisplayName.LocalizedLabels.Add(translatedLabel);
+                            }
+                            else
+                            {
+                                translatedLabel.Label = label;
+                            }
                         }
                         columnIndex++;
                     }
@@ -221,7 +231,16 @@ namespace MsCrmTools.Translator.AppCode
                         {
                             var lcid = int.Parse(ZeroBasedSheet.Cell(sheet, 0, columnIndex).Value.ToString());
                             var label = ZeroBasedSheet.Cell(sheet, rowI, columnIndex).Value.ToString();
-                            amd.Amd.Description.LocalizedLabels.Add(new LocalizedLabel(label, lcid));
+                            var translatedLabel = amd.Amd.Description.LocalizedLabels.FirstOrDefault(x => x.LanguageCode == lcid);
+                            if (translatedLabel == null)
+                            {
+                                translatedLabel = new LocalizedLabel(label, lcid);
+                                amd.Amd.Description.LocalizedLabels.Add(translatedLabel);
+                            }
+                            else
+                            {
+                                translatedLabel.Label = label;
+                            }
                         }
 
                         columnIndex++;

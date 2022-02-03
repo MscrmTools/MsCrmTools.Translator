@@ -150,7 +150,7 @@ namespace MsCrmTools.Translator.AppCode
             }
         }
 
-        public void Import(ExcelWorksheet sheet, IOrganizationService service, BackgroundWorker worker)
+        public void Import(ExcelWorksheet sheet, List<EntityMetadata> emds, IOrganizationService service, BackgroundWorker worker)
         {
             OnLog(new LogEventArgs($"Reading {sheet.Name}"));
 
@@ -160,11 +160,49 @@ namespace MsCrmTools.Translator.AppCode
 
             for (var rowI = 1; rowI < rowsCount; rowI++)
             {
+                var value = int.Parse(ZeroBasedSheet.Cell(sheet, rowI, 4).Value.ToString());
+
+                var emd = emds.FirstOrDefault(e => e.LogicalName == ZeroBasedSheet.Cell(sheet, rowI, 1).Value.ToString());
+                if (emd == null)
+                {
+                    var mdRequest = new RetrieveEntityRequest
+                    {
+                        LogicalName = ZeroBasedSheet.Cell(sheet, rowI, 1).Value.ToString(),
+                        EntityFilters = EntityFilters.Entity | EntityFilters.Attributes | EntityFilters.Relationships
+                    };
+
+                    var response = ((RetrieveEntityResponse)service.Execute(mdRequest));
+                    emd = response.EntityMetadata;
+
+                    emds.Add(emd);
+                }
+
+                var amd = emd.Attributes.FirstOrDefault(a => a.LogicalName == ZeroBasedSheet.Cell(sheet, rowI, 2).Value.ToString());
+                OptionMetadata option = null;
+                if (amd is PicklistAttributeMetadata pamd)
+                {
+                    option = pamd.OptionSet.Options.FirstOrDefault(o => o.Value == value);
+                }
+                else if (amd is StateAttributeMetadata samd)
+                {
+                    option = samd.OptionSet.Options.FirstOrDefault(o => o.Value == value);
+                }
+                else if (amd is StatusAttributeMetadata ssamd)
+                {
+                    option = ssamd.OptionSet.Options.FirstOrDefault(o => o.Value == value);
+                }
+
+                if (option == null)
+                {
+                    OnLog(new LogEventArgs($"Unable to determine type of the AttributeMetadata for attribute {amd.LogicalName}") { Type = LogType.Error });
+                    continue;
+                }
+
                 UpdateOptionValueRequest request =
                     requests
                     .FirstOrDefault(
                         r => r.OptionSetName == ZeroBasedSheet.Cell(sheet, rowI, 1).Value.ToString() &&
-                        r.Value == int.Parse(ZeroBasedSheet.Cell(sheet, rowI, 4).Value.ToString()));
+                        r.Value == value);
 
                 if (request == null)
                 {
@@ -172,80 +210,57 @@ namespace MsCrmTools.Translator.AppCode
                     {
                         AttributeLogicalName = ZeroBasedSheet.Cell(sheet, rowI, 2).Value.ToString(),
                         EntityLogicalName = ZeroBasedSheet.Cell(sheet, rowI, 1).Value.ToString(),
-                        Value = int.Parse(ZeroBasedSheet.Cell(sheet, rowI, 4).Value.ToString()),
-                        Label = new Label(),
-                        Description = new Label(),
+                        Value = value,
+                        Label = option.Label ?? new Label(),
+                        Description = option.Description ?? new Label(),
                         MergeLabels = true
                     };
 
-                    int columnIndex = 6;
-
-                    if (ZeroBasedSheet.Cell(sheet, rowI, 5).Value.ToString() == "Label")
-                    {
-                        // WTF: QUESTIONABLE DELETION: row.Cells.Count() > columnIndex &&
-                        while (ZeroBasedSheet.Cell(sheet, rowI, columnIndex) != null && ZeroBasedSheet.Cell(sheet, rowI, columnIndex).Value != null)
-                        {
-                            var sLcid = ZeroBasedSheet.Cell(sheet, 0, columnIndex).Value.ToString();
-                            var sLabel = ZeroBasedSheet.Cell(sheet, rowI, columnIndex).Value.ToString();
-
-                            if (sLcid.Length > 0 && sLabel.Length > 0)
-                            {
-                                request.Label.LocalizedLabels.Add(new LocalizedLabel(sLabel, int.Parse(sLcid)));
-                            }
-                            columnIndex++;
-                        }
-                    }
-                    else if (ZeroBasedSheet.Cell(sheet, rowI, 5).Value.ToString() == "Description")
-                    {
-                        // WTF: QUESTIONABLE DELETION: row.Cells.Count() > columnIndex &&
-                        while (ZeroBasedSheet.Cell(sheet, rowI, columnIndex) != null && ZeroBasedSheet.Cell(sheet, rowI, columnIndex).Value != null)
-                        {
-                            var sLcid = ZeroBasedSheet.Cell(sheet, 0, columnIndex).Value.ToString();
-                            var sLabel = ZeroBasedSheet.Cell(sheet, rowI, columnIndex).Value.ToString();
-
-                            if (sLcid.Length > 0 && sLabel.Length > 0)
-                            {
-                                request.Description.LocalizedLabels.Add(new LocalizedLabel(sLabel, int.Parse(sLcid)));
-                            }
-                            columnIndex++;
-                        }
-                    }
-
                     requests.Add(request);
                 }
-                else
+
+                int columnIndex = 6;
+
+                if (ZeroBasedSheet.Cell(sheet, rowI, 5).Value.ToString() == "Label")
                 {
-                    int columnIndex = 6;
-
-                    if (ZeroBasedSheet.Cell(sheet, rowI, 5).Value.ToString() == "Label")
+                    // WTF: QUESTIONABLE DELETION: row.Cells.Count() > columnIndex &&
+                    while (ZeroBasedSheet.Cell(sheet, rowI, columnIndex) != null && ZeroBasedSheet.Cell(sheet, rowI, columnIndex).Value != null)
                     {
-                        // WTF: QUESTIONABLE DELETION: row.Cells.Count() > columnIndex &&
-                        while (ZeroBasedSheet.Cell(sheet, rowI, columnIndex) != null && ZeroBasedSheet.Cell(sheet, rowI, columnIndex).Value != null)
-                        {
-                            var sLcid = ZeroBasedSheet.Cell(sheet, 0, columnIndex).Value.ToString();
-                            var sLabel = ZeroBasedSheet.Cell(sheet, rowI, columnIndex).Value.ToString();
+                        var lcid = int.Parse(ZeroBasedSheet.Cell(sheet, 0, columnIndex).Value.ToString());
+                        var label = ZeroBasedSheet.Cell(sheet, rowI, columnIndex).Value.ToString();
 
-                            if (sLcid.Length > 0 && sLabel.Length > 0)
-                            {
-                                request.Label.LocalizedLabels.Add(new LocalizedLabel(sLabel, int.Parse(sLcid)));
-                            }
-                            columnIndex++;
+                        var translatedLabel = request.Label.LocalizedLabels.FirstOrDefault(x => x.LanguageCode == lcid);
+                        if (translatedLabel == null)
+                        {
+                            translatedLabel = new LocalizedLabel(label, lcid);
+                            request.Label.LocalizedLabels.Add(translatedLabel);
                         }
+                        else
+                        {
+                            translatedLabel.Label = label;
+                        }
+                        columnIndex++;
                     }
-                    else if (ZeroBasedSheet.Cell(sheet, rowI, 5).Value.ToString() == "Description")
+                }
+                else if (ZeroBasedSheet.Cell(sheet, rowI, 5).Value.ToString() == "Description")
+                {
+                    // WTF: QUESTIONABLE DELETION: row.Cells.Count() > columnIndex &&
+                    while (ZeroBasedSheet.Cell(sheet, rowI, columnIndex) != null && ZeroBasedSheet.Cell(sheet, rowI, columnIndex).Value != null)
                     {
-                        // WTF: QUESTIONABLE DELETION: row.Cells.Count() > columnIndex &&
-                        while (ZeroBasedSheet.Cell(sheet, rowI, columnIndex) != null && ZeroBasedSheet.Cell(sheet, rowI, columnIndex).Value != null)
-                        {
-                            var sLcid = ZeroBasedSheet.Cell(sheet, 0, columnIndex).Value.ToString();
-                            var sLabel = ZeroBasedSheet.Cell(sheet, rowI, columnIndex).Value.ToString();
+                        var lcid = int.Parse(ZeroBasedSheet.Cell(sheet, 0, columnIndex).Value.ToString());
+                        var label = ZeroBasedSheet.Cell(sheet, rowI, columnIndex).Value.ToString();
 
-                            if (sLcid.Length > 0 && sLabel.Length > 0)
-                            {
-                                request.Description.LocalizedLabels.Add(new LocalizedLabel(sLabel, int.Parse(sLcid)));
-                            }
-                            columnIndex++;
+                        var translatedLabel = request.Description.LocalizedLabels.FirstOrDefault(x => x.LanguageCode == lcid);
+                        if (translatedLabel == null)
+                        {
+                            translatedLabel = new LocalizedLabel(label, lcid);
+                            request.Description.LocalizedLabels.Add(translatedLabel);
                         }
+                        else
+                        {
+                            translatedLabel.Label = label;
+                        }
+                        columnIndex++;
                     }
                 }
             }
