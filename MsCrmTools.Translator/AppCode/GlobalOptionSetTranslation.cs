@@ -249,22 +249,38 @@ namespace MsCrmTools.Translator.AppCode
 
                 if (request == null)
                 {
-                    var omd = (OptionSetMetadata)((RetrieveOptionSetResponse)service.Execute(new RetrieveOptionSetRequest
+                    var md = ((RetrieveOptionSetResponse)service.Execute(new RetrieveOptionSetRequest
                     {
                         Name = ZeroBasedSheet.Cell(sheet, rowI, 1).Value.ToString(),
                         RetrieveAsIfPublished = true
                     })).OptionSetMetadata;
 
-                    var option = omd.Options.FirstOrDefault(o => o.Value == value);
-
-                    request = new UpdateOptionValueRequest
+                    if (md is OptionSetMetadata osm)
                     {
-                        OptionSetName = ZeroBasedSheet.Cell(sheet, rowI, 1).Value.ToString(),
-                        Value = value,
-                        Label = option?.Label ?? new Label(),
-                        Description = option?.Description ?? new Label(),
-                        MergeLabels = true
-                    };
+                        var option = osm.Options.FirstOrDefault(o => o.Value == value);
+
+                        request = new UpdateOptionValueRequest
+                        {
+                            OptionSetName = ZeroBasedSheet.Cell(sheet, rowI, 1).Value.ToString(),
+                            Value = value,
+                            Label = option?.Label ?? new Label(),
+                            Description = option?.Description ?? new Label(),
+                            MergeLabels = true
+                        };
+                    }
+                    else if (md is BooleanOptionSetMetadata bosm)
+                    {
+                        var option = value == 0 ? bosm.FalseOption : bosm.TrueOption;
+
+                        request = new UpdateOptionValueRequest
+                        {
+                            OptionSetName = ZeroBasedSheet.Cell(sheet, rowI, 1).Value.ToString(),
+                            Value = value,
+                            Label = option?.Label ?? new Label(),
+                            Description = option?.Description ?? new Label(),
+                            MergeLabels = true
+                        };
+                    }
 
                     requests.Add(request);
                 }
