@@ -354,6 +354,22 @@ namespace MsCrmTools.Translator.AppCode
 
             OnLog(new LogEventArgs($"Importing {name} translations"));
 
+            var setting = GetCurrentUserSettings(service);
+            var userSettingLcid = setting.GetAttributeValue<int>("uilanguageid");
+            var currentSetting = userSettingLcid;
+
+            int orgLcid = GetCurrentOrgBaseLanguage(service);
+            if (currentSetting != orgLcid)
+            {
+                setting["localeid"] = orgLcid;
+                setting["uilanguageid"] = orgLcid;
+                setting["helplanguageid"] = orgLcid;
+                service.Update(setting);
+                currentSetting = orgLcid;
+
+                Thread.Sleep(2000);
+            }
+
             var arg = new TranslationProgressEventArgs();
             foreach (var form in forms)
             {
@@ -361,6 +377,16 @@ namespace MsCrmTools.Translator.AppCode
                 ExecuteMultiple(service, arg, forms.Count);
             }
             ExecuteMultiple(service, arg, forms.Count, true);
+
+            if (currentSetting != userSettingLcid)
+            {
+                setting["localeid"] = userSettingLcid;
+                setting["uilanguageid"] = userSettingLcid;
+                setting["helplanguageid"] = userSettingLcid;
+                service.Update(setting);
+
+                Thread.Sleep(2000);
+            }
         }
 
         public void PrepareFormLabels(ExcelWorksheet sheet, IOrganizationService service, List<Entity> forms)
@@ -855,6 +881,15 @@ namespace MsCrmTools.Translator.AppCode
 
             crmFormTab.Names.Add(lcid, tabName);
             return tabName;
+        }
+
+        private int GetCurrentOrgBaseLanguage(IOrganizationService service)
+        {
+            var qe = new QueryExpression("organization");
+            qe.ColumnSet = new ColumnSet(new[] { "languagecode" });
+            var settings = service.RetrieveMultiple(qe);
+
+            return settings[0].GetAttributeValue<int>("languagecode");
         }
 
         private Entity GetCurrentUserSettings(IOrganizationService service)
