@@ -310,13 +310,20 @@ namespace MsCrmTools.Translator.AppCode
             {
                 var currentFormId = new Guid(ZeroBasedSheet.Cell(sheet, rowI, 1).Value.ToString());
 
-                var request = new SetLocLabelsRequest
+                var locLabel = ((RetrieveLocLabelsResponse)service.Execute(new RetrieveLocLabelsRequest
                 {
                     EntityMoniker = new EntityReference("systemform", currentFormId),
                     AttributeName = ZeroBasedSheet.Cell(sheet, rowI, 3).Value.ToString() == "Name" ? "name" : "description"
-                };
+                })).Label;
 
-                var labels = new List<LocalizedLabel>();
+                var labels = locLabel.LocalizedLabels.ToList();
+
+                var request = new SetLocLabelsRequest
+                {
+                    EntityMoniker = new EntityReference("systemform", currentFormId),
+                    AttributeName = ZeroBasedSheet.Cell(sheet, rowI, 3).Value.ToString() == "Name" ? "name" : "description",
+                    Labels = locLabel.LocalizedLabels.ToArray()
+                };
 
                 var columnIndex = 4;
                 while (columnIndex < cellsCount)
@@ -326,7 +333,16 @@ namespace MsCrmTools.Translator.AppCode
                         var lcid = int.Parse(ZeroBasedSheet.Cell(sheet, 0, columnIndex).Value.ToString());
                         var label = ZeroBasedSheet.Cell(sheet, rowI, columnIndex).Value.ToString();
 
-                        labels.Add(new LocalizedLabel(label, lcid));
+                        var translatedLabel = labels.FirstOrDefault(x => x.LanguageCode == lcid);
+                        if (translatedLabel == null)
+                        {
+                            translatedLabel = new LocalizedLabel(label, lcid);
+                            labels.Add(translatedLabel);
+                        }
+                        else
+                        {
+                            translatedLabel.Label = label;
+                        }
                     }
 
                     columnIndex++;
@@ -339,6 +355,22 @@ namespace MsCrmTools.Translator.AppCode
 
             OnLog(new LogEventArgs($"Importing {sheet.Name} translations"));
 
+            var setting = GetCurrentUserSettings(service);
+            var userSettingLcid = setting.GetAttributeValue<int>("uilanguageid");
+            var currentSetting = userSettingLcid;
+
+            int orgLcid = GetCurrentOrgBaseLanguage(service);
+            if (currentSetting != orgLcid)
+            {
+                setting["localeid"] = orgLcid;
+                setting["uilanguageid"] = orgLcid;
+                setting["helplanguageid"] = orgLcid;
+                service.Update(setting);
+                currentSetting = orgLcid;
+
+                Thread.Sleep(2000);
+            }
+
             var arg = new TranslationProgressEventArgs { SheetName = sheet.Name };
             foreach (var request in requests)
             {
@@ -346,6 +378,16 @@ namespace MsCrmTools.Translator.AppCode
                 ExecuteMultiple(service, arg, requests.Count);
             }
             ExecuteMultiple(service, arg, requests.Count, true);
+
+            if (currentSetting != userSettingLcid)
+            {
+                setting["localeid"] = userSettingLcid;
+                setting["uilanguageid"] = userSettingLcid;
+                setting["helplanguageid"] = userSettingLcid;
+                service.Update(setting);
+
+                Thread.Sleep(2000);
+            }
         }
 
         public void ImportFormsContent(IOrganizationService service, List<Entity> forms, BackgroundWorker worker)
