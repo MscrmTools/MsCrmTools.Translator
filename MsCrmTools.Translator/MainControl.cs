@@ -186,6 +186,7 @@ namespace MsCrmTools.Translator
             SetState(true);
 
             pnlNewProgress.Controls.Clear();
+            currentControl = null;
             llOpenLog.Visible = false;
 
             BaseTranslation.BulkCount = (int)nudBatchCount.Value;
