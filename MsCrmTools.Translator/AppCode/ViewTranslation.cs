@@ -187,6 +187,8 @@ namespace MsCrmTools.Translator.AppCode
             var requests = new List<SetLocLabelsRequest>();
             for (var rowI = 1; rowI < rowsCount; rowI++)
             {
+                if (HasEmptyCells(sheet, rowI, 3)) continue;
+
                 var currentViewId = new Guid(ZeroBasedSheet.Cell(sheet, rowI, 0).Value.ToString());
 
                 var locLabel = ((RetrieveLocLabelsResponse)service.Execute(new RetrieveLocLabelsRequest

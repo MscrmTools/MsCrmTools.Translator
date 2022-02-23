@@ -160,6 +160,8 @@ namespace MsCrmTools.Translator.AppCode
 
             for (var rowI = 1; rowI < rowsCount; rowI++)
             {
+                if (HasEmptyCells(sheet, rowI, 5)) continue;
+
                 var value = int.Parse(ZeroBasedSheet.Cell(sheet, rowI, 4).Value.ToString());
 
                 var emd = emds.FirstOrDefault(e => e.LogicalName == ZeroBasedSheet.Cell(sheet, rowI, 1).Value.ToString());

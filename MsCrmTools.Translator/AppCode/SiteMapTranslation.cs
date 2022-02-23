@@ -416,6 +416,8 @@ namespace MsCrmTools.Translator.AppCode
                 var cellsCount = sheet.Dimension.Columns;
                 for (var rowI = 1; rowI < rowsCount; rowI++)
                 {
+                    if (HasEmptyCells(sheet, rowI, 3)) continue;
+
                     if (ZeroBasedSheet.Cell(sheet, rowI, 0).Value == null) break;
                     if (ZeroBasedSheet.Cell(sheet, rowI, 1).Value.ToString() != siteMap.Id.ToString()) continue;
 
@@ -469,6 +471,8 @@ namespace MsCrmTools.Translator.AppCode
                 var cellsCount = sheet.Dimension.Columns;
                 for (var rowI = 1; rowI < rowsCount; rowI++)
                 {
+                    if (HasEmptyCells(sheet, rowI, 4)) continue;
+
                     if (ZeroBasedSheet.Cell(sheet, rowI, 0).Value == null) break;
                     if (ZeroBasedSheet.Cell(sheet, rowI, 1).Value.ToString() != siteMap.Id.ToString()) continue;
 
@@ -524,6 +528,8 @@ namespace MsCrmTools.Translator.AppCode
                 var cellsCount = sheet.Dimension.Columns;
                 for (var rowI = 1; rowI < rowsCount; rowI++)
                 {
+                    if (HasEmptyCells(sheet, rowI, 5)) continue;
+
                     if (ZeroBasedSheet.Cell(sheet, rowI, 0).Value == null) break;
                     if (ZeroBasedSheet.Cell(sheet, rowI, 1).Value.ToString() != siteMap.Id.ToString()) continue;
 

@@ -194,6 +194,8 @@ namespace MsCrmTools.Translator.AppCode
             var cellsCount = sheet.Dimension.Columns;
             for (var rowI = 1; rowI < rowsCount; rowI++)
             {
+                if (HasEmptyCells(sheet, rowI, 4)) continue;
+
                 var value = int.Parse(ZeroBasedSheet.Cell(sheet, rowI, 3).Value.ToString());
 
                 UpdateOptionValueRequest request = requests.FirstOrDefault(r => r.EntityLogicalName == ZeroBasedSheet.Cell(sheet, rowI, 1).Value.ToString()

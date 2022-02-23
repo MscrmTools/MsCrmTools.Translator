@@ -439,6 +439,8 @@ namespace MsCrmTools.Translator.AppCode
             var cellsCount = sheet.Dimension.Columns;
             for (var rowI = 1; rowI < rowsCount; rowI++)
             {
+                if (HasEmptyCells(sheet, rowI, 7)) continue;
+
                 var labelId = ZeroBasedSheet.Cell(sheet, rowI, 0).Value.ToString();
                 var formId = new Guid(ZeroBasedSheet.Cell(sheet, rowI, 4).Value.ToString());
 
@@ -496,6 +498,8 @@ namespace MsCrmTools.Translator.AppCode
             var cellsCount = sheet.Dimension.Columns;
             for (var rowI = 1; rowI < rowsCount; rowI++)
             {
+                if (HasEmptyCells(sheet, rowI, 5)) continue;
+
                 var sectionId = ZeroBasedSheet.Cell(sheet, rowI, 0).Value.ToString();
                 var formId = new Guid(ZeroBasedSheet.Cell(sheet, rowI, 4).Value.ToString());
 
@@ -556,6 +560,8 @@ namespace MsCrmTools.Translator.AppCode
             var cellsCount = sheet.Dimension.Columns;
             for (var rowI = 1; rowI < rowsCount; rowI++)
             {
+                if (HasEmptyCells(sheet, rowI, 4)) continue;
+
                 var tabId = ZeroBasedSheet.Cell(sheet, rowI, 0).Value.ToString();
                 var formId = new Guid(ZeroBasedSheet.Cell(sheet, rowI, 4).Value.ToString());
 

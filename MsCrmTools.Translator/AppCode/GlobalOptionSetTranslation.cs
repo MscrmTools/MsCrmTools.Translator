@@ -242,6 +242,8 @@ namespace MsCrmTools.Translator.AppCode
 
             for (var rowI = 1; rowI < rowsCount; rowI++)
             {
+                if (HasEmptyCells(sheet, rowI, 3)) continue;
+
                 var value = int.Parse(ZeroBasedSheet.Cell(sheet, rowI, 2).Value.ToString());
 
                 UpdateOptionValueRequest request = requests.FirstOrDefault(r => r.OptionSetName == ZeroBasedSheet.Cell(sheet, rowI, 1).Value.ToString()

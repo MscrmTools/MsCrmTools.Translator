@@ -319,6 +319,8 @@ namespace MsCrmTools.Translator.AppCode
             var cellsCount = sheet.Dimension.Columns;
             for (var rowI = 1; rowI < rowsCount; rowI++)
             {
+                if (HasEmptyCells(sheet, rowI, 6)) continue;
+
                 var labelId = ZeroBasedSheet.Cell(sheet, rowI, 0).Value?.ToString();
                 var formId = new Guid(ZeroBasedSheet.Cell(sheet, rowI, 3).Value?.ToString() ?? Guid.Empty.ToString());
 

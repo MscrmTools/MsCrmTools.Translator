@@ -1,6 +1,7 @@
 ﻿using Microsoft.Crm.Sdk.Messages;
 using Microsoft.Xrm.Sdk;
 using Microsoft.Xrm.Sdk.Messages;
+using OfficeOpenXml;
 using System;
 using System.Linq;
 
@@ -120,6 +121,19 @@ namespace MsCrmTools.Translator.AppCode
             OnResult(e);
 
             InitMultipleRequest();
+        }
+
+        protected bool HasEmptyCells(ExcelWorksheet sheet, int row, int lastCellToCheck)
+        {
+            for (int i = 0; i < lastCellToCheck; i++)
+            {
+                if (ZeroBasedSheet.Cell(sheet, row, i) == null || ZeroBasedSheet.Cell(sheet, row, i).Value == null)
+                {
+                    return true;
+                }
+            }
+
+            return false;
         }
 
         protected void InitMultipleRequest()

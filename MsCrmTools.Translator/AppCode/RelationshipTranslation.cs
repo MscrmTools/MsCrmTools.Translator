@@ -97,6 +97,8 @@ namespace MsCrmTools.Translator.AppCode
             var cellsCount = sheet.Dimension.Columns;
             for (var rowI = 1; rowI < rowsCount; rowI++)
             {
+                if (HasEmptyCells(sheet, rowI, 3)) continue;
+
                 var rmd = rmds.FirstOrDefault(r => ZeroBasedSheet.Cell(sheet, rowI, 1).Value != null && r.MetadataId == new Guid(ZeroBasedSheet.Cell(sheet, rowI, 1).Value.ToString()));
                 if (rmd == null)
                 {

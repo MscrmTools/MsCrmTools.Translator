@@ -158,10 +158,12 @@ namespace MsCrmTools.Translator.AppCode
             var cellsCount = sheet.Dimension.Columns;
             for (var rowI = 1; rowI < rowsCount; rowI++)
             {
-                var amd = amds.FirstOrDefault(a => a.Amd.MetadataId == new Guid(ZeroBasedSheet.Cell(sheet, rowI, 0).Value.ToString()));
+                if (HasEmptyCells(sheet, rowI, 3)) continue;
+
+                var amd = amds.FirstOrDefault(a => a.Amd.MetadataId == new Guid(ZeroBasedSheet.Cell(sheet, rowI, 0).Value?.ToString()));
                 if (amd == null)
                 {
-                    var currentEntity = emds.FirstOrDefault(e => e.LogicalName == ZeroBasedSheet.Cell(sheet, rowI, 1).Value.ToString());
+                    var currentEntity = emds.FirstOrDefault(e => e.LogicalName == ZeroBasedSheet.Cell(sheet, rowI, 1).Value?.ToString());
                     if (currentEntity == null)
                     {
                         var request = new RetrieveEntityRequest
@@ -178,7 +180,7 @@ namespace MsCrmTools.Translator.AppCode
 
                     amd = new MasterAttribute();
                     amd.Amd = currentEntity.Attributes.FirstOrDefault(a => string.Equals(a.LogicalName,
-                        ZeroBasedSheet.Cell(sheet, rowI, 2).Value.ToString(), StringComparison.OrdinalIgnoreCase));
+                        ZeroBasedSheet.Cell(sheet, rowI, 2).Value?.ToString(), StringComparison.OrdinalIgnoreCase));
 
                     //still null? someone deleted the attribute while we were busy translating. Let's skip it!
                     if (amd.Amd == null)

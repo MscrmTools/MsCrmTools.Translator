@@ -144,6 +144,8 @@ namespace MsCrmTools.Translator.AppCode
 
             for (var rowI = 1; rowI < rowsCount; rowI++)
             {
+                if (HasEmptyCells(sheet, rowI, 2)) continue;
+
                 var emd = emds.FirstOrDefault(e => e.LogicalName == ZeroBasedSheet.Cell(sheet, rowI, 1).Value.ToString());
                 if (emd == null)
                 {
