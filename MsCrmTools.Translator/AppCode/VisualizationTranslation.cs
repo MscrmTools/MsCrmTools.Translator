@@ -171,7 +171,7 @@ namespace MsCrmTools.Translator.AppCode
                 var locLabel = ((RetrieveLocLabelsResponse)service.Execute(new RetrieveLocLabelsRequest
                 {
                     EntityMoniker = new EntityReference("savedqueryvisualization", currentVisualizationId),
-                    AttributeName = ZeroBasedSheet.Cell(sheet, rowI, 3).Value.ToString() == "Name" ? "name" : "description"
+                    AttributeName = ZeroBasedSheet.Cell(sheet, rowI, 2).Value.ToString() == "Name" ? "name" : "description"
                 })).Label;
 
                 var request = new SetLocLabelsRequest
