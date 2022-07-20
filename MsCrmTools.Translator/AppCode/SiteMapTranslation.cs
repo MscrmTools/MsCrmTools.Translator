@@ -36,7 +36,7 @@ namespace MsCrmTools.Translator.AppCode
             var line = 0;
             int cell;
 
-            siteMaps = GetSiteMaps(service, detail);
+            siteMaps = GetSiteMaps(settings, service, detail);
 
             var areaSheet = file.Worksheets.Add("SiteMap Areas");
             var groupSheet = file.Worksheets.Add("SiteMap Groups");
@@ -328,7 +328,7 @@ namespace MsCrmTools.Translator.AppCode
             }
         }
 
-        public EntityCollection GetSiteMaps(IOrganizationService service, ConnectionDetail detail)
+        public EntityCollection GetSiteMaps(ExportSettings settings, IOrganizationService service, ConnectionDetail detail)
         {
             if (siteMaps != null) return siteMaps;
 
@@ -336,30 +336,56 @@ namespace MsCrmTools.Translator.AppCode
 
             if (detail.OrganizationMajorVersion >= 8 && detail.OrganizationMinorVersion >= 2)
             {
-                var sitemapsIds = service.RetrieveMultiple(new QueryExpression("appmodulecomponent")
-                {
-                    ColumnSet = new ColumnSet(true),
-                    Criteria = new FilterExpression
-                    {
-                        Conditions =
-                    {
-                        new ConditionExpression("componenttype", ConditionOperator.Equal, 62)
-                    }
-                    }
-                });
+                List<Guid> ids = new List<Guid>();
 
-                foreach (var siteMapId in sitemapsIds.Entities)
+                if ((settings?.SolutionId ?? Guid.Empty) != Guid.Empty)
                 {
-                    if (ec.Entities.Any(ent => ent.Id == siteMapId.GetAttributeValue<Guid>("objectid") ||
-                                               siteMapId.GetAttributeValue<EntityReference>("appmoduleidunique").Name == null))
+                    var components = service.RetrieveMultiple(new QueryExpression("solutioncomponent")
                     {
-                        continue;
-                    }
+                        ColumnSet = new ColumnSet("objectid"),
+                        Criteria = new FilterExpression
+                        {
+                            Conditions =
+                            {
+                                new ConditionExpression("componenttype", ConditionOperator.Equal, 62),
+                                new ConditionExpression("solutionid", ConditionOperator.Equal, settings?.SolutionId ?? Guid.Empty)
+                            }
+                        }
+                    });
 
+                    ids.AddRange(components.Entities.Select(e => e.GetAttributeValue<Guid>("objectid")));
+                }
+                else
+                {
+                    var sitemapsIds = service.RetrieveMultiple(new QueryExpression("appmodulecomponent")
+                    {
+                        ColumnSet = new ColumnSet(true),
+                        Criteria = new FilterExpression
+                        {
+                            Conditions =
+                            {
+                                new ConditionExpression("componenttype", ConditionOperator.Equal, 62)
+                            }
+                        }
+                    });
+
+                    foreach (var siteMapId in sitemapsIds.Entities)
+                    {
+                        if (ec.Entities.Any(ent => ent.Id == siteMapId.GetAttributeValue<Guid>("objectid") ||
+                                                   siteMapId.GetAttributeValue<EntityReference>("appmoduleidunique").Name == null))
+                        {
+                            continue;
+                        }
+
+                        ids.Add(siteMapId.GetAttributeValue<Guid>("objectid"));
+                    }
+                }
+
+                foreach (var id in ids)
+                {
                     try
                     {
-                        var tmpSiteMap = service.Retrieve("sitemap",
-                            siteMapId.GetAttributeValue<Guid>("objectid"), new ColumnSet(true));
+                        var tmpSiteMap = service.Retrieve("sitemap", id, new ColumnSet(true));
 
                         if (tmpSiteMap.GetAttributeValue<OptionSetValue>("componentstate")?.Value != 0)
                             continue;
@@ -371,13 +397,15 @@ namespace MsCrmTools.Translator.AppCode
                 }
             }
 
-            // Adding default sitemap
-            var qe = new QueryExpression("sitemap");
-            qe.ColumnSet = new ColumnSet(true);
-            EntityCollection ecDefault = service.RetrieveMultiple(qe);
-            ecDefault.Entities.First()["sitemapname"] = "Default";
-            ec.Entities.Add(ecDefault.Entities.First());
-
+            if (settings == null || settings.SolutionId == Guid.Empty)
+            {
+                // Adding default sitemap
+                var qe = new QueryExpression("sitemap");
+                qe.ColumnSet = new ColumnSet(true);
+                EntityCollection ecDefault = service.RetrieveMultiple(qe);
+                ecDefault.Entities.First()["sitemapname"] = "Default";
+                ec.Entities.Add(ecDefault.Entities.First());
+            }
             siteMaps = ec;
 
             return siteMaps;
@@ -405,7 +433,7 @@ namespace MsCrmTools.Translator.AppCode
         {
             OnLog(new LogEventArgs($"Reading {sheet.Name}"));
 
-            GetSiteMaps(service, detail);
+            GetSiteMaps(null, service, detail);
 
             foreach (var siteMap in siteMaps.Entities)
             {
@@ -460,7 +488,7 @@ namespace MsCrmTools.Translator.AppCode
         {
             OnLog(new LogEventArgs($"Reading {sheet.Name}"));
 
-            GetSiteMaps(service, detail);
+            GetSiteMaps(null, service, detail);
 
             foreach (var siteMap in siteMaps.Entities)
             {
@@ -517,7 +545,7 @@ namespace MsCrmTools.Translator.AppCode
         {
             OnLog(new LogEventArgs($"Reading {sheet.Name}"));
 
-            GetSiteMaps(service, detail);
+            GetSiteMaps(null, service, detail);
 
             foreach (var siteMap in siteMaps.Entities)
             {
