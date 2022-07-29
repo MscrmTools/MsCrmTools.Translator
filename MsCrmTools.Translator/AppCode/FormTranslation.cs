@@ -401,25 +401,30 @@ namespace MsCrmTools.Translator.AppCode
             var userSettingLcid = setting.GetAttributeValue<int>("uilanguageid");
             var currentSetting = userSettingLcid;
 
-            int orgLcid = GetCurrentOrgBaseLanguage(service);
-            if (currentSetting != orgLcid)
+            var response = (RetrieveAvailableLanguagesResponse)service.Execute(new RetrieveAvailableLanguagesRequest());
+            foreach (var lcid in response.LocaleIds)
             {
-                setting["localeid"] = orgLcid;
-                setting["uilanguageid"] = orgLcid;
-                setting["helplanguageid"] = orgLcid;
-                service.Update(setting);
-                currentSetting = orgLcid;
+                if (currentSetting != lcid)
+                {
+                    setting["localeid"] = lcid;
+                    setting["uilanguageid"] = lcid;
+                    setting["helplanguageid"] = lcid;
+                    service.Update(setting);
+                    currentSetting = lcid;
 
-                Thread.Sleep(2000);
-            }
+                    OnLog(new LogEventArgs($"Current user language changed to {currentSetting}"));
+                }
 
-            var arg = new TranslationProgressEventArgs();
-            foreach (var form in forms)
-            {
-                AddRequest(new UpdateRequest { Target = form });
-                ExecuteMultiple(service, arg, forms.Count);
+                OnLog(new LogEventArgs($"Importing translations for language {currentSetting}"));
+
+                var arg = new TranslationProgressEventArgs();
+                foreach (var form in forms)
+                {
+                    AddRequest(new UpdateRequest { Target = form });
+                    ExecuteMultiple(service, arg, forms.Count);
+                }
+                ExecuteMultiple(service, arg, forms.Count, true);
             }
-            ExecuteMultiple(service, arg, forms.Count, true);
 
             if (currentSetting != userSettingLcid)
             {
@@ -427,8 +432,8 @@ namespace MsCrmTools.Translator.AppCode
                 setting["uilanguageid"] = userSettingLcid;
                 setting["helplanguageid"] = userSettingLcid;
                 service.Update(setting);
-
-                Thread.Sleep(2000);
+                currentSetting = userSettingLcid;
+                OnLog(new LogEventArgs($"Current user language changed to {currentSetting}"));
             }
         }
 
