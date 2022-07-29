@@ -155,7 +155,8 @@ namespace MsCrmTools.Translator.AppCode
                             Id = form.GetAttributeValue<Guid>("formid"),
                             Entity = entity.LogicalName,
                             Names = new Dictionary<int, string>(),
-                            Descriptions = new Dictionary<int, string>()
+                            Descriptions = new Dictionary<int, string>(),
+                            Type = form.FormattedValues["type"]
                         };
                         crmForms.Add(crmForm);
                     }
@@ -313,7 +314,7 @@ namespace MsCrmTools.Translator.AppCode
                 var locLabel = ((RetrieveLocLabelsResponse)service.Execute(new RetrieveLocLabelsRequest
                 {
                     EntityMoniker = new EntityReference("systemform", currentFormId),
-                    AttributeName = ZeroBasedSheet.Cell(sheet, rowI, 3).Value.ToString() == "Name" ? "name" : "description"
+                    AttributeName = ZeroBasedSheet.Cell(sheet, rowI, 4).Value.ToString() == "Name" ? "name" : "description"
                 })).Label;
 
                 var labels = locLabel.LocalizedLabels.ToList();
@@ -321,11 +322,11 @@ namespace MsCrmTools.Translator.AppCode
                 var request = new SetLocLabelsRequest
                 {
                     EntityMoniker = new EntityReference("systemform", currentFormId),
-                    AttributeName = ZeroBasedSheet.Cell(sheet, rowI, 3).Value.ToString() == "Name" ? "name" : "description",
+                    AttributeName = ZeroBasedSheet.Cell(sheet, rowI, 4).Value.ToString() == "Name" ? "name" : "description",
                     Labels = locLabel.LocalizedLabels.ToArray()
                 };
 
-                var columnIndex = 4;
+                var columnIndex = 5;
                 while (columnIndex < cellsCount)
                 {
                     if (ZeroBasedSheet.Cell(sheet, rowI, columnIndex).Value != null)
@@ -646,6 +647,7 @@ namespace MsCrmTools.Translator.AppCode
                 ZeroBasedSheet.Cell(formSheet, line, cell++).Value = crmForm.FormUniqueId.ToString("B");
                 ZeroBasedSheet.Cell(formSheet, line, cell++).Value = crmForm.Id.ToString("B");
                 ZeroBasedSheet.Cell(formSheet, line, cell++).Value = crmForm.Entity;
+                ZeroBasedSheet.Cell(formSheet, line, cell++).Value = crmForm.Type;
                 ZeroBasedSheet.Cell(formSheet, line, cell++).Value = "Name";
 
                 foreach (var lcid in languages)
@@ -666,6 +668,7 @@ namespace MsCrmTools.Translator.AppCode
                 ZeroBasedSheet.Cell(formSheet, line, cell++).Value = crmForm.FormUniqueId.ToString("B");
                 ZeroBasedSheet.Cell(formSheet, line, cell++).Value = crmForm.Id.ToString("B");
                 ZeroBasedSheet.Cell(formSheet, line, cell++).Value = crmForm.Entity;
+                ZeroBasedSheet.Cell(formSheet, line, cell++).Value = crmForm.Type;
                 ZeroBasedSheet.Cell(formSheet, line, cell++).Value = "Description";
 
                 foreach (var lcid in languages)
@@ -712,6 +715,7 @@ namespace MsCrmTools.Translator.AppCode
             ZeroBasedSheet.Cell(sheet, 0, cell++).Value = "Form Unique Id";
             ZeroBasedSheet.Cell(sheet, 0, cell++).Value = "Form Id";
             ZeroBasedSheet.Cell(sheet, 0, cell++).Value = "Entity Logical Name";
+            ZeroBasedSheet.Cell(sheet, 0, cell++).Value = "Form Type";
             ZeroBasedSheet.Cell(sheet, 0, cell++).Value = "Type";
 
             foreach (var lcid in languages)

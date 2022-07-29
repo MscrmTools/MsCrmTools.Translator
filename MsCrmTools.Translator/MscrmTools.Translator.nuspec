@@ -12,10 +12,7 @@
     <description>Exports and Imports translations with contextual information</description>
     <summary>Exports and Imports translations with contextual information</summary>
     <releaseNotes>
-      Fixed display of progresss when performing multiple imports sequentialy
-      Fixed NullReferenceException when importing charts (#50)
-      Fixed All SiteMaps exported even if a solution was chosen (#52)
-      Attempt to fix form tabs and sections translation
+      Added Form type (Main, Quick Create, Quick View) when exporting forms to help identify the form to rename
     </releaseNotes>
     <tags>XrmToolBox Plugin Translator</tags>
     <dependencies>
