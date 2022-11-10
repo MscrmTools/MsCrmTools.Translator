@@ -32,6 +32,11 @@ namespace MsCrmTools.Translator.AppCode
             var setting = GetCurrentUserSettings(service);
 
             var userSettingLcid = setting.GetAttributeValue<int>("uilanguageid");
+            if (userSettingLcid == 0)
+            {
+                userSettingLcid = languages.First();
+            }
+
             var currentSetting = userSettingLcid;
 
             var crmForms = new List<CrmForm>();
