@@ -231,15 +231,18 @@ namespace MsCrmTools.Translator.AppCode
                         var lcid = int.Parse(ZeroBasedSheet.Cell(sheet, 0, columnIndex).Value.ToString());
                         var label = ZeroBasedSheet.Cell(sheet, rowI, columnIndex).Value.ToString();
 
-                        var translatedLabel = request.Label.LocalizedLabels.FirstOrDefault(x => x.LanguageCode == lcid);
-                        if (translatedLabel == null)
+                        if (!string.IsNullOrEmpty(label))
                         {
-                            translatedLabel = new LocalizedLabel(label, lcid);
-                            request.Label.LocalizedLabels.Add(translatedLabel);
-                        }
-                        else
-                        {
-                            translatedLabel.Label = label;
+                            var translatedLabel = request.Label.LocalizedLabels.FirstOrDefault(x => x.LanguageCode == lcid);
+                            if (translatedLabel == null)
+                            {
+                                translatedLabel = new LocalizedLabel(label, lcid);
+                                request.Label.LocalizedLabels.Add(translatedLabel);
+                            }
+                            else
+                            {
+                                translatedLabel.Label = label;
+                            }
                         }
                         columnIndex++;
                     }
@@ -252,15 +255,18 @@ namespace MsCrmTools.Translator.AppCode
                         var lcid = int.Parse(ZeroBasedSheet.Cell(sheet, 0, columnIndex).Value.ToString());
                         var label = ZeroBasedSheet.Cell(sheet, rowI, columnIndex).Value.ToString();
 
-                        var translatedLabel = request.Description.LocalizedLabels.FirstOrDefault(x => x.LanguageCode == lcid);
-                        if (translatedLabel == null)
+                        if (!string.IsNullOrEmpty(label))
                         {
-                            translatedLabel = new LocalizedLabel(label, lcid);
-                            request.Description.LocalizedLabels.Add(translatedLabel);
-                        }
-                        else
-                        {
-                            translatedLabel.Label = label;
+                            var translatedLabel = request.Description.LocalizedLabels.FirstOrDefault(x => x.LanguageCode == lcid);
+                            if (translatedLabel == null)
+                            {
+                                translatedLabel = new LocalizedLabel(label, lcid);
+                                request.Description.LocalizedLabels.Add(translatedLabel);
+                            }
+                            else
+                            {
+                                translatedLabel.Label = label;
+                            }
                         }
                         columnIndex++;
                     }
