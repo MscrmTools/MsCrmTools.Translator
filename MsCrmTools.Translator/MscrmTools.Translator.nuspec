@@ -12,8 +12,9 @@
     <description>Exports and Imports translations with contextual information</description>
     <summary>Exports and Imports translations with contextual information</summary>
     <releaseNotes>
-      Added Form type (Main, Quick Create, Quick View) when exporting forms to help identify the form to rename
-      Fix for translating forms tabs, sections and fields (#47, #51)
+      Fixed issue that was setting empty label if translations where not made for choice(s) values
+      Fixed issue when exporting forms and dashboards with an application user connected to XrmToolBox
+      Fixed issue where fields, sections and tabs added in modern designer were not translated
     </releaseNotes>
     <tags>XrmToolBox Plugin Translator</tags>
     <dependencies>
