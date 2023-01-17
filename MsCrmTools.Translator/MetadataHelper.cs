@@ -64,30 +64,37 @@ namespace MsCrmTools.Translator
 
                 if (list.Count > 0)
                 {
-                    EntityQueryExpression entityQueryExpression = new EntityQueryExpression
+                    int i = 0;
+                    List<Guid> metadataIds = list.Take(300).ToList();
+                    do
                     {
-                        Criteria = new MetadataFilterExpression(LogicalOperator.Or),
-                        Properties = new MetadataPropertiesExpression
+                        EntityQueryExpression entityQueryExpression = new EntityQueryExpression
                         {
-                            AllProperties = false,
-                            PropertyNames = { "DisplayName", "LogicalName", "ObjectTypeCode" }
-                        }
-                    };
+                            Criteria = new MetadataFilterExpression(LogicalOperator.Or),
+                            Properties = new MetadataPropertiesExpression
+                            {
+                                AllProperties = false,
+                                PropertyNames = { "DisplayName", "LogicalName", "ObjectTypeCode" }
+                            }
+                        };
 
-                    list.ForEach(id =>
-                    {
-                        entityQueryExpression.Criteria.Conditions.Add(new MetadataConditionExpression("MetadataId", MetadataConditionOperator.Equals, id));
-                    });
+                        metadataIds.ForEach(id =>
+                        {
+                            entityQueryExpression.Criteria.Conditions.Add(new MetadataConditionExpression("MetadataId", MetadataConditionOperator.Equals, id));
+                        });
 
-                    RetrieveMetadataChangesRequest retrieveMetadataChangesRequest = new RetrieveMetadataChangesRequest
-                    {
-                        Query = entityQueryExpression,
-                        ClientVersionStamp = null
-                    };
+                        RetrieveMetadataChangesRequest retrieveMetadataChangesRequest = new RetrieveMetadataChangesRequest
+                        {
+                            Query = entityQueryExpression,
+                            ClientVersionStamp = null
+                        };
 
-                    var response = (RetrieveMetadataChangesResponse)oService.Execute(retrieveMetadataChangesRequest);
-
-                    entities = response.EntityMetadata.ToList();
+                        var response = (RetrieveMetadataChangesResponse)oService.Execute(retrieveMetadataChangesRequest);
+                        entities.AddRange(response.EntityMetadata);
+                        i++;
+                        metadataIds = list.Skip(i * 300).Take(300).ToList();
+                    }
+                    while (metadataIds.Count > 0);
                 }
             }
 
