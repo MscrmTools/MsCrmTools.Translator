@@ -18,10 +18,12 @@ namespace MsCrmTools.Translator.AppCode
     public class FormTranslation : BaseTranslation
     {
         private static ExportSettings settings;
+        private readonly List<int> languagesToProcess;
 
         public FormTranslation()
         {
             name = "Forms";
+            languagesToProcess = new List<int>();
         }
 
         public void Export(List<EntityMetadata> entities, List<int> languages, ExcelWorkbook file, IOrganizationService service, FormExportOption options, ExportSettings esettings)
@@ -406,8 +408,7 @@ namespace MsCrmTools.Translator.AppCode
             var userSettingLcid = setting.GetAttributeValue<int>("uilanguageid");
             var currentSetting = userSettingLcid;
 
-            var response = (RetrieveAvailableLanguagesResponse)service.Execute(new RetrieveAvailableLanguagesRequest());
-            foreach (var lcid in response.LocaleIds)
+            foreach (var lcid in languagesToProcess)
             {
                 if (currentSetting != lcid)
                 {
@@ -491,6 +492,9 @@ namespace MsCrmTools.Translator.AppCode
                             var label = ZeroBasedSheet.Cell(sheet, rowI, columnIndex).Value.ToString();
 
                             UpdateXmlNode(cellNode, lcid, label);
+
+                            var iLcid = int.Parse(lcid);
+                            if (!languagesToProcess.Contains(iLcid)) languagesToProcess.Add(iLcid);
                         }
 
                         columnIndex++;
@@ -553,6 +557,9 @@ namespace MsCrmTools.Translator.AppCode
                             var label = ZeroBasedSheet.Cell(sheet, rowI, columnIndex).Value.ToString();
 
                             UpdateXmlNode(sectionNode, lcid, label);
+
+                            var iLcid = int.Parse(lcid);
+                            if (!languagesToProcess.Contains(iLcid)) languagesToProcess.Add(iLcid);
                         }
 
                         columnIndex++;
@@ -609,6 +616,9 @@ namespace MsCrmTools.Translator.AppCode
                             var label = ZeroBasedSheet.Cell(sheet, rowI, columnIndex).Value.ToString();
 
                             UpdateXmlNode(tabNode, lcid, label);
+
+                            var iLcid = int.Parse(lcid);
+                            if (!languagesToProcess.Contains(iLcid)) languagesToProcess.Add(iLcid);
                         }
 
                         columnIndex++;
