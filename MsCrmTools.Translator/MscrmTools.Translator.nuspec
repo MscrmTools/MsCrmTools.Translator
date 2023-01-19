@@ -15,6 +15,7 @@
       Fixed issue when loading from solution with more than 200 tables
       Optimized loading of tables when exporting
       Optimized memory consumption
+      Import of forms content now import translations only for languages present in Excel file and not all enable languages in the environment
     </releaseNotes>
     <tags>XrmToolBox Plugin Translator</tags>
     <dependencies>
