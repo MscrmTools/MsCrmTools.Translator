@@ -65,7 +65,7 @@ namespace MsCrmTools.Translator
                 if (list.Count > 0)
                 {
                     int i = 0;
-                    List<Guid> metadataIds = list.Take(300).ToList();
+                    List<Guid> metadataIds = list.Take(100).ToList();
                     do
                     {
                         EntityQueryExpression entityQueryExpression = new EntityQueryExpression
@@ -92,7 +92,7 @@ namespace MsCrmTools.Translator
                         var response = (RetrieveMetadataChangesResponse)oService.Execute(retrieveMetadataChangesRequest);
                         entities.AddRange(response.EntityMetadata);
                         i++;
-                        metadataIds = list.Skip(i * 300).Take(300).ToList();
+                        metadataIds = list.Skip(i * 100).Take(100).ToList();
                     }
                     while (metadataIds.Count > 0);
                 }
