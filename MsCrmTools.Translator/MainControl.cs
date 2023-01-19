@@ -57,15 +57,16 @@ namespace MsCrmTools.Translator
 
         private void BtnBrowseImportFileClick(object sender, EventArgs e)
         {
-            var ofd = new OpenFileDialog
+            using (var ofd = new OpenFileDialog
             {
                 Title = "Select translation file",
                 Filter = "Excel Workbook|*.xlsx"
-            };
-
-            if (ofd.ShowDialog(this) == DialogResult.OK)
+            })
             {
-                txtFilePath.Text = ofd.FileName;
+                if (ofd.ShowDialog(this) == DialogResult.OK)
+                {
+                    txtFilePath.Text = ofd.FileName;
+                }
             }
         }
 
@@ -90,65 +91,67 @@ namespace MsCrmTools.Translator
                     (from ListViewItem item in lvEntities.CheckedItems select ((EntityMetadata)item.Tag).LogicalName)
                         .ToList();
 
-                var sfd = new SaveFileDialog { Filter = "Excel workbook|*.xlsx", Title = "Select file destination" };
-                if (sfd.ShowDialog(this) == DialogResult.OK)
+                using (var sfd = new SaveFileDialog { Filter = "Excel workbook|*.xlsx", Title = "Select file destination" })
                 {
-                    var settings = new ExportSettings
+                    if (sfd.ShowDialog(this) == DialogResult.OK)
                     {
-                        ExportAttributes = chkExportAttributes.Checked,
-                        ExportBooleans = chkExportBooleans.Checked,
-                        ExportEntities = chkExportEntity.Checked,
-                        ExportForms = chkExportForms.Checked,
-                        ExportFormFields = chkExportFormsFields.Checked,
-                        ExportFormSections = chkExportFormsSections.Checked,
-                        ExportFormTabs = chkExportFormsTabs.Checked,
-                        ExportGlobalOptionSet = chkExportGlobalOptSet.Checked,
-                        ExportOptionSet = chkExportPicklists.Checked,
-                        ExportViews = chkExportViews.Checked,
-                        ExportCharts = chkExportCharts.Checked,
-                        ExportCustomizedRelationships = chkExportCustomizedRelationships.Checked,
-                        ExportSiteMap = chkExportSiteMap.Checked,
-                        ExportDashboards = chkExportDashboards.Checked,
-                        FilePath = sfd.FileName,
-                        Entities = entities,
-                        ExportNames = rdbBoth.Checked || rdbNameOnly.Checked,
-                        ExportDescriptions = rdbBoth.Checked || rdbDescOnly.Checked,
-                        SolutionId = _solutionId,
-                        LanguageToExport = rdbExportSpecificLanguage.Checked ? ((Language)ccbLanguageToExport.SelectedItem).Lcid : -1
-                    };
-
-                    pnlNewProgress.Controls.Clear();
-
-                    SetState(true);
-
-                    WorkAsync(new WorkAsyncInfo
-                    {
-                        Message = "Exporting Translations...",
-                        AsyncArgument = settings,
-                        Work = (bw, evt) =>
+                        var settings = new ExportSettings
                         {
-                            var engine = new Engine();
-                            engine.Export((ExportSettings)evt.Argument, Service, ConnectionDetail, bw);
-                        },
-                        PostWorkCallBack = evt =>
-                        {
-                            SetState(false);
+                            ExportAttributes = chkExportAttributes.Checked,
+                            ExportBooleans = chkExportBooleans.Checked,
+                            ExportEntities = chkExportEntity.Checked,
+                            ExportForms = chkExportForms.Checked,
+                            ExportFormFields = chkExportFormsFields.Checked,
+                            ExportFormSections = chkExportFormsSections.Checked,
+                            ExportFormTabs = chkExportFormsTabs.Checked,
+                            ExportGlobalOptionSet = chkExportGlobalOptSet.Checked,
+                            ExportOptionSet = chkExportPicklists.Checked,
+                            ExportViews = chkExportViews.Checked,
+                            ExportCharts = chkExportCharts.Checked,
+                            ExportCustomizedRelationships = chkExportCustomizedRelationships.Checked,
+                            ExportSiteMap = chkExportSiteMap.Checked,
+                            ExportDashboards = chkExportDashboards.Checked,
+                            FilePath = sfd.FileName,
+                            Entities = entities,
+                            ExportNames = rdbBoth.Checked || rdbNameOnly.Checked,
+                            ExportDescriptions = rdbBoth.Checked || rdbDescOnly.Checked,
+                            SolutionId = _solutionId,
+                            LanguageToExport = rdbExportSpecificLanguage.Checked ? ((Language)ccbLanguageToExport.SelectedItem).Lcid : -1
+                        };
 
-                            if (evt.Error != null)
+                        pnlNewProgress.Controls.Clear();
+
+                        SetState(true);
+
+                        WorkAsync(new WorkAsyncInfo
+                        {
+                            Message = "Exporting Translations...",
+                            AsyncArgument = settings,
+                            Work = (bw, evt) =>
                             {
-                                string errorMessage = CrmExceptionHelper.GetErrorMessage(evt.Error, true);
-                                MessageBox.Show(this, errorMessage, @"Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                            }
-                            else
+                                var engine = new Engine();
+                                engine.Export((ExportSettings)evt.Argument, Service, ConnectionDetail, bw);
+                            },
+                            PostWorkCallBack = evt =>
                             {
-                                if (DialogResult.Yes == MessageBox.Show(this, @"Do you want to open generated document?", @"Question", MessageBoxButtons.YesNo, MessageBoxIcon.Question))
+                                SetState(false);
+
+                                if (evt.Error != null)
                                 {
-                                    Process.Start(settings.FilePath);
+                                    string errorMessage = CrmExceptionHelper.GetErrorMessage(evt.Error, true);
+                                    MessageBox.Show(this, errorMessage, @"Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                                 }
-                            }
-                        },
-                        ProgressChanged = evt => { SetWorkingMessage(evt.UserState.ToString()); }
-                    });
+                                else
+                                {
+                                    if (DialogResult.Yes == MessageBox.Show(this, @"Do you want to open generated document?", @"Question", MessageBoxButtons.YesNo, MessageBoxIcon.Question))
+                                    {
+                                        Process.Start(settings.FilePath);
+                                    }
+                                }
+                            },
+                            ProgressChanged = evt => { SetWorkingMessage(evt.UserState.ToString()); }
+                        });
+                    }
                 }
             }
         }
@@ -357,6 +360,7 @@ namespace MsCrmTools.Translator
                     string.Join(", ",
                         sPicker.SelectedSolution.Select(s => s.GetAttributeValue<string>("friendlyname"))));
                 pnlSelectedSolution.Visible = true;
+                sPicker.Dispose();
             }
 
             lvEntities.Items.Clear();
