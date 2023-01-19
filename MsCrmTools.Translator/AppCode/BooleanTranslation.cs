@@ -65,7 +65,7 @@ namespace MsCrmTools.Translator.AppCode
                             if (bAmd.OptionSet.FalseOption.Label != null)
                             {
                                 var optionLabel =
-                                    bAmd.OptionSet.FalseOption.Label.LocalizedLabels.FirstOrDefault(l =>
+                                    bAmd.OptionSet.FalseOption.Label.LocalizedLabels?.FirstOrDefault(l =>
                                         l.LanguageCode == lcid);
                                 if (optionLabel != null)
                                 {
@@ -95,7 +95,7 @@ namespace MsCrmTools.Translator.AppCode
                             if (bAmd.OptionSet.FalseOption.Description != null)
                             {
                                 var optionLabel =
-                                    bAmd.OptionSet.FalseOption.Description.LocalizedLabels.FirstOrDefault(l =>
+                                    bAmd.OptionSet.FalseOption.Description.LocalizedLabels?.FirstOrDefault(l =>
                                         l.LanguageCode == lcid);
                                 if (optionLabel != null)
                                 {
@@ -125,7 +125,7 @@ namespace MsCrmTools.Translator.AppCode
                             if (bAmd.OptionSet.TrueOption.Label != null)
                             {
                                 var optionLabel =
-                                    bAmd.OptionSet.TrueOption.Label.LocalizedLabels.FirstOrDefault(l =>
+                                    bAmd.OptionSet.TrueOption.Label.LocalizedLabels?.FirstOrDefault(l =>
                                         l.LanguageCode == lcid);
                                 if (optionLabel != null)
                                 {
@@ -155,7 +155,7 @@ namespace MsCrmTools.Translator.AppCode
                             if (bAmd.OptionSet.TrueOption.Description != null)
                             {
                                 var optionLabel =
-                                    bAmd.OptionSet.TrueOption.Description.LocalizedLabels.FirstOrDefault(l =>
+                                    bAmd.OptionSet.TrueOption.Description.LocalizedLabels?.FirstOrDefault(l =>
                                         l.LanguageCode == lcid);
                                 if (optionLabel != null)
                                 {
