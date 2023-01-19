@@ -3,6 +3,7 @@ using Microsoft.Crm.Sdk.Messages;
 using Microsoft.Xrm.Sdk;
 using Microsoft.Xrm.Sdk.Messages;
 using Microsoft.Xrm.Sdk.Metadata;
+using Microsoft.Xrm.Sdk.Metadata.Query;
 using Microsoft.Xrm.Sdk.Query;
 using MsCrmTools.Translator.AppCode;
 using OfficeOpenXml;
@@ -55,26 +56,50 @@ namespace MsCrmTools.Translator
             {
                 worker.ReportProgress(0, "Loading selected entities...");
             }
-            foreach (string entityLogicalName in settings.Entities)
+
+            int i = 0;
+            List<string> logicalNames = settings.Entities.Take(100).ToList();
+            do
             {
-                var filters = EntityFilters.Default;
-                if (settings.ExportEntities)
+                EntityQueryExpression entityQueryExpression = new EntityQueryExpression
                 {
-                    filters = filters | EntityFilters.Entity;
-                }
+                    Criteria = new MetadataFilterExpression(LogicalOperator.Or),
+                    Properties = new MetadataPropertiesExpression
+                    {
+                        AllProperties = false,
+                        PropertyNames = { "DisplayName", "Description", "SchemaName", "LogicalName", "ObjectTypeCode" }
+                    }
+                };
+
                 if (settings.ExportCustomizedRelationships)
                 {
-                    filters = filters | EntityFilters.Relationships;
+                    entityQueryExpression.Properties.PropertyNames.Add("OneToManyRelationships");
+                    entityQueryExpression.Properties.PropertyNames.Add("ManyToOneRelationships");
+                    entityQueryExpression.Properties.PropertyNames.Add("ManyToManyRelationships");
                 }
                 if (settings.ExportAttributes || settings.ExportOptionSet || settings.ExportBooleans)
                 {
-                    filters = filters | EntityFilters.Attributes;
+                    entityQueryExpression.Properties.PropertyNames.Add("Attributes");
                 }
 
-                var request = new RetrieveEntityRequest { LogicalName = entityLogicalName, EntityFilters = filters };
-                var response = (RetrieveEntityResponse)service.Execute(request);
-                emds.Add(response.EntityMetadata);
+                logicalNames.ForEach(logicalName =>
+                {
+                    entityQueryExpression.Criteria.Conditions.Add(new MetadataConditionExpression("LogicalName", MetadataConditionOperator.Equals, logicalName));
+                });
+
+                RetrieveMetadataChangesRequest retrieveMetadataChangesRequest = new RetrieveMetadataChangesRequest
+                {
+                    Query = entityQueryExpression,
+                    ClientVersionStamp = null
+                };
+
+                var response = (RetrieveMetadataChangesResponse)service.Execute(retrieveMetadataChangesRequest);
+                emds.AddRange(response.EntityMetadata);
+                i++;
+                logicalNames = settings.Entities.Skip(i * 100).Take(100).ToList();
             }
+            while (logicalNames.Count > 0);
+
 
             var file = new ExcelPackage();
             file.File = new FileInfo(settings.FilePath);
