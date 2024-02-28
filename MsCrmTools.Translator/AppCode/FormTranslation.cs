@@ -19,6 +19,7 @@ namespace MsCrmTools.Translator.AppCode
     {
         private static ExportSettings settings;
         private readonly List<int> languagesToProcess;
+        private bool hasAttrDisplayNameHeader;
 
         public FormTranslation()
         {
@@ -292,14 +293,14 @@ namespace MsCrmTools.Translator.AppCode
                 }
 
                 // Applying style to cells
-                for (int i = 0; i < (8 + languages.Count); i++)
+                for (int i = 0; i < (9 + languages.Count); i++)
                 {
                     StyleMutator.TitleCell(ZeroBasedSheet.Cell(labelSheet, 0, i).Style);
                 }
 
                 for (int i = 1; i < line; i++)
                 {
-                    for (int j = 0; j < 8; j++)
+                    for (int j = 0; j < 9; j++)
                     {
                         StyleMutator.HighlightedCell(ZeroBasedSheet.Cell(labelSheet, i, j).Style);
                     }
@@ -447,11 +448,16 @@ namespace MsCrmTools.Translator.AppCode
         {
             OnLog(new LogEventArgs($"Reading {sheet.Name}"));
 
+            var headerEightContent = ZeroBasedSheet.Cell(sheet, 0, 8).Value.ToString();
+            hasAttrDisplayNameHeader = headerEightContent == "Display name";
+            var columnIndex = hasAttrDisplayNameHeader ? 9 : 8;
+
             var rowsCount = sheet.Dimension.Rows;
             var cellsCount = sheet.Dimension.Columns;
             for (var rowI = 1; rowI < rowsCount; rowI++)
             {
-                if (HasEmptyCells(sheet, rowI, 7)) continue;
+
+                if (HasEmptyCells(sheet, rowI, columnIndex)) continue;
 
                 var labelId = ZeroBasedSheet.Cell(sheet, rowI, 0).Value.ToString();
                 var formId = new Guid(ZeroBasedSheet.Cell(sheet, rowI, 4).Value.ToString());
@@ -483,7 +489,6 @@ namespace MsCrmTools.Translator.AppCode
                         string.Format("//cell[translate(@id,'ABCDEFGHIJKLMNOPQRSTUVWXYZ{{}}','abcdefghijklmnopqrstuvwxyz')='{0}']", new Guid(labelId).ToString()));
                 if (cellNode != null)
                 {
-                    var columnIndex = 8;
                     while (columnIndex < cellsCount)
                     {
                         if (ZeroBasedSheet.Cell(sheet, rowI, columnIndex).Value != null)
@@ -642,6 +647,7 @@ namespace MsCrmTools.Translator.AppCode
             ZeroBasedSheet.Cell(labelSheet, line, cell++).Value = crmFormLabel.Tab;
             ZeroBasedSheet.Cell(labelSheet, line, cell++).Value = crmFormLabel.Section;
             ZeroBasedSheet.Cell(labelSheet, line, cell++).Value = crmFormLabel.Attribute;
+            ZeroBasedSheet.Cell(labelSheet, line, cell++).Value = crmFormLabel.AttributeDisplayName;
 
             foreach (var lcid in languages)
             {
@@ -756,6 +762,7 @@ namespace MsCrmTools.Translator.AppCode
             ZeroBasedSheet.Cell(sheet, 0, cell++).Value = "Tab Name";
             ZeroBasedSheet.Cell(sheet, 0, cell++).Value = "Section Name";
             ZeroBasedSheet.Cell(sheet, 0, cell++).Value = "Attribute";
+            ZeroBasedSheet.Cell(sheet, 0, cell++).Value = "Display name";
 
             foreach (var lcid in languages)
             {
@@ -853,6 +860,7 @@ namespace MsCrmTools.Translator.AppCode
                     Section = sectionName,
                     Entity = entity.LogicalName,
                     Attribute = controlNode.Attributes["id"].Value,
+                    AttributeDisplayName = entity.Attributes.FirstOrDefault(a => a.LogicalName == controlNode.Attributes["id"].Value?.Split(new string[] { "header_"}, StringSplitOptions.RemoveEmptyEntries).Last())?.DisplayName?.UserLocalizedLabel?.Label,
                     Names = new Dictionary<int, string>()
                 };
                 crmFormLabels.Add(crmFormField);

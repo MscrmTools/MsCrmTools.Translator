@@ -15,5 +15,6 @@ namespace MsCrmTools.Translator.AppCode
         public Dictionary<int, string> Names { get; set; }
         public string Section { get; set; }
         public string Tab { get; set; }
+        public string AttributeDisplayName { get; internal set; }
     }
 }

@@ -77,7 +77,7 @@ namespace MsCrmTools.Translator
                     entityQueryExpression.Properties.PropertyNames.Add("ManyToOneRelationships");
                     entityQueryExpression.Properties.PropertyNames.Add("ManyToManyRelationships");
                 }
-                if (settings.ExportAttributes || settings.ExportOptionSet || settings.ExportBooleans)
+                if (settings.ExportAttributes || settings.ExportOptionSet || settings.ExportBooleans || settings.ExportFormFields)
                 {
                     entityQueryExpression.Properties.PropertyNames.Add("Attributes");
                 }
@@ -99,7 +99,6 @@ namespace MsCrmTools.Translator
                 logicalNames = settings.Entities.Skip(i * 100).Take(100).ToList();
             }
             while (logicalNames.Count > 0);
-
 
             var file = new ExcelPackage();
             file.File = new FileInfo(settings.FilePath);
