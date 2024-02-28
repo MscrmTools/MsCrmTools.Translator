@@ -67,7 +67,7 @@ namespace MsCrmTools.Translator
                     Properties = new MetadataPropertiesExpression
                     {
                         AllProperties = false,
-                        PropertyNames = { "DisplayName", "Description", "SchemaName", "LogicalName", "ObjectTypeCode" }
+                        PropertyNames = { "DisplayName", "DisplayCollectionName", "Description", "SchemaName", "LogicalName", "ObjectTypeCode" }
                     }
                 };
 
