@@ -450,13 +450,12 @@ namespace MsCrmTools.Translator.AppCode
 
             var headerEightContent = ZeroBasedSheet.Cell(sheet, 0, 8).Value.ToString();
             hasAttrDisplayNameHeader = headerEightContent == "Display name";
-            var columnIndex = hasAttrDisplayNameHeader ? 9 : 8;
 
             var rowsCount = sheet.Dimension.Rows;
             var cellsCount = sheet.Dimension.Columns;
             for (var rowI = 1; rowI < rowsCount; rowI++)
             {
-
+                var columnIndex = hasAttrDisplayNameHeader ? 9 : 8;
                 if (HasEmptyCells(sheet, rowI, columnIndex)) continue;
 
                 var labelId = ZeroBasedSheet.Cell(sheet, rowI, 0).Value.ToString();
@@ -860,7 +859,7 @@ namespace MsCrmTools.Translator.AppCode
                     Section = sectionName,
                     Entity = entity.LogicalName,
                     Attribute = controlNode.Attributes["id"].Value,
-                    AttributeDisplayName = entity.Attributes.FirstOrDefault(a => a.LogicalName == controlNode.Attributes["id"].Value?.Split(new string[] { "header_"}, StringSplitOptions.RemoveEmptyEntries).Last())?.DisplayName?.UserLocalizedLabel?.Label,
+                    AttributeDisplayName = entity.Attributes.FirstOrDefault(a => a.LogicalName == controlNode.Attributes["id"].Value?.Split(new string[] { "header_" }, StringSplitOptions.RemoveEmptyEntries).Last())?.DisplayName?.UserLocalizedLabel?.Label,
                     Names = new Dictionary<int, string>()
                 };
                 crmFormLabels.Add(crmFormField);
