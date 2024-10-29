@@ -133,8 +133,7 @@ namespace MsCrmTools.Translator
             this.tsbImportTranslations});
             this.toolStripMenu.Location = new System.Drawing.Point(0, 0);
             this.toolStripMenu.Name = "toolStripMenu";
-            this.toolStripMenu.Padding = new System.Windows.Forms.Padding(0, 0, 2, 0);
-            this.toolStripMenu.Size = new System.Drawing.Size(1366, 32);
+            this.toolStripMenu.Size = new System.Drawing.Size(2049, 57);
             this.toolStripMenu.TabIndex = 2;
             this.toolStripMenu.Text = "tsMain";
             // 
@@ -144,14 +143,14 @@ namespace MsCrmTools.Translator
             this.tsbClose.Image = ((System.Drawing.Image)(resources.GetObject("tsbClose.Image")));
             this.tsbClose.ImageTransparentColor = System.Drawing.Color.Magenta;
             this.tsbClose.Name = "tsbClose";
-            this.tsbClose.Size = new System.Drawing.Size(28, 29);
+            this.tsbClose.Size = new System.Drawing.Size(34, 52);
             this.tsbClose.Text = "Close this tool";
             this.tsbClose.Click += new System.EventHandler(this.TsbCloseClick);
             // 
             // toolStripSeparator1
             // 
             this.toolStripSeparator1.Name = "toolStripSeparator1";
-            this.toolStripSeparator1.Size = new System.Drawing.Size(6, 32);
+            this.toolStripSeparator1.Size = new System.Drawing.Size(6, 34);
             // 
             // tsddbLoadEntities
             // 
@@ -168,19 +167,19 @@ namespace MsCrmTools.Translator
             // tsmiAllEntities
             // 
             this.tsmiAllEntities.Name = "tsmiAllEntities";
-            this.tsmiAllEntities.Size = new System.Drawing.Size(221, 30);
+            this.tsmiAllEntities.Size = new System.Drawing.Size(239, 34);
             this.tsmiAllEntities.Text = "All entities";
             // 
             // tsmiEntitiesFromASolution
             // 
             this.tsmiEntitiesFromASolution.Name = "tsmiEntitiesFromASolution";
-            this.tsmiEntitiesFromASolution.Size = new System.Drawing.Size(221, 30);
+            this.tsmiEntitiesFromASolution.Size = new System.Drawing.Size(239, 34);
             this.tsmiEntitiesFromASolution.Text = "From a solution";
             // 
             // toolStripSeparator2
             // 
             this.toolStripSeparator2.Name = "toolStripSeparator2";
-            this.toolStripSeparator2.Size = new System.Drawing.Size(6, 32);
+            this.toolStripSeparator2.Size = new System.Drawing.Size(6, 34);
             // 
             // tsbExportTranslations
             // 
@@ -194,7 +193,7 @@ namespace MsCrmTools.Translator
             // toolStripSeparator3
             // 
             this.toolStripSeparator3.Name = "toolStripSeparator3";
-            this.toolStripSeparator3.Size = new System.Drawing.Size(6, 32);
+            this.toolStripSeparator3.Size = new System.Drawing.Size(6, 34);
             // 
             // tsbImportTranslations
             // 
@@ -218,6 +217,7 @@ namespace MsCrmTools.Translator
             this.tabControl1.SelectedIndex = 0;
             this.tabControl1.Size = new System.Drawing.Size(1358, 875);
             this.tabControl1.TabIndex = 3;
+            this.tabControl1.SelectedIndexChanged += new System.EventHandler(this.tabControl1_SelectedIndexChanged);
             // 
             // tabPage1
             // 

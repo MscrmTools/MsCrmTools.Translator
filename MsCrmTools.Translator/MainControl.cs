@@ -428,6 +428,11 @@ namespace MsCrmTools.Translator
             lblProgress.Visible = isRunning;
         }
 
+        private void tabControl1_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            tsbImportTranslations.Enabled = tabControl1.SelectedTab == tabPage2;
+        }
+
         private void tsddbLoadEntities_DropDownItemClicked(object sender, ToolStripItemClickedEventArgs e)
         {
             if (e.ClickedItem == tsmiAllEntities)
