@@ -49,6 +49,8 @@ namespace MsCrmTools.Translator
                 lcids = lcidResponse.RetrieveProvisionedLanguages.Select(lcid => lcid).ToList();
             }
 
+            lcids.Sort();
+
             // Loading entities
             var emds = new List<EntityMetadata>();
 
