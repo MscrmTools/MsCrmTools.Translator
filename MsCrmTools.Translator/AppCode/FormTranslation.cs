@@ -859,7 +859,7 @@ namespace MsCrmTools.Translator.AppCode
                     Section = sectionName,
                     Entity = entity.LogicalName,
                     Attribute = controlNode.Attributes["id"].Value,
-                    AttributeDisplayName = entity.Attributes.FirstOrDefault(a => a.LogicalName == controlNode.Attributes["id"].Value?.Split(new string[] { "header_" }, StringSplitOptions.RemoveEmptyEntries).Last())?.DisplayName?.UserLocalizedLabel?.Label,
+                    AttributeDisplayName = entity.Attributes.FirstOrDefault(a => a.LogicalName == controlNode.Attributes["id"].Value?.Split(new string[] { "header_" }, StringSplitOptions.RemoveEmptyEntries).Last())?.DisplayName?.UserLocalizedLabel?.Label ?? controlNode.Attributes["id"].Value,
                     Names = new Dictionary<int, string>()
                 };
                 crmFormLabels.Add(crmFormField);
